@@ -1,12 +1,13 @@
 var builder = DistributedApplication.CreateBuilder(args);
 
-var database = builder.AddPostgres("billing-database");
+var pgsql = builder.AddPostgres("billing-database");
+var database = pgsql.AddDatabase(name: "BillingDatabase", databaseName: "billing");
 
-var api = builder
+builder
     .AddProject<Projects.Billing_Api>("billing-api")
     .WithReference(database);
 
-var backend = builder
+builder
     .AddProject<Projects.Billing_Backend>("billing-backend")
     .WithReference(database);
 

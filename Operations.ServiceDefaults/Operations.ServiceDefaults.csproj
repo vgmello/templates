@@ -16,4 +16,11 @@
         <PackageReference Include="OpenTelemetry.Instrumentation.Runtime" Version="1.11.0" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="Api\HealthChecks\" />
+      <Folder Include="Infrastructure\Email\" />
+      <Folder Include="Infrastructure\MassTransit\" />
+      <Folder Include="Infrastructure\Quartz\" />
+    </ItemGroup>
+
 </Project>
