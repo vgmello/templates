@@ -1,4 +1,4 @@
-namespace Reservations;
+namespace Billing;
 
 public class WeatherForecast
 {

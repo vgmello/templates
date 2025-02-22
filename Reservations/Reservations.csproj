@@ -17,4 +17,10 @@
       </Content>
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="Contracts\Commands\" />
+      <Folder Include="Contracts\IntegrationEvents\Events\" />
+      <Folder Include="Contracts\Queries\" />
+    </ItemGroup>
+
 </Project>

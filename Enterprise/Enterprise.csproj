@@ -18,12 +18,10 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="Common\" />
-      <Folder Include="Ledgers\Commands\" />
-      <Folder Include="Ledgers\IntegrationEvents\Events\" />
-      <Folder Include="Ledgers\IntegrationEvents\Handlers\" />
-      <Folder Include="Ledgers\Jobs\" />
-      <Folder Include="Ledgers\Queries\" />
+      <Folder Include="Commands\" />
+      <Folder Include="IntegrationEvents\Events\" />
+      <Folder Include="IntegrationEvents\Handlers\" />
+      <Folder Include="Queries\" />
     </ItemGroup>
 
 </Project>

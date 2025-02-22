@@ -20,14 +20,12 @@
     <ItemGroup>
       <Folder Include="Cashier\Commands\" />
       <Folder Include="Cashier\IntegrationEvents\Events\" />
-      <Folder Include="Cashier\Jobs\" />
+      <Folder Include="Cashier\IntegrationEvents\Handlers\" />
       <Folder Include="Cashier\Queries\" />
-      <Folder Include="Common\" />
       <Folder Include="Infrastructure\Email\" />
       <Folder Include="Infrastructure\HealthChecks\" />
       <Folder Include="Infrastructure\MassTransit\" />
       <Folder Include="Infrastructure\Quartz\" />
-      <Folder Include="IntegrationEvents\" />
     </ItemGroup>
 
 </Project>
