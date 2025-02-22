@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
+using Reservations.Contracts.Models;
 
-namespace Billing.Controllers;
+namespace Reservations.Contracts;
 
 [ApiController]
 [Route("[controller]")]

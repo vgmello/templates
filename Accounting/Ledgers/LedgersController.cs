@@ -1,6 +1,7 @@
+using Accounting.Ledgers.Models;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Billing.Controllers;
+namespace Accounting.Ledgers;
 
 [ApiController]
 [Route("[controller]")]

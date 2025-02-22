@@ -1,32 +1,15 @@
+using Billing.Cashier.Models;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Billing.Controllers;
+namespace Billing.Cashier;
 
 [ApiController]
 [Route("[controller]")]
 public class CashierController : ControllerBase
 {
-    private static readonly string[] Summaries = new[]
+    [HttpGet]
+    public IEnumerable<WeatherForecast> GetCashiers()
     {
-        "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-    };
-
-    private readonly ILogger<CashierController> _logger;
-
-    public CashierController(ILogger<CashierController> logger)
-    {
-        _logger = logger;
-    }
-
-    [HttpGet(Name = "GetWeatherForecast")]
-    public IEnumerable<WeatherForecast> Get()
-    {
-        return Enumerable.Range(1, 5).Select(index => new WeatherForecast
-            {
-                Date = DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-                TemperatureC = Random.Shared.Next(-20, 55),
-                Summary = Summaries[Random.Shared.Next(Summaries.Length)]
-            })
-            .ToArray();
+        return 
     }
 }

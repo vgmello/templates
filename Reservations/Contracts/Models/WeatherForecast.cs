@@ -1,4 +1,4 @@
-namespace Billing;
+namespace Reservations.Contracts.Models;
 
 public class WeatherForecast
 {

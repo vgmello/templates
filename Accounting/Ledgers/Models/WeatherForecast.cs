@@ -1,4 +1,4 @@
-namespace Billing;
+namespace Accounting.Ledgers.Models;
 
 public class WeatherForecast
 {

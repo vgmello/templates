@@ -1,6 +1,7 @@
+using Enterprise.Models;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Billing.Controllers;
+namespace Enterprise;
 
 [ApiController]
 [Route("[controller]")]
