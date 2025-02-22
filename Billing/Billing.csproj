@@ -1,24 +1,18 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
     <ItemGroup>
-        <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="9.0.2">
-            <PrivateAssets>all</PrivateAssets>
-            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-        </PackageReference>
-        <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.3"/>
-        <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.2"/>
+        <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.3" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.2" />
     </ItemGroup>
 
     <ItemGroup>
-        <Folder Include="Cashier\Commands\"/>
-        <Folder Include="Cashier\Data\"/>
-        <Folder Include="Cashier\IntegrationEvents\"/>
-        <Folder Include="Cashier\Queries\"/>
-        <Folder Include="Infrastructure\Email\"/>
-        <Folder Include="Infrastructure\EntityFramework\"/>
-        <Folder Include="Infrastructure\HealthChecks\"/>
-        <Folder Include="Infrastructure\MassTransit\"/>
-        <Folder Include="Infrastructure\Quartz\"/>
+        <Folder Include="Cashier\Commands\" />
+        <Folder Include="Cashier\Database\" />
+        <Folder Include="Cashier\IntegrationEvents\" />
+        <Folder Include="Cashier\Queries\" />
+        <Folder Include="Invoices\Commands\" />
+        <Folder Include="Invoices\IntegrationEvents\" />
+        <Folder Include="Invoices\Queries\" />
     </ItemGroup>
 
 </Project>
