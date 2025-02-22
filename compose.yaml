@@ -1,0 +1,6 @@
+﻿services:
+  accounting:
+    image: accounting
+    build:
+      context: .
+      dockerfile: Accounting/Dockerfile
