@@ -22,5 +22,5 @@ public class CashierPaymentEntity
     public int Version { get; set; }
 
     [ForeignKey(nameof(CashierId))]
-    public virtual CashierEntity Cashier { get; set; } = null!;
+    public CashierEntity Cashier { get; set; } = null!;
 }

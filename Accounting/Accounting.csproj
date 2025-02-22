@@ -3,6 +3,7 @@
     <ItemGroup>
         <Folder Include="Common\"/>
         <Folder Include="Ledgers\Commands\"/>
+        <Folder Include="Ledgers\Database\Entities\" />
         <Folder Include="Ledgers\Queries\"/>
     </ItemGroup>
 

@@ -6,12 +6,13 @@
     </ItemGroup>
 
     <ItemGroup>
+        <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    </ItemGroup>
+
+    <ItemGroup>
         <Folder Include="Cashier\Commands\" />
-        <Folder Include="Cashier\Database\" />
-        <Folder Include="Cashier\IntegrationEvents\" />
         <Folder Include="Cashier\Queries\" />
         <Folder Include="Invoices\Commands\" />
-        <Folder Include="Invoices\IntegrationEvents\" />
         <Folder Include="Invoices\Queries\" />
     </ItemGroup>
 

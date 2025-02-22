@@ -20,5 +20,5 @@ public record CashierEntity
     [ConcurrencyCheck]
     public int Version { get; set; }
 
-    public virtual ICollection<CashierPaymentEntity> CashierPayments { get; set; } = [];
+    public ICollection<CashierPaymentEntity> CashierPayments { get; set; } = [];
 }
