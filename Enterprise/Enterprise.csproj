@@ -8,20 +8,20 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0"/>
+        <PackageReference Include="Swashbuckle.AspNetCore" />
     </ItemGroup>
 
     <ItemGroup>
-      <Content Include="..\.dockerignore">
-        <Link>.dockerignore</Link>
-      </Content>
+        <Content Include="..\.dockerignore">
+            <Link>.dockerignore</Link>
+        </Content>
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="Commands\" />
-      <Folder Include="IntegrationEvents\Events\" />
-      <Folder Include="IntegrationEvents\Handlers\" />
-      <Folder Include="Queries\" />
+        <Folder Include="Commands\" />
+        <Folder Include="IntegrationEvents\Events\" />
+        <Folder Include="IntegrationEvents\Handlers\" />
+        <Folder Include="Queries\" />
     </ItemGroup>
 
 </Project>

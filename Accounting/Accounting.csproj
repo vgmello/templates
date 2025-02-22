@@ -1,29 +1,26 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
 
     <PropertyGroup>
-        <TargetFramework>net8.0</TargetFramework>
-        <Nullable>enable</Nullable>
-        <ImplicitUsings>enable</ImplicitUsings>
         <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0"/>
+        <PackageReference Include="Swashbuckle.AspNetCore" />
     </ItemGroup>
 
     <ItemGroup>
-      <Content Include="..\.dockerignore">
-        <Link>.dockerignore</Link>
-      </Content>
+        <Content Include="..\.dockerignore">
+            <Link>.dockerignore</Link>
+        </Content>
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="Common\" />
-      <Folder Include="Ledgers\Commands\" />
-      <Folder Include="Ledgers\IntegrationEvents\Events\" />
-      <Folder Include="Ledgers\IntegrationEvents\Handlers\" />
-      <Folder Include="Ledgers\Jobs\" />
-      <Folder Include="Ledgers\Queries\" />
+        <Folder Include="Common\" />
+        <Folder Include="Ledgers\Commands\" />
+        <Folder Include="Ledgers\IntegrationEvents\Events\" />
+        <Folder Include="Ledgers\IntegrationEvents\Handlers\" />
+        <Folder Include="Ledgers\Jobs\" />
+        <Folder Include="Ledgers\Queries\" />
     </ItemGroup>
 
 </Project>
