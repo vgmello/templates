@@ -1,13 +1,13 @@
 using Microsoft.AspNetCore.Mvc;
 
-namespace Billing.Cashier;
+namespace Billing.Api.Cashier;
 
 [ApiController]
 [Route("[controller]")]
 public class CashierController : ControllerBase
 {
     [HttpGet]
-    public IEnumerable<Models.Cashier> GetCashiers()
+    public IEnumerable<Billing.Cashier.Models.Cashier> GetCashiers()
     {
         return [];
     }

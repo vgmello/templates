@@ -9,8 +9,6 @@ public record Cashier
     public string Email { get; set; }
 
     public List<CashierPayment> CashierPayments { get; set; }
-
-
 }
 
 public class CashierPayment
@@ -20,5 +18,4 @@ public class CashierPayment
     public int PaymentId { get; set; }
 
     public DateTime PaymentDate { get; set; }
-
 }

@@ -16,6 +16,8 @@ public class CashierDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.HasDefaultSchema("billing");
+
         modelBuilder.ApplyConfiguration(new CashierEntityConfiguration());
         modelBuilder.ApplyConfiguration(new CashierPaymentEntityConfiguration());
     }

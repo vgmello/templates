@@ -1,23 +1,18 @@
 using Accounting.Ledgers.Models;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Accounting.Ledgers;
+namespace Accounting.Api.Ledgers;
 
 [ApiController]
 [Route("[controller]")]
-public class LedgersController : ControllerBase
+public class LedgersController(ILogger<LedgersController> logger) : ControllerBase
 {
     private static readonly string[] Summaries = new[]
     {
         "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
     };
 
-    private readonly ILogger<LedgersController> _logger;
-
-    public LedgersController(ILogger<LedgersController> logger)
-    {
-        _logger = logger;
-    }
+    private readonly ILogger<LedgersController> _logger = logger;
 
     [HttpGet(Name = "GetWeatherForecast")]
     public IEnumerable<WeatherForecast> Get()
