@@ -1,4 +1,3 @@
-using Billing.Cashier.Models;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Billing.Cashier;
@@ -8,8 +7,8 @@ namespace Billing.Cashier;
 public class CashierController : ControllerBase
 {
     [HttpGet]
-    public IEnumerable<WeatherForecast> GetCashiers()
+    public IEnumerable<Models.Cashier> GetCashiers()
     {
-        return 
+        return [];
     }
 }
