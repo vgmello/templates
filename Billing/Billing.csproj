@@ -18,9 +18,13 @@
         <Folder Include="Cashier\Data\"/>
         <Folder Include="Cashier\Queries\"/>
         <Folder Include="Infrastructure\"/>
-        <Folder Include="Infrastructure\Database\Migrations\" />
+        <Folder Include="Infrastructure\Database\Migrations\"/>
         <Folder Include="Invoices\Commands\"/>
         <Folder Include="Invoices\Queries\"/>
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\Billing.Contracts\Billing.Contracts.csproj" />
     </ItemGroup>
 
 </Project>

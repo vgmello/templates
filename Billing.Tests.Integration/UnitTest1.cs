@@ -1,3 +1,5 @@
+// Copyright (c) ABCDEG. All rights reserved.
+
 namespace Billing.Tests.Integration;
 
 public class UnitTest1

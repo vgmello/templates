@@ -2,8 +2,12 @@
 
     <ItemGroup>
         <Folder Include="Ledgers\Commands\"/>
-        <Folder Include="Ledgers\Data\Entities\" />
+        <Folder Include="Ledgers\Data\Entities\"/>
         <Folder Include="Ledgers\Queries\"/>
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\Accounting.Contracts\Accounting.Contracts.csproj" />
     </ItemGroup>
 
 </Project>

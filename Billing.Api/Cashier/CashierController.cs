@@ -1,3 +1,5 @@
+// Copyright (c) ABCDEG. All rights reserved.
+
 using Microsoft.AspNetCore.Mvc;
 
 namespace Billing.Api.Cashier;
@@ -7,7 +9,7 @@ namespace Billing.Api.Cashier;
 public class CashierController : ControllerBase
 {
     [HttpGet]
-    public IEnumerable<Billing.Cashier.Models.Cashier> GetCashiers()
+    public IEnumerable<Contracts.Cashier.Models.Cashier> GetCashiers()
     {
         return [];
     }

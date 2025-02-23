@@ -1,3 +1,5 @@
+// Copyright (c) ABCDEG. All rights reserved.
+
 namespace Reservations.Contracts.Models;
 
 public class WeatherForecast

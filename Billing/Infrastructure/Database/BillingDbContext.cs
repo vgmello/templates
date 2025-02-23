@@ -1,3 +1,5 @@
+// Copyright (c) ABCDEG. All rights reserved.
+
 using Billing.Cashier.Data.Entities;
 using Billing.Invoices.Data.Entities;
 using Microsoft.EntityFrameworkCore;

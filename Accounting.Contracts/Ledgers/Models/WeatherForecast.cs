@@ -1,4 +1,6 @@
-namespace Accounting.Ledgers.Models;
+// Copyright (c) ABCDEG. All rights reserved.
+
+namespace Accounting.Contracts.Ledgers.Models;
 
 public class WeatherForecast
 {

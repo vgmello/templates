@@ -1,3 +1,5 @@
+// Copyright (c) ABCDEG. All rights reserved.
+
 using Microsoft.AspNetCore.Mvc;
 using Reservations.Contracts.Models;
 

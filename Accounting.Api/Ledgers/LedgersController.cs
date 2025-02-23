@@ -1,4 +1,6 @@
-using Accounting.Ledgers.Models;
+// Copyright (c) ABCDEG. All rights reserved.
+
+using Accounting.Contracts.Ledgers.Models;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Accounting.Api.Ledgers;

@@ -1,4 +1,6 @@
-namespace Billing.Cashier.Models;
+// Copyright (c) ABCDEG. All rights reserved.
+
+namespace Billing.Contracts.Cashier.Models;
 
 public record Cashier
 {

@@ -1,3 +1,5 @@
+// Copyright (c) ABCDEG. All rights reserved.
+
 var builder = DistributedApplication.CreateBuilder(args);
 
 var pgsql = builder.AddPostgres("billing-database");

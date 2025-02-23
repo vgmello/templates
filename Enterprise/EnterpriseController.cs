@@ -1,3 +1,5 @@
+// Copyright (c) ABCDEG. All rights reserved.
+
 using Enterprise.Models;
 using Microsoft.AspNetCore.Mvc;
 
@@ -5,16 +7,16 @@ namespace Enterprise;
 
 [ApiController]
 [Route("[controller]")]
-public class Enterprise : ControllerBase
+public class EnterpriseController : ControllerBase
 {
     private static readonly string[] Summaries = new[]
     {
         "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
     };
 
-    private readonly ILogger<Enterprise> _logger;
+    private readonly ILogger<EnterpriseController> _logger;
 
-    public Enterprise(ILogger<Enterprise> logger)
+    public EnterpriseController(ILogger<EnterpriseController> logger)
     {
         _logger = logger;
     }

@@ -5,22 +5,22 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <FrameworkReference Include="Microsoft.AspNetCore.App" />
+        <FrameworkReference Include="Microsoft.AspNetCore.App"/>
 
-        <PackageReference Include="Microsoft.Extensions.Http.Resilience" Version="9.2.0" />
-        <PackageReference Include="Microsoft.Extensions.ServiceDiscovery" Version="9.0.0" />
-        <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.11.1" />
-        <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.11.1" />
-        <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.11.0" />
-        <PackageReference Include="OpenTelemetry.Instrumentation.Http" Version="1.11.0" />
-        <PackageReference Include="OpenTelemetry.Instrumentation.Runtime" Version="1.11.0" />
+        <PackageReference Include="Microsoft.Extensions.Http.Resilience" Version="9.2.0"/>
+        <PackageReference Include="Microsoft.Extensions.ServiceDiscovery" Version="9.0.0"/>
+        <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.11.1"/>
+        <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.11.1"/>
+        <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.11.0"/>
+        <PackageReference Include="OpenTelemetry.Instrumentation.Http" Version="1.11.0"/>
+        <PackageReference Include="OpenTelemetry.Instrumentation.Runtime" Version="1.11.0"/>
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="Api\HealthChecks\" />
-      <Folder Include="Infrastructure\Email\" />
-      <Folder Include="Infrastructure\MassTransit\" />
-      <Folder Include="Infrastructure\Quartz\" />
+        <Folder Include="Api\HealthChecks\"/>
+        <Folder Include="Infrastructure\Email\"/>
+        <Folder Include="Infrastructure\MassTransit\"/>
+        <Folder Include="Infrastructure\Quartz\"/>
     </ItemGroup>
 
 </Project>

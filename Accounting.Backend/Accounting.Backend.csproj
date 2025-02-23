@@ -5,22 +5,22 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <Content Include="..\.dockerignore">
-        <Link>.dockerignore</Link>
-      </Content>
+        <Content Include="..\.dockerignore">
+            <Link>.dockerignore</Link>
+        </Content>
         <Content Update="appsettings.*.json">
             <DependentUpon>appsettings.json</DependentUpon>
         </Content>
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="Ledgers\DomainEvents\" />
-      <Folder Include="Ledgers\IntegrationEvents\" />
-      <Folder Include="Ledgers\Jobs\" />
+        <Folder Include="Ledgers\DomainEvents\"/>
+        <Folder Include="Ledgers\IntegrationEvents\"/>
+        <Folder Include="Ledgers\Jobs\"/>
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\Accounting\Accounting.csproj" />
+        <ProjectReference Include="..\Accounting\Accounting.csproj"/>
     </ItemGroup>
 
 </Project>

@@ -5,7 +5,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Swashbuckle.AspNetCore" Version="7.2.0" />
+        <PackageReference Include="Swashbuckle.AspNetCore" Version="7.2.0"/>
     </ItemGroup>
 
     <ItemGroup>
@@ -15,10 +15,10 @@
     </ItemGroup>
 
     <ItemGroup>
-        <Folder Include="Commands\" />
-        <Folder Include="IntegrationEvents\Events\" />
-        <Folder Include="IntegrationEvents\Handlers\" />
-        <Folder Include="Queries\" />
+        <Folder Include="Commands\"/>
+        <Folder Include="IntegrationEvents\Events\"/>
+        <Folder Include="IntegrationEvents\Handlers\"/>
+        <Folder Include="Queries\"/>
     </ItemGroup>
 
 </Project>

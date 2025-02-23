@@ -1,4 +1,4 @@
-// Copyright (c) ABCDEG Limited. All rights reserved.
+// Copyright (c) ABCDEG. All rights reserved.
 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;

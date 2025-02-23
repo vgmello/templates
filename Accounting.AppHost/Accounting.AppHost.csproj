@@ -14,8 +14,8 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\Accounting.Api\Accounting.Api.csproj" />
-      <ProjectReference Include="..\Accounting.Backend\Accounting.Backend.csproj" />
+        <ProjectReference Include="..\Accounting.Api\Accounting.Api.csproj"/>
+        <ProjectReference Include="..\Accounting.Backend\Accounting.Backend.csproj"/>
     </ItemGroup>
 
 </Project>

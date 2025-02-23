@@ -1,3 +1,5 @@
+// Copyright (c) ABCDEG. All rights reserved.
+
 var builder = WebApplication.CreateSlimBuilder(args);
 
 builder.Services.AddControllers();
