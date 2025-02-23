@@ -13,11 +13,11 @@ public class CashierEntityConfiguration :
     public void Configure(EntityTypeBuilder<Cashier.Data.Entities.Cashier> builder)
     {
         builder.Property(e => e.CreatedDateUtc)
-            .HasDefaultValueSql("GETUTCDATE()")
+            .HasDefaultValueSql(DbContants.CurrentTimeStamp)
             .ValueGeneratedOnAdd();
 
         builder.Property(e => e.UpdatedDateUtc)
-            .HasDefaultValueSql("GETUTCDATE()")
+            .HasDefaultValueSql(DbContants.CurrentTimeStamp)
             .ValueGeneratedOnAddOrUpdate();
 
         builder.Property(e => e.Version)
@@ -28,7 +28,7 @@ public class CashierEntityConfiguration :
     public void Configure(EntityTypeBuilder<CashierCurrency> builder)
     {
         builder.Property(e => e.CreatedDateUtc)
-            .HasDefaultValueSql("GETUTCDATE()");
+            .HasDefaultValueSql(DbContants.CurrentTimeStamp);
 
         builder.HasOne(e => e.Cashier)
             .WithMany(e => e.Currencies)

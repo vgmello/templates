@@ -11,11 +11,11 @@ public class InvoicesEntityConfiguration : IEntityTypeConfiguration<Invoice>
     public void Configure(EntityTypeBuilder<Invoice> builder)
     {
         builder.Property(e => e.CreatedDateUtc)
-            .HasDefaultValueSql("GETUTCDATE()")
+            .HasDefaultValueSql(DbContants.CurrentTimeStamp)
             .ValueGeneratedOnAdd();
 
         builder.Property(e => e.UpdatedDateUtc)
-            .HasDefaultValueSql("GETUTCDATE()")
+            .HasDefaultValueSql(DbContants.CurrentTimeStamp)
             .ValueGeneratedOnAddOrUpdate();
 
         builder.Property(e => e.Version)
