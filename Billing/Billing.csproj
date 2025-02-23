@@ -14,9 +14,6 @@
     </ItemGroup>
 
     <ItemGroup>
-        <Folder Include="Cashier\Commands\"/>
-        <Folder Include="Cashier\Data\"/>
-        <Folder Include="Cashier\Queries\"/>
         <Folder Include="Infrastructure\"/>
         <Folder Include="Infrastructure\Database\Migrations\"/>
         <Folder Include="Invoices\Commands\"/>
