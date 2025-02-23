@@ -1,18 +1,19 @@
+// Copyright (c) ABCDEG. All rights reserved.
+
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace Billing.Cashier.Database.Entities;
+namespace Billing.Cashier.Data.Entities;
 
-[Table("CashierPayments")]
-public class CashierPaymentEntity
+[Table("Cashiers")]
+public record Cashier
 {
     [Key]
-    public Guid PaymentId { get; set; }
-
     public Guid CashierId { get; set; }
 
     [Required]
-    public DateTime PaymentDate { get; set; }
+    [MaxLength(100)]
+    public string Name { get; set; } = string.Empty;
 
     public DateTime CreatedDateUtc { get; set; }
 
@@ -21,6 +22,5 @@ public class CashierPaymentEntity
     [ConcurrencyCheck]
     public int Version { get; set; }
 
-    [ForeignKey(nameof(CashierId))]
-    public CashierEntity Cashier { get; set; } = null!;
+    public ICollection<CashierCurrency> Currencies { get; set; } = [];
 }

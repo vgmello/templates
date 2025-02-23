@@ -20,14 +20,10 @@ indent_size = 2
 [*.cs]
 guidelines = 160
 max_line_length = 160
-file_header_template = Copyright (c) ABCDEG Limited. All rights reserved.
+file_header_template = Copyright (c) ABCDEG. All rights reserved.
 
 csharp_style_expression_bodied_indexers = true:suggestion
 csharp_style_expression_bodied_accessors = true:suggestion
-
-; IDE analyser
-dotnet_diagnostic.ide0005.severity = error
-dotnet_diagnostic.ide0036.severity = error
 
 ; lang settings
 csharp_indent_block_contents = true

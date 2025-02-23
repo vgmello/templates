@@ -4,11 +4,11 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.Extensions.Configuration;
 
-namespace Billing.Cashier.Database;
+namespace Billing.Infrastructure.Database;
 
-public class CashierDbContextDesignTimeFactory : IDesignTimeDbContextFactory<CashierDbContext>
+public class BillingDbContextDesignTimeFactory : IDesignTimeDbContextFactory<BillingDbContext>
 {
-    public CashierDbContext CreateDbContext(string[] args)
+    public BillingDbContext CreateDbContext(string[] args)
     {
         var appSettingsPath = Path.Combine(Directory.GetCurrentDirectory(), "../Billing.AppHost");
 
@@ -21,9 +21,9 @@ public class CashierDbContextDesignTimeFactory : IDesignTimeDbContextFactory<Cas
 
         var connectionString = configuration.GetConnectionString("BillingDatabase");
 
-        var optionsBuilder = new DbContextOptionsBuilder<CashierDbContext>();
+        var optionsBuilder = new DbContextOptionsBuilder<BillingDbContext>();
         optionsBuilder.UseNpgsql(connectionString);
 
-        return new CashierDbContext(optionsBuilder.Options);
+        return new BillingDbContext(optionsBuilder.Options);
     }
 }

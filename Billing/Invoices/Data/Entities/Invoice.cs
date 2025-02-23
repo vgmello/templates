@@ -1,11 +1,10 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using Billing.Cashier.Database.Entities;
 
-namespace Billing.Invoices.Database.Entities;
+namespace Billing.Invoices.Data.Entities;
 
 [Table("Invoices")]
-public record InvoiceEntity
+public record Invoice
 {
     [Key]
     public Guid InvoiceId { get; set; }
@@ -22,6 +21,4 @@ public record InvoiceEntity
 
     [ConcurrencyCheck]
     public int Version { get; set; }
-
-    public virtual ICollection<CashierPaymentEntity> CashierPayments { get; set; } = [];
 }

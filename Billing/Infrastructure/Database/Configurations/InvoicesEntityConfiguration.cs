@@ -1,12 +1,12 @@
-using Billing.Cashier.Database.Entities;
+using Billing.Invoices.Data.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace Billing.Invoices.Database.Configurations;
+namespace Billing.Infrastructure.Database.Configurations;
 
-public class InvoicesDbConfiguration : IEntityTypeConfiguration<CashierEntity>
+public class InvoicesEntityConfiguration : IEntityTypeConfiguration<Invoice>
 {
-    public void Configure(EntityTypeBuilder<CashierEntity> builder)
+    public void Configure(EntityTypeBuilder<Invoice> builder)
     {
         builder.Property(e => e.CreatedDateUtc)
             .HasDefaultValueSql("GETUTCDATE()")
