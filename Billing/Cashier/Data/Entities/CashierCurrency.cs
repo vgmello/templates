@@ -2,19 +2,18 @@
 
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.EntityFrameworkCore;
 
 namespace Billing.Cashier.Data.Entities;
 
 [Table("CashierCurrencies")]
+[PrimaryKey(nameof(CashierId), nameof(CurrencyId), nameof(EffectiveDateUtc))]
 public record CashierCurrency
 {
-    [Key]
-    public Guid CurrencyId { get; set; }
-
-    [Key]
     public Guid CashierId { get; set; }
 
-    [Key]
+    public Guid CurrencyId { get; set; }
+
     public DateTime EffectiveDateUtc { get; set; }
 
     [MaxLength(10)]

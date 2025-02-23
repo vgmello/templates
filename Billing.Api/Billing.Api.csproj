@@ -19,6 +19,7 @@
 
     <ItemGroup>
         <ProjectReference Include="..\Billing\Billing.csproj"/>
+        <ProjectReference Include="..\Operations.ServiceDefaults\Operations.ServiceDefaults.csproj" />
     </ItemGroup>
 
 </Project>
