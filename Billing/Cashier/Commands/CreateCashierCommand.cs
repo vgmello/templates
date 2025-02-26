@@ -21,7 +21,12 @@ public class CreateCashierCommandHandler(IMediator mediator, IBus bus) : IReques
             Name = request.Name
         };
 
+        var
+
         var cashierId = await mediator.Send(new AddCashierDbCommand(cashier), cancellationToken);
+
+
+
 
         await bus.Publish(new CashierCreatedEvent(cashierId), cancellationToken);
 

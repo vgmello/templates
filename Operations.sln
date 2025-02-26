@@ -34,7 +34,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Billing.AppHost", "Billing.
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Accounting", "Accounting", "{2127A4EF-DA60-44DC-8ACB-41E674BD7BBC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Accounting.Backend", "Accounting.Backend\Accounting.Backend.csproj", "{E946A061-8CF1-4E3E-8115-F31F51D1A164}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Accounting.BackOffice", "Accounting.BackOffice\Accounting.BackOffice.csproj", "{E946A061-8CF1-4E3E-8115-F31F51D1A164}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Accounting.Api", "Accounting.Api\Accounting.Api.csproj", "{3CBEF41B-1A24-4E10-8CA4-D84B879FA896}"
 EndProject
@@ -46,7 +46,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Accounting.AppHost", "Accou
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Billing.Api", "Billing.Api\Billing.Api.csproj", "{F9E2A437-E31C-4A95-9690-62C73062F255}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Billing.Backend", "Billing.Backend\Billing.Backend.csproj", "{A9A1B3FB-D128-4568-8A0A-3345A738F285}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Billing.BackOffice", "Billing.BackOffice\Billing.BackOffice.csproj", "{A9A1B3FB-D128-4568-8A0A-3345A738F285}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Billing.Contracts", "Billing.Contracts\Billing.Contracts.csproj", "{9E83933C-3BD3-46A5-9A5C-1DF1F1043D37}"
 EndProject

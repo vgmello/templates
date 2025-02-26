@@ -1,6 +1,6 @@
 // Copyright (c) ABCDEG. All rights reserved.
 
-namespace Billing.Backend.IntegrationEvents.Accounting;
+namespace Billing.BackOffice.IntegrationEvents.Accounting;
 
 public class BusinessDayEndedHandler
 {
