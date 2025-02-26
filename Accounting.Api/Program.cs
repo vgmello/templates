@@ -1,10 +1,16 @@
 // Copyright (c) ABCDEG. All rights reserved.
 
+using Operations.ServiceDefaults;
+using Operations.ServiceDefaults.Infrastructure.MassTransit;
+
 var builder = WebApplication.CreateSlimBuilder(args);
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+builder.AddServiceDefaults();
+builder.AddMassTransit();
 
 var app = builder.Build();
 

@@ -12,12 +12,3 @@ public record Cashier
 
     public List<CashierPayment> CashierPayments { get; set; }
 }
-
-public class CashierPayment
-{
-    public int CashierId { get; set; }
-
-    public int PaymentId { get; set; }
-
-    public DateTime PaymentDate { get; set; }
-}

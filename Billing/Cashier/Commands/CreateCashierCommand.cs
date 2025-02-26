@@ -4,5 +4,5 @@ namespace Billing.Cashier.Commands;
 
 public class CreateCashierCommand
 {
-    
+    public string Name { get; set; } = null!;
 }
