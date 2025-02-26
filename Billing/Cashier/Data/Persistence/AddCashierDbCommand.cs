@@ -1,21 +1,21 @@
 // Copyright (c) ABCDEG. All rights reserved.
 
 using Billing.Infrastructure.Database;
-using MassTransit;
+using MediatR;
 
 namespace Billing.Cashier.Data.Persistence;
 
-public class AddCashierDbCommand
+public class AddCashierDbCommand : IRequest
 {
-    public Entities.Cashier Cashier { get; set; }
+    public required Entities.Cashier Cashier { get; set; }
 }
 
-public class AddCashierDbCommandHandler(BillingDbContext context) : IConsumer<AddCashierDbCommand>
+public class AddCashierDbCommandHandler(BillingDbContext context) : IRequestHandler<AddCashierDbCommand>
 {
-    public async Task Consume(ConsumeContext<AddCashierDbCommand> context1)
+    public async Task Handle(AddCashierDbCommand request, CancellationToken cancellationToken)
     {
-        context.Cashiers.Add(context1.Message.Cashier);
+        context.Cashiers.Add(request.Cashier);
 
-        await context.SaveChangesAsync();
+        await context.SaveChangesAsync(cancellationToken);
     }
 }
