@@ -21,7 +21,7 @@ public static class MediatorExtensions
 
         if (assemblyMarker is null)
         {
-            throw new InvalidOperationException("Unable to identify the assembly to scan for MediatR handlers. " +
+            throw new InvalidOperationException("Unable to identify the assembly to scan for Mediator handlers. " +
                                                 "Please provide an assembly via the MediatorExtensions.AssemblyMarker property.");
         }
 
