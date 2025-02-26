@@ -2,11 +2,9 @@
 
 using Billing.Cashier.Commands;
 using MediatR;
-using Microsoft.AspNetCore.Mvc;
 
 namespace Billing.Api.Cashier;
 
-[ApiController]
 [Route("[controller]")]
 public class CashierController(IMediator mediator) : ControllerBase
 {

@@ -1,7 +1,10 @@
 // Copyright (c) ABCDEG. All rights reserved.
 
+using Microsoft.AspNetCore.Mvc;
 using Operations.ServiceDefaults;
 using Operations.ServiceDefaults.Infrastructure.MassTransit;
+
+[assembly: ApiController]
 
 var builder = WebApplication.CreateSlimBuilder(args);
 

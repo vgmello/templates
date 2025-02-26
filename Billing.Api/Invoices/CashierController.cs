@@ -1,7 +1,5 @@
 // Copyright (c) ABCDEG. All rights reserved.
 
-using Microsoft.AspNetCore.Mvc;
-
 namespace Billing.Api.Invoices;
 
 [ApiController]

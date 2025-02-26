@@ -1,9 +1,10 @@
 // Copyright (c) ABCDEG. All rights reserved.
 
 using Billing;
-using MassTransit;
 using Operations.ServiceDefaults;
-using Operations.ServiceDefaults.Infrastructure.MassTransit;
+
+[assembly: ApiController]
+[assembly: DomainAssembly(typeof(IBillingAssembly))]
 
 var builder = WebApplication.CreateSlimBuilder(args);
 
@@ -12,12 +13,6 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 builder.AddServiceDefaults();
-builder.AddMassTransit();
-
-builder.Services.AddMediator(cfg =>
-{
-    cfg.AddConsumersFromNamespaceContaining(typeof(BillingDomain));
-});
 
 var app = builder.Build();
 

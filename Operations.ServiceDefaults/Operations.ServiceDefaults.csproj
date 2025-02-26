@@ -3,15 +3,31 @@
     <PropertyGroup>
         <IsAspireSharedProject>true</IsAspireSharedProject>
     </PropertyGroup>
+    
+    <PropertyGroup>
+        <PackageId>$(AssemblyName)</PackageId>
+        <PackageVersion>$(Version)</PackageVersion>
+        <PackageTags>defaults</PackageTags>
+        <IncludeSource>true</IncludeSource>
+        <Authors>ABCDEG</Authors>
+        <Company>ABCDEG</Company>
+        <Copyright>Copyright (c) ABCDEG. All rights reserved.</Copyright>
+        <RepositoryUrl>https://github.com/ABCDEG/templates</RepositoryUrl>
+        <RepositoryType>git</RepositoryType>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <None Include="Operations.ServiceDefaults.props" Pack="true" PackagePath="build/"/>
+    </ItemGroup>
 
     <ItemGroup>
         <FrameworkReference Include="Microsoft.AspNetCore.App"/>
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="MassTransit" Version="8.3.6" />
-        <PackageReference Include="MassTransit.SqlTransport.PostgreSQL" Version="8.3.6" />
-        <PackageReference Include="MediatR" Version="12.4.1" />
+        <PackageReference Include="MassTransit" Version="8.3.6"/>
+        <PackageReference Include="MassTransit.SqlTransport.PostgreSQL" Version="8.3.6"/>
+        <PackageReference Include="MediatR" Version="12.4.1"/>
         <PackageReference Include="Microsoft.Extensions.Http.Resilience" Version="9.2.0"/>
         <PackageReference Include="Microsoft.Extensions.ServiceDiscovery" Version="9.0.0"/>
         <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.11.1"/>

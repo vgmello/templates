@@ -10,7 +10,7 @@ builder
     .WithReference(database);
 
 builder
-    .AddProject<Projects.Billing_Backend>("billing-backend")
+    .AddProject<Projects.Billing_BackOffice>("billing-backoffice")
     .WithReference(database);
 
 await builder.Build().RunAsync();
