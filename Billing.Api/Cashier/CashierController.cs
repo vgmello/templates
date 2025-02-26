@@ -1,5 +1,6 @@
 // Copyright (c) ABCDEG. All rights reserved.
 
+using Billing.Cashier.Commands;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
@@ -15,9 +16,11 @@ public class CashierController(IMediator mediator) : ControllerBase
         return [];
     }
 
-    [HttpPost()]
-    public Task<ActionResult<Contracts.Cashier.Models.Cashier>> CreateCashier()
+    [HttpPost]
+    public async Task<ActionResult<Contracts.Cashier.Models.Cashier>> CreateCashier(CreateCashierCommand command)
     {
-        return mediator.Send(new CreateCashierDbCommand());
+        var cashierId = await mediator.Send(command);
+
+        return Created();
     }
 }

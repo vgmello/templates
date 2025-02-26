@@ -7,21 +7,24 @@ using MediatR;
 
 namespace Billing.Cashier.Commands;
 
-public class CreateCashierCommand : IRequest
+public class CreateCashierCommand : IRequest<Guid>
 {
     public string Name { get; set; } = null!;
 }
 
-public class CreateCashierCommandHandler(IMediator mediator, IBus bus) : IRequestHandler<CreateCashierCommand>
+public class CreateCashierCommandHandler(IMediator mediator, IBus bus) : IRequestHandler<CreateCashierCommand, Guid>
 {
-    public async Task Handle(CreateCashierCommand request, CancellationToken cancellationToken)
+    public async Task<Guid> Handle(CreateCashierCommand request, CancellationToken cancellationToken)
     {
         var cashier = new Data.Entities.Cashier
         {
             Name = request.Name
         };
 
-        await mediator.Send(new AddCashierDbCommand { Cashier = cashier }, cancellationToken);
-        await bus.Publish(new CashierCreated() { Cashier = cashier }, cancellationToken);
+        var cashierId = await mediator.Send(new AddCashierDbCommand(cashier), cancellationToken);
+
+        await bus.Publish(new CashierCreatedEvent(cashierId), cancellationToken);
+
+        return cashierId;
     }
 }

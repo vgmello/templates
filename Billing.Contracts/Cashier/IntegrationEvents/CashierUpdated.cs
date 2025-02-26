@@ -2,6 +2,6 @@
 
 namespace Billing.Contracts.Cashier.IntegrationEvents;
 
-public class CashierUpdated
+public class CashierUpdatedEvent
 {
 }

@@ -2,6 +2,6 @@
 
 namespace Accounting.Contracts.Ledgers.IntegrationEvents;
 
-public class LedgerBalanceCreated
+public class LedgerBalanceCreatedEvent
 {
 }

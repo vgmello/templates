@@ -2,6 +2,6 @@
 
 namespace Accounting.Contracts.Ledgers.IntegrationEvents;
 
-public class BusinessDayEnded
+public class BusinessDayEndedEvent
 {
 }
