@@ -2,6 +2,6 @@
 
 namespace Billing.Contracts.Invoices.IntegrationEvents;
 
-public class InvoicePaid
+public class InvoicePaidEvent
 {
 }
