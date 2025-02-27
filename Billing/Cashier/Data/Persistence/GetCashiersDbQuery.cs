@@ -12,6 +12,7 @@ public class GetCashiersDbQueryHandler(BillingDbContext context) : IRequestHandl
     public async Task<ICollection<Entities.Cashier>> Handle(GetCashiersDbQuery request, CancellationToken cancellationToken)
     {
         var result = await context.Cashiers
+            .OrderBy(c => c.CashierId)
             .Skip(request.Offset)
             .Take(request.Limit)
             .ToListAsync(cancellationToken);

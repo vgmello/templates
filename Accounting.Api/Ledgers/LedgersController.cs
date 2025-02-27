@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Accounting.Api.Ledgers;
 
+[ApiController]
 [Route("[controller]")]
 public class LedgersController : ControllerBase
 {

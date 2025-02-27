@@ -33,7 +33,8 @@ public static class HealthCheckExtensions
 
         var logger = GetHealthCheckLogger(app);
 
-        app.MapGet("/status", () => healthCheckStore.GetLastStatus().ToString());
+        app.MapGet("/status", () => healthCheckStore.GetLastStatus().ToString())
+            .ExcludeFromDescription();
 
         var isDevelopment = app.Environment.IsDevelopment();
         app.MapHealthChecks("/health/internal",
@@ -45,13 +46,12 @@ public static class HealthCheckExtensions
             .RequireHost("localhost")
             .AddEndpointFilter(new LocalhostEndpointFilter(logger));
 
-        var publicEndpoint = app.MapHealthChecks("/health",
-            new HealthCheckOptions
-            {
-                ResponseWriter = (ctx, report) => ProcessHealthCheckResult(ctx, logger, healthCheckStore, report, outputResult: true)
-            });
-
-        publicEndpoint.RequireAuthorization();
+        app.MapHealthChecks("/health",
+                new HealthCheckOptions
+                {
+                    ResponseWriter = (ctx, report) => ProcessHealthCheckResult(ctx, logger, healthCheckStore, report, outputResult: true)
+                })
+            .RequireAuthorization();
 
         return app;
     }

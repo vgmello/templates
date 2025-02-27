@@ -14,7 +14,7 @@ public class BillingDbContextDesignTimeFactory : IDesignTimeDbContextFactory<Bil
 
         var configuration = new ConfigurationBuilder()
             .SetBasePath(appSettingsPath)
-            .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+            .AddJsonFile("appsettings.json", optional: false)
             .AddUserSecrets("4cf68e53-c914-4dd3-aa99-9d1c9e31c02a")
             .AddEnvironmentVariables()
             .Build();

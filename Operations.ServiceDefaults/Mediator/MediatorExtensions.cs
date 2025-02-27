@@ -45,6 +45,7 @@ public static class MediatorExtensions
     public static IHostApplicationBuilder AddCommandAndQueryServices(this IHostApplicationBuilder builder)
     {
         builder.Services.AddTransient<ICommandServices, CommandServices>();
+        builder.Services.AddTransient<IQueryServices, QueryServices>();
         return builder;
     }
 }

@@ -1,28 +1,18 @@
 // Copyright (c) ABCDEG. All rights reserved.
 
-using Microsoft.AspNetCore.Mvc;
+using Accounting;
 using Operations.ServiceDefaults;
-using Operations.ServiceDefaults.MassTransit;
+using Operations.ServiceDefaults.Api;
 
-[assembly: ApiController]
+[assembly: DomainAssembly(typeof(IAccountingAssembly))]
 
 var builder = WebApplication.CreateSlimBuilder(args);
 
-builder.Services.AddControllers();
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
-
+builder.AddApiServiceDefaults();
 builder.AddServiceDefaults();
-builder.AddMassTransit();
 
 var app = builder.Build();
 
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
-
-app.MapControllers();
+app.ConfigureApiUsingDefaults();
 
 await app.RunAsync();

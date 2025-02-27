@@ -5,10 +5,6 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0" />
-    </ItemGroup>
-
-    <ItemGroup>
         <Content Include="..\.dockerignore">
             <Link>.dockerignore</Link>
         </Content>
@@ -18,8 +14,8 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\Accounting\Accounting.csproj" />
-        <ProjectReference Include="..\Operations.ServiceDefaults\Operations.ServiceDefaults.csproj" />
+        <ProjectReference Include="..\Accounting\Accounting.csproj"/>
+        <ProjectReference Include="..\Operations.ServiceDefaults.Api\Operations.ServiceDefaults.Api.csproj"/>
     </ItemGroup>
 
 </Project>

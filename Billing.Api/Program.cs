@@ -1,30 +1,21 @@
 // Copyright (c) ABCDEG. All rights reserved.
 
 using Billing;
+using Billing.Api;
 using Operations.ServiceDefaults;
+using Operations.ServiceDefaults.Api;
 
-[assembly: ApiController]
 [assembly: DomainAssembly(typeof(IBillingAssembly))]
 
 var builder = WebApplication.CreateSlimBuilder(args);
 
-builder.Services.AddControllers();
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
-
+builder.AddApiServiceDefaults();
 builder.AddServiceDefaults();
+
+builder.AddApplicationServices();
 
 var app = builder.Build();
 
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
-
-app.MapControllers();
-app.MapDefaultEndpoints();
+app.ConfigureApiUsingDefaults();
 
 await app.RunAsync();
-
-

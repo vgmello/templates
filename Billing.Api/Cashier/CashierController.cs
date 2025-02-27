@@ -2,8 +2,9 @@
 
 namespace Billing.Api.Cashier;
 
+[ApiController]
 [Route("[controller]")]
-public class CashierController(IMediator mediator) : ControllerBase
+public class CashiersController(IMediator mediator) : ControllerBase
 {
     [HttpGet("{id:guid}")]
     public async Task<Contracts.Cashier.Models.Cashier> GetCashier([FromRoute] Guid id)
@@ -28,4 +29,7 @@ public class CashierController(IMediator mediator) : ControllerBase
 
         return StatusCode(StatusCodes.Status201Created, cashier);
     }
+
+    [HttpGet("fake-error")]
+    public Task<ActionResult<Contracts.Cashier.Models.Cashier>> FakeError() => throw new DivideByZeroException("Fake error");
 }
