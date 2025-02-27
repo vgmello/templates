@@ -6,16 +6,16 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Billing.Infrastructure.Database.Configurations;
 
-public class InvoicesEntityConfiguration : IEntityTypeConfiguration<Invoice>
+public class InvoicesEntitiesConfiguration : IEntityTypeConfiguration<Invoice>
 {
     public void Configure(EntityTypeBuilder<Invoice> builder)
     {
         builder.Property(e => e.CreatedDateUtc)
-            .HasDefaultValueSql(DbContants.CurrentTimeStamp)
+            .HasDefaultValueSql(DbConstants.CurrentTimeStamp)
             .ValueGeneratedOnAdd();
 
         builder.Property(e => e.UpdatedDateUtc)
-            .HasDefaultValueSql(DbContants.CurrentTimeStamp)
+            .HasDefaultValueSql(DbConstants.CurrentTimeStamp)
             .ValueGeneratedOnAddOrUpdate();
 
         builder.Property(e => e.Version)

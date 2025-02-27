@@ -6,18 +6,18 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Billing.Infrastructure.Database.Configurations;
 
-public class CashierEntityConfiguration :
+public class CashierEntitiesConfiguration :
     IEntityTypeConfiguration<Cashier.Data.Entities.Cashier>,
     IEntityTypeConfiguration<CashierCurrency>
 {
     public void Configure(EntityTypeBuilder<Cashier.Data.Entities.Cashier> builder)
     {
         builder.Property(e => e.CreatedDateUtc)
-            .HasDefaultValueSql(DbContants.CurrentTimeStamp)
+            .HasDefaultValueSql(DbConstants.CurrentTimeStamp)
             .ValueGeneratedOnAdd();
 
         builder.Property(e => e.UpdatedDateUtc)
-            .HasDefaultValueSql(DbContants.CurrentTimeStamp)
+            .HasDefaultValueSql(DbConstants.CurrentTimeStamp)
             .ValueGeneratedOnAddOrUpdate();
 
         builder.Property(e => e.Version)
@@ -28,7 +28,7 @@ public class CashierEntityConfiguration :
     public void Configure(EntityTypeBuilder<CashierCurrency> builder)
     {
         builder.Property(e => e.CreatedDateUtc)
-            .HasDefaultValueSql(DbContants.CurrentTimeStamp);
+            .HasDefaultValueSql(DbConstants.CurrentTimeStamp);
 
         builder.HasOne(e => e.Cashier)
             .WithMany(e => e.Currencies)

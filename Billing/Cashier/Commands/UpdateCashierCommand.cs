@@ -21,7 +21,7 @@ public class UpdateCashierCommandHandler(ICommandServices services) : CommandHan
 
         var cashierId = await SendCommand(new AddCashierDbCommand(cashier));
 
-        await PublishEvent(new CashierCreatedEvent(cashierId));
+        await PublishEvent(new CashierUpdatedEvent(cashierId));
 
         return cashierId;
     }

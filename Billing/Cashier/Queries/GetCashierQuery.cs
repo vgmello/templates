@@ -4,10 +4,7 @@ using Billing.Cashier.Data.Persistence;
 
 namespace Billing.Cashier.Queries;
 
-public class GetCashierQuery : IRequest<Contracts.Cashier.Models.Cashier>
-{
-    public Guid Id { get; set; }
-}
+public record GetCashierQuery(Guid Id) : IRequest<Contracts.Cashier.Models.Cashier>;
 
 public class GetCashierQueryHandler(IQueryServices services) : QueryHandler<GetCashierQuery, Contracts.Cashier.Models.Cashier>(services)
 {

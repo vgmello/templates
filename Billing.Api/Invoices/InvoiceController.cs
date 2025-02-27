@@ -7,7 +7,7 @@ namespace Billing.Api.Invoices;
 public class InvoiceController : ControllerBase
 {
     [HttpGet]
-    public IEnumerable<Contracts.Cashier.Models.Cashier> GetInvoices()
+    public IEnumerable<int> GetInvoices()
     {
         return [];
     }

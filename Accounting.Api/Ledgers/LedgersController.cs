@@ -6,14 +6,12 @@ using Microsoft.AspNetCore.Mvc;
 namespace Accounting.Api.Ledgers;
 
 [Route("[controller]")]
-public class LedgersController(ILogger<LedgersController> logger) : ControllerBase
+public class LedgersController : ControllerBase
 {
-    private static readonly string[] Summaries = new[]
-    {
+    private static readonly string[] Summaries =
+    [
         "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-    };
-
-    private readonly ILogger<LedgersController> _logger = logger;
+    ];
 
     [HttpGet(Name = "GetWeatherForecast")]
     public IEnumerable<WeatherForecast> Get()
