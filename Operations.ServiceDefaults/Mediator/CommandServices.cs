@@ -4,7 +4,7 @@ using MassTransit;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Operations.ServiceDefaults.Infrastructure.Mediator;
+namespace Operations.ServiceDefaults.Mediator;
 
 /// <summary>
 ///     Default services required by a CommandHandler

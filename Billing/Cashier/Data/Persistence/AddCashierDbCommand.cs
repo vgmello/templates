@@ -1,7 +1,6 @@
 // Copyright (c) ABCDEG. All rights reserved.
 
 using Billing.Infrastructure.Database;
-using MediatR;
 
 namespace Billing.Cashier.Data.Persistence;
 

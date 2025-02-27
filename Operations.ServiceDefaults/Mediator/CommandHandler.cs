@@ -3,7 +3,7 @@
 using MassTransit;
 using MediatR;
 
-namespace Operations.ServiceDefaults.Infrastructure.Mediator;
+namespace Operations.ServiceDefaults.Mediator;
 
 public abstract class CommandHandler<TCommand, TCommandResult>(ICommandServices services) : IRequestHandler<TCommand, TCommandResult>
     where TCommand : IRequest<TCommandResult>
@@ -21,13 +21,13 @@ public abstract class CommandHandler<TCommand, TCommandResult>(ICommandServices 
         return Handle(request);
     }
 
-    protected abstract Task<TCommandResult> Handle(TCommand request);
+    protected abstract Task<TCommandResult> Handle(TCommand command);
 
-    protected Task<TResult> SendCommand<TResult>(IRequest<TResult> request) => Mediator.Send(request, CancellationToken);
+    protected Task<TResult> SendCommand<TResult>(IRequest<TResult> command) => Mediator.Send(command, CancellationToken);
 
-    protected Task SendCommand(IRequest request) => Mediator.Send(request, CancellationToken);
+    protected Task SendCommand(IRequest command) => Mediator.Send(command, CancellationToken);
 
-    protected Task<TResult> SendQuery<TResult>(IRequest<TResult> request) => Mediator.Send(request, CancellationToken);
+    protected Task<TResult> SendQuery<TResult>(IRequest<TResult> query) => Mediator.Send(query, CancellationToken);
 
     /// <summary>
     ///     Publishes an event to the event bus

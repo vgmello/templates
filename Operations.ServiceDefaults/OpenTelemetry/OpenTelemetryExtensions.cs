@@ -7,7 +7,7 @@ using OpenTelemetry;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
 
-namespace Operations.ServiceDefaults.Infrastructure.OpenTelemetry;
+namespace Operations.ServiceDefaults.OpenTelemetry;
 
 public static class OpenTelemetryExtensions
 {

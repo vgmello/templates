@@ -2,23 +2,21 @@
 
 using Billing.Cashier.Data.Persistence;
 using Billing.Contracts.Cashier.IntegrationEvents;
-using MediatR;
-using Operations.ServiceDefaults.Infrastructure.Mediator;
 
 namespace Billing.Cashier.Commands;
 
-public class CreateCashierCommand : IRequest<Guid>
+public record CreateCashierCommand : IRequest<Guid>
 {
     public string Name { get; set; } = null!;
 }
 
 public class CreateCashierCommandHandler(ICommandServices services) : CommandHandler<CreateCashierCommand, Guid>(services)
 {
-    protected override async Task<Guid> Handle(CreateCashierCommand request)
+    protected override async Task<Guid> Handle(CreateCashierCommand command)
     {
         var cashier = new Data.Entities.Cashier
         {
-            Name = request.Name
+            Name = command.Name
         };
 
         var cashierId = await SendCommand(new AddCashierDbCommand(cashier));

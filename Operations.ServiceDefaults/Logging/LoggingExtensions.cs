@@ -3,7 +3,7 @@
 using Microsoft.Extensions.Hosting;
 using Serilog;
 
-namespace Operations.ServiceDefaults.Infrastructure.Logging;
+namespace Operations.ServiceDefaults.Logging;
 
 public static class LoggingExtensions
 {

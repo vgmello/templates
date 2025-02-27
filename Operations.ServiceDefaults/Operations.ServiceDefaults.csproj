@@ -41,9 +41,8 @@
     </ItemGroup>
 
     <ItemGroup>
-        <Folder Include="Api\HealthChecks\"/>
-        <Folder Include="Infrastructure\Email\"/>
-        <Folder Include="Infrastructure\Quartz\"/>
+        <Folder Include="Email\" />
+        <Folder Include="Quartz\" />
     </ItemGroup>
 
 </Project>

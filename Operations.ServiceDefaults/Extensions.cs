@@ -3,10 +3,10 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Operations.ServiceDefaults.Infrastructure.HealthChecks;
-using Operations.ServiceDefaults.Infrastructure.Logging;
-using Operations.ServiceDefaults.Infrastructure.Mediator;
-using Operations.ServiceDefaults.Infrastructure.OpenTelemetry;
+using Operations.ServiceDefaults.HealthChecks;
+using Operations.ServiceDefaults.Logging;
+using Operations.ServiceDefaults.Mediator;
+using Operations.ServiceDefaults.OpenTelemetry;
 
 namespace Operations.ServiceDefaults;
 
@@ -16,9 +16,9 @@ public static class Extensions
     {
         builder.AddLogging();
         builder.ConfigureOpenTelemetry();
-        builder.AddDefaultHealthChecks();
         builder.AddMediator();
 
+        builder.Services.AddHealthChecks();
         builder.Services.AddServiceDiscovery();
 
         builder.Services.ConfigureHttpClientDefaults(http =>

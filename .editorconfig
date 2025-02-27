@@ -18,8 +18,7 @@ indent_size = 2
 
 ; C#
 [*.cs]
-guidelines = 160
-max_line_length = 160
+max_line_length = 140
 file_header_template = Copyright (c) ABCDEG. All rights reserved.
 
 csharp_style_expression_bodied_indexers = true:suggestion

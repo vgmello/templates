@@ -2,7 +2,7 @@
 
 using Microsoft.AspNetCore.Mvc;
 using Operations.ServiceDefaults;
-using Operations.ServiceDefaults.Infrastructure.MassTransit;
+using Operations.ServiceDefaults.MassTransit;
 
 [assembly: ApiController]
 

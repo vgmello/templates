@@ -1,5 +1,6 @@
 <Project>
     <ItemGroup Condition="'$(ImplicitUsings)' == 'enable'">
         <Using Include="MediatR"/>
+        <Using Include="Operations.ServiceDefaults.Infrastructure.Mediator"/>
     </ItemGroup>
 </Project>

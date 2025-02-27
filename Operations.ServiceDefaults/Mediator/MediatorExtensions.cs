@@ -4,7 +4,7 @@ using System.Reflection;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
-namespace Operations.ServiceDefaults.Infrastructure.Mediator;
+namespace Operations.ServiceDefaults.Mediator;
 
 public static class MediatorExtensions
 {
@@ -37,6 +37,14 @@ public static class MediatorExtensions
             configuration?.Invoke(cfg);
         });
 
+        builder.AddCommandAndQueryServices();
+
+        return builder;
+    }
+
+    public static IHostApplicationBuilder AddCommandAndQueryServices(this IHostApplicationBuilder builder)
+    {
+        builder.Services.AddTransient<ICommandServices, CommandServices>();
         return builder;
     }
 }

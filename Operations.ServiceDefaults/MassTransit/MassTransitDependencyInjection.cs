@@ -5,7 +5,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
-namespace Operations.ServiceDefaults.Infrastructure.MassTransit;
+namespace Operations.ServiceDefaults.MassTransit;
 
 public static class MassTransitDependencyInjection
 {
