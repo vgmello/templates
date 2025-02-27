@@ -21,6 +21,7 @@
 
     <ItemGroup>
         <ProjectReference Include="..\Accounting\Accounting.csproj"/>
+        <ProjectReference Include="..\Operations.ServiceDefaults\Operations.ServiceDefaults.csproj" />
     </ItemGroup>
 
 </Project>

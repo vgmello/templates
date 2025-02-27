@@ -15,11 +15,19 @@ public static class ApiExtensions
         builder.Services.AddProblemDetails();
         builder.Services.AddSwaggerGen();
 
+        // Authentication and authorization services
+        builder.Services.AddAuthentication();
+        builder.Services.AddAuthorization();
+
         return builder;
     }
 
     public static WebApplication ConfigureApiUsingDefaults(this WebApplication app)
     {
+        app.UseRouting();
+        app.UseAuthentication();
+        app.UseAuthorization();
+
         if (!app.Environment.IsDevelopment())
         {
             app.UseHsts();
@@ -32,7 +40,8 @@ public static class ApiExtensions
             app.UseSwaggerUI();
         }
 
-        app.MapControllers();
+        app.MapControllers().RequireAuthorization();
+
         app.MapDefaultEndpoints();
 
         return app;

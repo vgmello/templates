@@ -1,8 +1,3 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-  <ItemGroup>
-    <Folder Include="Invoices\Models\" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\Operations.ServiceDefaults\Operations.ServiceDefaults.csproj" />
-  </ItemGroup>
+
 </Project>

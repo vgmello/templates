@@ -17,5 +17,5 @@
         <ProjectReference Include="..\Billing\Billing.csproj"/>
         <ProjectReference Include="..\Operations.ServiceDefaults.Api\Operations.ServiceDefaults.Api.csproj"/>
     </ItemGroup>
-
+    
 </Project>

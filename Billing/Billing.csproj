@@ -22,6 +22,7 @@
     <ItemGroup>
       <ProjectReference Include="..\Accounting.Contracts\Accounting.Contracts.csproj" />
       <ProjectReference Include="..\Billing.Contracts\Billing.Contracts.csproj" />
+      <ProjectReference Include="..\Operations.ServiceDefaults\Operations.ServiceDefaults.csproj" />
     </ItemGroup>
 
 </Project>
