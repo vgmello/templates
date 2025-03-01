@@ -1,6 +1,5 @@
 // Copyright (c) ABCDEG. All rights reserved.
 
-using MassTransit;
 using MediatR;
 
 namespace Operations.ServiceDefaults.Mediator;

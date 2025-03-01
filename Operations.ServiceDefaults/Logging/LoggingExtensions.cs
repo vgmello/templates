@@ -4,6 +4,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Serilog;
 using Serilog.Core;
 using Serilog.Events;
@@ -23,16 +24,17 @@ public static class LoggingExtensions
         builder.Logging.ClearProviders();
         builder.Services.AddSerilog((services, logger) =>
         {
+            var monitoredPropConfig = services.GetRequiredService<IOptionsMonitor<MonitoredLogProperties>>();
             var standardLogger = ConfigureNewLogger(services, builder.Configuration).CreateLogger();
             var debuggerLogger = ConfigureNewLogger(services, builder.Configuration)
                 .MinimumLevel.ControlledBy(logLevelSwitch)
                 .Enrich.WithProperty("Diagnostics", "True")
-                .Filter.With(new DynamicPropertyLogFilter(monitoredLogProperties, standardLogger))
+                .Filter.With(new DynamicPropertyLogFilter(monitoredPropConfig, standardLogger))
                 .CreateLogger();
 
             logger
-                .MinimumLevel.Verbose()
                 .ReadFrom.Configuration(builder.Configuration)
+                .MinimumLevel.Verbose()
                 .WriteTo.Logger(standardLogger)
                 .WriteTo.Logger(debuggerLogger);
         });
