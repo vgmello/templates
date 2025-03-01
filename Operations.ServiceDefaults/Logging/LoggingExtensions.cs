@@ -8,6 +8,7 @@ using Microsoft.Extensions.Options;
 using Serilog;
 using Serilog.Core;
 using Serilog.Events;
+using Serilog.Settings.Configuration;
 
 namespace Operations.ServiceDefaults.Logging;
 
@@ -16,22 +17,24 @@ public static class LoggingExtensions
     public static IHostApplicationBuilder AddLogging(this IHostApplicationBuilder builder)
     {
         var logLevelSwitch = new LoggingLevelSwitch { MinimumLevel = LevelAlias.Off };
-        var monitoredLogProperties = new MonitoredLogProperties();
+        builder.Services.AddKeyedSingleton(logLevelSwitch, nameof(LoggingExtensions));
 
-        builder.Services.AddSingleton(logLevelSwitch);
-        builder.Services.AddSingleton(monitoredLogProperties);
+        builder.Services
+            .AddOptions<DynamicLogLevelSettings>()
+            .BindConfiguration(DynamicLogLevelSettings.SectionName);
 
         builder.Logging.ClearProviders();
         builder.Services.AddSerilog((services, logger) =>
         {
-            var monitoredPropConfig = services.GetRequiredService<IOptionsMonitor<MonitoredLogProperties>>();
+            var dynamicLogLevelSettings = services.GetRequiredService<IOptionsMonitor<DynamicLogLevelSettings>>();
+
             var standardLogger = ConfigureNewLogger(services, builder.Configuration).CreateLogger();
             var debuggerLogger = ConfigureNewLogger(services, builder.Configuration)
                 .MinimumLevel.ControlledBy(logLevelSwitch)
-                .Enrich.WithProperty("Diagnostics", "True")
-                .Filter.With(new DynamicPropertyLogFilter(monitoredPropConfig, standardLogger))
+                .Enrich.WithProperty("Diagnostics", "true")
+                .Filter.With(new DynamicPropertyLogFilter(standardLogger, dynamicLogLevelSettings, logLevelSwitch))
                 .CreateLogger();
-
+            
             logger
                 .ReadFrom.Configuration(builder.Configuration)
                 .MinimumLevel.Verbose()
