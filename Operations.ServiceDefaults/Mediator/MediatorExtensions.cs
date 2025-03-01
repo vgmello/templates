@@ -1,8 +1,10 @@
 // Copyright (c) ABCDEG. All rights reserved.
 
 using System.Reflection;
+using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Operations.ServiceDefaults.Mediator.Behaviors;
 
 namespace Operations.ServiceDefaults.Mediator;
 
@@ -12,7 +14,7 @@ public static class MediatorExtensions
 
     public static IHostApplicationBuilder AddMediator(this IHostApplicationBuilder builder, Action<MediatRServiceConfiguration>? configuration = null)
     {
-        var mediatorRegistered = builder.Services.Any(s => s.ServiceType == typeof(MediatR.IMediator));
+        var mediatorRegistered = builder.Services.Any(s => s.ServiceType == typeof(IMediator));
 
         if (mediatorRegistered)
             return builder;
@@ -33,6 +35,8 @@ public static class MediatorExtensions
 
             if (domainAssembly is not null)
                 cfg.RegisterServicesFromAssembly(domainAssembly);
+
+            cfg.AddBehavior(typeof(IPipelineBehavior<,>), typeof(RequestPerformanceBehavior<,>), ServiceLifetime.Singleton);
 
             configuration?.Invoke(cfg);
         });

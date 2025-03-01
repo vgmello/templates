@@ -34,7 +34,7 @@ public static class LoggingExtensions
                 .Enrich.WithProperty("Diagnostics", "true")
                 .Filter.With(new DynamicPropertyLogFilter(standardLogger, dynamicLogLevelSettings, logLevelSwitch))
                 .CreateLogger();
-            
+
             logger
                 .ReadFrom.Configuration(builder.Configuration)
                 .MinimumLevel.Verbose()
