@@ -8,7 +8,6 @@ using Microsoft.Extensions.Options;
 using Serilog;
 using Serilog.Core;
 using Serilog.Events;
-using Serilog.Settings.Configuration;
 
 namespace Operations.ServiceDefaults.Logging;
 
@@ -35,8 +34,10 @@ public static class LoggingExtensions
                 .Filter.With(new DynamicPropertyLogFilter(standardLogger, dynamicLogLevelSettings, logLevelSwitch))
                 .CreateLogger();
 
+            var config = GetMainLoggerConfig(builder.Configuration);
+
             logger
-                .ReadFrom.Configuration(builder.Configuration)
+                .ReadFrom.Configuration(config)
                 .MinimumLevel.Verbose()
                 .WriteTo.Logger(standardLogger)
                 .WriteTo.Logger(debuggerLogger);
@@ -51,4 +52,15 @@ public static class LoggingExtensions
             .ReadFrom.Services(services)
             .WriteTo.OpenTelemetry()
             .Enrich.FromLogContext();
+
+    private static IConfigurationRoot GetMainLoggerConfig(IConfiguration configuration)
+    {
+        var serilogSection = configuration.GetSection("Serilog");
+        var serilogConfigWithoutWriteTo = serilogSection.AsEnumerable()
+            .Where(kv => kv.Value is not null && !kv.Key.StartsWith("Serilog:WriteTo"))
+            .ToDictionary(kv => kv.Key, kv => kv.Value);
+
+        return new ConfigurationBuilder()
+            .AddInMemoryCollection(serilogConfigWithoutWriteTo).Build();
+    }
 }

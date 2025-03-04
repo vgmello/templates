@@ -22,7 +22,7 @@ public static class ApiExtensions
         return builder;
     }
 
-    public static WebApplication ConfigureApiUsingDefaults(this WebApplication app)
+    public static WebApplication ConfigureApiUsingDefaults(this WebApplication app, bool requireAuth = true)
     {
         app.UseRouting();
         app.UseAuthentication();
@@ -40,7 +40,10 @@ public static class ApiExtensions
             app.UseSwaggerUI();
         }
 
-        app.MapControllers().RequireAuthorization();
+        var controllersEndpointBuilder = app.MapControllers();
+
+        if (requireAuth)
+            controllersEndpointBuilder.RequireAuthorization();
 
         app.MapDefaultEndpoints();
 

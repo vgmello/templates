@@ -12,8 +12,6 @@ public abstract class CommandHandler<TCommand, TCommandResult>(ICommandServices 
 
     protected IMediator Mediator => services.Mediator;
 
-    protected IBus EventBus => services.EventBus;
-
     public Task<TCommandResult> Handle(TCommand request, CancellationToken cancellationToken)
     {
         CancellationToken = cancellationToken;
@@ -34,5 +32,5 @@ public abstract class CommandHandler<TCommand, TCommandResult>(ICommandServices 
     /// </summary>
     /// <param name="event">Event</param>
     /// <typeparam name="TEvent">Event Type</typeparam>
-    protected Task PublishEvent<TEvent>(TEvent @event) where TEvent : notnull => EventBus.Publish(@event, CancellationToken);
+    protected Task PublishEvent<TEvent>(TEvent @event) where TEvent : notnull => Mediator.Publish(@event, CancellationToken);
 }

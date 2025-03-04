@@ -13,7 +13,7 @@ public static class MassTransitDependencyInjection
     {
         builder.Services.AddOptions<SqlTransportOptions>().Configure(options =>
         {
-            var connectionString = builder.Configuration.GetConnectionString("Masstransit");
+            var connectionString = builder.Configuration.GetConnectionString("MassTransit");
             options.ConnectionString = connectionString;
         });
 

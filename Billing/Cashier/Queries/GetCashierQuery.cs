@@ -4,13 +4,16 @@ using Billing.Cashier.Data.Persistence;
 
 namespace Billing.Cashier.Queries;
 
-public record GetCashierQuery(Guid Id) : IRequest<Contracts.Cashier.Models.Cashier>;
+public record GetCashierQuery(Guid Id) : IRequest<Contracts.Cashier.Models.Cashier?>;
 
-public class GetCashierQueryHandler(IQueryServices services) : QueryHandler<GetCashierQuery, Contracts.Cashier.Models.Cashier>(services)
+public class GetCashierQueryHandler(IQueryServices services) : QueryHandler<GetCashierQuery, Contracts.Cashier.Models.Cashier?>(services)
 {
-    protected override async Task<Contracts.Cashier.Models.Cashier> Handle(GetCashierQuery request)
+    protected override async Task<Contracts.Cashier.Models.Cashier?> Handle(GetCashierQuery request)
     {
         var cashier = await SendQuery(new GetCashierByIdDbQuery(request.Id));
+
+        if (cashier is null)
+            return null;
 
         return new Contracts.Cashier.Models.Cashier
         {

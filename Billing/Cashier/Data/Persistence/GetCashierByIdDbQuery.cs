@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Billing.Cashier.Data.Persistence;
 
-public record GetCashierByIdDbQuery(Guid Id) : IRequest<Entities.Cashier>;
+public record GetCashierByIdDbQuery(Guid Id) : IRequest<Entities.Cashier?>;
 
 public class GetCashierByIdQueryHandler(BillingDbContext context) : IRequestHandler<GetCashierByIdDbQuery, Entities.Cashier?>
 {

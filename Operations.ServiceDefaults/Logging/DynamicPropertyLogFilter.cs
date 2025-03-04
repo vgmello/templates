@@ -45,7 +45,7 @@ public sealed class DynamicPropertyLogFilter : ILogEventFilter, IDisposable
     {
         _logger.Information("Updating dynamic log level settings");
 
-        var newLogLevel = _monitoredProperties is { Count: > 0 } ? LogEventLevel.Debug : LevelAlias.Off;
+        var newLogLevel = settings.Properties is { Count: > 0 } ? LogEventLevel.Debug : LevelAlias.Off;
 
         if (logLevelSwitch.MinimumLevel != newLogLevel)
         {

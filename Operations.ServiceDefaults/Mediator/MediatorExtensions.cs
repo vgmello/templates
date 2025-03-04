@@ -50,6 +50,7 @@ public static class MediatorExtensions
     {
         builder.Services.AddTransient<ICommandServices, CommandServices>();
         builder.Services.AddTransient<IQueryServices, QueryServices>();
+
         return builder;
     }
 }

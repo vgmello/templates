@@ -16,6 +16,6 @@ builder.AddApplicationServices();
 
 var app = builder.Build();
 
-app.ConfigureApiUsingDefaults();
+app.ConfigureApiUsingDefaults(requireAuth: false);
 
 await app.RunAsync();

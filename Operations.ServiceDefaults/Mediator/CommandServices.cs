@@ -14,17 +14,12 @@ namespace Operations.ServiceDefaults.Mediator;
 /// </remarks>
 public interface ICommandServices
 {
-    IBus EventBus { get; }
-
     IMediator Mediator { get; }
 }
 
 public class CommandServices(IServiceProvider serviceProvider) : ICommandServices
 {
-    private readonly Lazy<IBus> _bus = new(serviceProvider.GetRequiredService<IBusControl>);
     private readonly Lazy<IMediator> _mediator = new(serviceProvider.GetRequiredService<IMediator>);
-
-    public IBus EventBus => _bus.Value;
 
     public IMediator Mediator => _mediator.Value;
 }

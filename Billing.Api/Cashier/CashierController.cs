@@ -4,7 +4,7 @@ namespace Billing.Api.Cashier;
 
 [ApiController]
 [Route("[controller]")]
-public class CashiersController(IMediator mediator) : ControllerBase
+public class CashiersController(ILogger<CashiersController> logger, IMediator mediator) : ControllerBase
 {
     [HttpGet("{id:guid}")]
     public async Task<Contracts.Cashier.Models.Cashier> GetCashier([FromRoute] Guid id)
@@ -32,4 +32,14 @@ public class CashiersController(IMediator mediator) : ControllerBase
 
     [HttpGet("fake-error")]
     public Task<ActionResult<Contracts.Cashier.Models.Cashier>> FakeError() => throw new DivideByZeroException("Fake error");
+
+    [HttpGet("id/{id}")]
+    public async Task<Contracts.Cashier.Models.Cashier> GetCashierById([FromRoute] int id)
+    {
+        using var loggerScope = logger.BeginScope(new Dictionary<string, object?> { ["Id"] = id });
+
+        var cashier = await mediator.Send(new GetCashierQuery(Guid.NewGuid()));
+
+        return cashier;
+    }
 }
