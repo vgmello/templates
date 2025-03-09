@@ -6,7 +6,8 @@ namespace Billing.Cashier.Queries;
 
 public record GetCashierQuery(Guid Id) : IRequest<Contracts.Cashier.Models.Cashier?>;
 
-public class GetCashierQueryHandler(IQueryServices services) : QueryHandler<GetCashierQuery, Contracts.Cashier.Models.Cashier?>(services)
+public class GetCashierQueryHandler(IQueryServices services) :
+    QueryHandler<GetCashierQuery, Contracts.Cashier.Models.Cashier?>(services)
 {
     protected override async Task<Contracts.Cashier.Models.Cashier?> Handle(GetCashierQuery request)
     {
