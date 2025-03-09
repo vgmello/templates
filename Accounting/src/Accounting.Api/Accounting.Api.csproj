@@ -5,12 +5,10 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <Content Include="..\.dockerignore">
-            <Link>.dockerignore</Link>
-        </Content>
-        <Content Update="appsettings.*.json">
-            <DependentUpon>appsettings.json</DependentUpon>
-        </Content>
+      <ProjectReference Include="..\..\..\Platform\src\Operations.ServiceDefaults.Api\Operations.ServiceDefaults.Api.csproj" />
+      <ProjectReference Include="..\..\..\Platform\src\Operations.ServiceDefaults\Operations.ServiceDefaults.csproj" />
+      <ProjectReference Include="..\Accounting.Contracts\Accounting.Contracts.csproj" />
+      <ProjectReference Include="..\Accounting\Accounting.csproj" />
     </ItemGroup>
 
 </Project>

@@ -5,13 +5,9 @@
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="9.0.2" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="9.0.2"/>
         <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.2"/>
         <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.3"/>
-    </ItemGroup>
-
-    <ItemGroup>
-        <FrameworkReference Include="Microsoft.AspNetCore.App"/>
     </ItemGroup>
 
     <ItemGroup>
@@ -19,4 +15,9 @@
         <Folder Include="Invoices\Queries\"/>
     </ItemGroup>
 
+    <ItemGroup>
+        <ProjectReference Include="..\..\..\Platform\src\Operations.ServiceDefaults\Operations.ServiceDefaults.csproj"/>
+        <ProjectReference Include="..\Billing.Contracts\Billing.Contracts.csproj"/>
+    </ItemGroup>
+    
 </Project>
