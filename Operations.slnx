@@ -15,7 +15,9 @@
     <Project Path="Billing\src\Billing.Contracts\Billing.Contracts.csproj" Type="Classic C#" />
     <Project Path="Billing\src\Billing\Billing.csproj" Type="Classic C#" />
   </Folder>
-  <Folder Name="/Billing/Infra/" />
+  <Folder Name="/Billing/Infra/">
+    <Project Path="Billing\infra\Billing.Database\Billing.Database.csproj" Type="Classic C#" />
+  </Folder>
   <Folder Name="/Billing/Tests/">
     <Project Path="Billing\test\Billing.Tests.Integration\Billing.Tests.Integration.csproj" Type="Classic C#" />
     <Project Path="Billing\test\Billing.Tests.Unit\Billing.Tests.Unit.csproj" Type="Classic C#" />

@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Billing.Cashier.Data.Entities;
 
-[Table("CashierCurrencies")]
+[Table("cashier_currencies")]
 [PrimaryKey(nameof(CashierId), nameof(CurrencyId), nameof(EffectiveDateUtc))]
 public record CashierCurrency
 {

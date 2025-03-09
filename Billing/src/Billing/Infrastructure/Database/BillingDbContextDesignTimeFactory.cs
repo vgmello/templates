@@ -22,7 +22,9 @@ public class BillingDbContextDesignTimeFactory : IDesignTimeDbContextFactory<Bil
         var connectionString = configuration.GetConnectionString("BillingDatabase");
 
         var optionsBuilder = new DbContextOptionsBuilder<BillingDbContext>();
-        optionsBuilder.UseNpgsql(connectionString);
+        optionsBuilder
+            .UseNpgsql(connectionString)
+            .UseSnakeCaseNamingConvention();
 
         return new BillingDbContext(optionsBuilder.Options);
     }

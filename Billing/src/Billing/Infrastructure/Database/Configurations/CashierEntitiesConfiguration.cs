@@ -29,10 +29,5 @@ public class CashierEntitiesConfiguration :
     {
         builder.Property(e => e.CreatedDateUtc)
             .HasDefaultValueSql(DbConstants.CurrentTimeStamp);
-
-        builder.HasOne(e => e.Cashier)
-            .WithMany(e => e.Currencies)
-            .HasForeignKey(e => e.CashierId)
-            .OnDelete(DeleteBehavior.Cascade);
     }
 }

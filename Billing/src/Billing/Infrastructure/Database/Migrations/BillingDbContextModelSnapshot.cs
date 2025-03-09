@@ -27,110 +27,125 @@ namespace Billing.Infrastructure.Database.Migrations
                 {
                     b.Property<Guid>("CashierId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("cashier_id");
 
                     b.Property<DateTime>("CreatedDateUtc")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_date_utc")
                         .HasDefaultValueSql("timezone('utc', now())");
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("name");
 
                     b.Property<DateTime>("UpdatedDateUtc")
                         .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_date_utc")
                         .HasDefaultValueSql("timezone('utc', now())");
 
                     b.Property<int>("Version")
                         .IsConcurrencyToken()
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
-                        .HasDefaultValue(1);
+                        .HasDefaultValue(1)
+                        .HasColumnName("version");
 
-                    b.HasKey("CashierId");
+                    b.HasKey("CashierId")
+                        .HasName("pk_cashiers");
 
-                    b.ToTable("Cashiers", "billing");
+                    b.ToTable("cashiers", "billing");
                 });
 
             modelBuilder.Entity("Billing.Cashier.Data.Entities.CashierCurrency", b =>
                 {
                     b.Property<Guid>("CashierId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("cashier_id");
 
                     b.Property<Guid>("CurrencyId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("currency_id");
 
                     b.Property<DateTime>("EffectiveDateUtc")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("effective_date_utc");
 
                     b.Property<DateTime>("CreatedDateUtc")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_date_utc")
                         .HasDefaultValueSql("timezone('utc', now())");
 
                     b.Property<string>("CustomCurrencyCode")
                         .IsRequired()
                         .HasMaxLength(10)
-                        .HasColumnType("character varying(10)");
+                        .HasColumnType("character varying(10)")
+                        .HasColumnName("custom_currency_code");
 
-                    b.HasKey("CashierId", "CurrencyId", "EffectiveDateUtc");
+                    b.HasKey("CashierId", "CurrencyId", "EffectiveDateUtc")
+                        .HasName("pk_cashier_currencies");
 
-                    b.ToTable("CashierCurrencies", "billing");
+                    b.ToTable("cashier_currencies", "billing");
                 });
 
             modelBuilder.Entity("Billing.Invoices.Data.Entities.Invoice", b =>
                 {
                     b.Property<Guid>("InvoiceId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                        .HasColumnType("uuid")
+                        .HasColumnName("invoice_id");
 
                     b.Property<DateTime>("CreatedDateUtc")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_date_utc")
                         .HasDefaultValueSql("timezone('utc', now())");
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("name");
 
                     b.Property<string>("Status")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("text")
+                        .HasColumnName("status");
 
                     b.Property<DateTime>("UpdatedDateUtc")
                         .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_date_utc")
                         .HasDefaultValueSql("timezone('utc', now())");
 
                     b.Property<int>("Version")
                         .IsConcurrencyToken()
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
-                        .HasDefaultValue(1);
+                        .HasDefaultValue(1)
+                        .HasColumnName("version");
 
-                    b.HasKey("InvoiceId");
+                    b.HasKey("InvoiceId")
+                        .HasName("pk_invoices");
 
-                    b.ToTable("Invoices", "billing");
+                    b.ToTable("invoices", "billing");
                 });
 
             modelBuilder.Entity("Billing.Cashier.Data.Entities.CashierCurrency", b =>
                 {
                     b.HasOne("Billing.Cashier.Data.Entities.Cashier", "Cashier")
-                        .WithMany("Currencies")
+                        .WithMany()
                         .HasForeignKey("CashierId")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("fk_cashier_currencies_cashiers_cashier_id");
 
                     b.Navigation("Cashier");
-                });
-
-            modelBuilder.Entity("Billing.Cashier.Data.Entities.Cashier", b =>
-                {
-                    b.Navigation("Currencies");
                 });
 #pragma warning restore 612, 618
         }

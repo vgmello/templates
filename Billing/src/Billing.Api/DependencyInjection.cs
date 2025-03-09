@@ -10,7 +10,9 @@ public static class DependencyInjection
     public static IHostApplicationBuilder AddApplicationServices(this IHostApplicationBuilder builder)
     {
         builder.Services.AddDbContext<BillingDbContext>(options =>
-            options.UseNpgsql(builder.Configuration.GetConnectionString("BillingDatabase")));
+            options
+                .UseNpgsql(builder.Configuration.GetConnectionString("BillingDatabase"))
+                .UseSnakeCaseNamingConvention());
 
         return builder;
     }

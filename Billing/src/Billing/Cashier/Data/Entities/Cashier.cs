@@ -5,7 +5,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Billing.Cashier.Data.Entities;
 
-[Table("Cashiers")]
+[Table("cashiers")]
 public record Cashier
 {
     [Key]
@@ -21,6 +21,4 @@ public record Cashier
 
     [ConcurrencyCheck]
     public int Version { get; set; }
-
-    public ICollection<CashierCurrency> Currencies { get; set; } = [];
 }

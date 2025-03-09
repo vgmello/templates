@@ -5,7 +5,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Billing.Invoices.Data.Entities;
 
-[Table("Invoices")]
+[Table("invoices")]
 public record Invoice
 {
     [Key]
