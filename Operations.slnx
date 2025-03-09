@@ -1,40 +1,39 @@
 ﻿<Solution>
-    <Folder Name="/Accounting/">
-        <Project Path="Accounting\src\Accounting.Api\Accounting.Api.csproj" Type="Classic C#"/>
-        <Project Path="Accounting\src\Accounting.AppHost\Accounting.AppHost.csproj" Type="Classic C#"/>
-        <Project Path="Accounting\src\Accounting.BackOffice\Accounting.BackOffice.csproj" Type="Classic C#"/>
-        <Project Path="Accounting\src\Accounting.Contracts\Accounting.Contracts.csproj" Type="Classic C#"/>
-        <Project Path="Accounting\src\Accounting\Accounting.csproj" Type="Classic C#"/>
-    </Folder>
-    <Folder Name="/Accounting/Infra/"/>
-    <Folder Name="/Accounting/Tests/"/>
-    <Folder Name="/Billing/">
-        <Project Path="Billing\src\Billing.Api\Billing.Api.csproj" Type="Classic C#"/>
-        <Project Path="Billing\src\Billing.AppHost\Billing.AppHost.csproj" Type="Classic C#"/>
-        <Project Path="Billing\src\Billing.BackOffice\Billing.BackOffice.csproj" Type="Classic C#"/>
-        <Project Path="Billing\src\Billing.Contracts\Billing.Contracts.csproj" Type="Classic C#"/>
-        <Project Path="Billing\src\Billing\Billing.csproj" Type="Classic C#"/>
-    </Folder>
-    <Folder Name="/Billing/Infra/"/>
-    <Folder Name="/Billing/Tests/">
-        <Project Path="Billing\test\Billing.Tests.Integration\Billing.Tests.Integration.csproj" Type="Classic C#"/>
-        <Project Path="Billing\test\Billing.Tests.Unit\Billing.Tests.Unit.csproj" Type="Classic C#"/>
-    </Folder>
-    <Folder Name="/Platform/">
-        <Project Path="Platform\Operations.ServiceDefaults.Api\Operations.ServiceDefaults.Api.csproj"
-                 Type="Classic C#"/>
-        <Project Path="Platform\Operations.ServiceDefaults\Operations.ServiceDefaults.csproj" Type="Classic C#"/>
-    </Folder>
-    <Folder Name="/Solution Items/">
-        <File Path="compose.yaml"/>
-        <File Path="Directory.Build.props"/>
-        <File Path="Operations.ruleset"/>
-        <File Path=".dockerignore"/>
-        <File Path=".editorconfig"/>
-        <File Path="Operations.sln.DotSettings"/>
-    </Folder>
-    <Folder Name="/Solution Items/.http/">
-        <File Path=".http\Accounting.Api.http"/>
-        <File Path=".http\Billing.Api.http"/>
-    </Folder>
+  <Folder Name="/Accounting/">
+    <Project Path="Accounting\src\Accounting.Api\Accounting.Api.csproj" Type="Classic C#" />
+    <Project Path="Accounting\src\Accounting.AppHost\Accounting.AppHost.csproj" Type="Classic C#" />
+    <Project Path="Accounting\src\Accounting.BackOffice\Accounting.BackOffice.csproj" Type="Classic C#" />
+    <Project Path="Accounting\src\Accounting.Contracts\Accounting.Contracts.csproj" Type="Classic C#" />
+    <Project Path="Accounting\src\Accounting\Accounting.csproj" Type="Classic C#" />
+  </Folder>
+  <Folder Name="/Accounting/Infra/" />
+  <Folder Name="/Accounting/Tests/" />
+  <Folder Name="/Billing/">
+    <Project Path="Billing\src\Billing.Api\Billing.Api.csproj" Type="Classic C#" />
+    <Project Path="Billing\src\Billing.AppHost\Billing.AppHost.csproj" Type="Classic C#" />
+    <Project Path="Billing\src\Billing.BackOffice\Billing.BackOffice.csproj" Type="Classic C#" />
+    <Project Path="Billing\src\Billing.Contracts\Billing.Contracts.csproj" Type="Classic C#" />
+    <Project Path="Billing\src\Billing\Billing.csproj" Type="Classic C#" />
+  </Folder>
+  <Folder Name="/Billing/Infra/" />
+  <Folder Name="/Billing/Tests/">
+    <Project Path="Billing\test\Billing.Tests.Integration\Billing.Tests.Integration.csproj" Type="Classic C#" />
+    <Project Path="Billing\test\Billing.Tests.Unit\Billing.Tests.Unit.csproj" Type="Classic C#" />
+  </Folder>
+  <Folder Name="/Platform/">
+    <Project Path="Platform\src\Operations.ServiceDefaults.Api\Operations.ServiceDefaults.Api.csproj" Type="Classic C#" />
+    <Project Path="Platform\src\Operations.ServiceDefaults\Operations.ServiceDefaults.csproj" Type="Classic C#" />
+  </Folder>
+  <Folder Name="/Solution Items/">
+    <File Path="compose.yaml" />
+    <File Path="Directory.Build.props" />
+    <File Path="Operations.ruleset" />
+    <File Path=".dockerignore" />
+    <File Path=".editorconfig" />
+    <File Path="Operations.slnx.DotSettings" />
+  </Folder>
+  <Folder Name="/Solution Items/.http/">
+    <File Path=".http\Accounting.Api.http" />
+    <File Path=".http\Billing.Api.http" />
+  </Folder>
 </Solution>

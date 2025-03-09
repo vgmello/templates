@@ -5,7 +5,7 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <EnableNETAnalyzers>true</EnableNETAnalyzers>
         <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
-        <CodeAnalysisRuleSet>..\Operations.ruleset</CodeAnalysisRuleSet>
+        <CodeAnalysisRuleSet>..\..\..\Operations.ruleset</CodeAnalysisRuleSet>
         <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
         <NoWarn>$(NoWarn);CS1591</NoWarn>
     </PropertyGroup>

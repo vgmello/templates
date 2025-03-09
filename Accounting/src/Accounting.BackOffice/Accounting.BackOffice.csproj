@@ -18,10 +18,5 @@
         <Folder Include="Ledgers\IntegrationEvents\"/>
         <Folder Include="Ledgers\Jobs\"/>
     </ItemGroup>
-
-    <ItemGroup>
-        <ProjectReference Include="..\Accounting\Accounting.csproj"/>
-        <ProjectReference Include="..\Operations.ServiceDefaults\Operations.ServiceDefaults.csproj" />
-    </ItemGroup>
-
+    
 </Project>

@@ -13,9 +13,4 @@
         </Content>
     </ItemGroup>
 
-    <ItemGroup>
-        <ProjectReference Include="..\Accounting\Accounting.csproj"/>
-        <ProjectReference Include="..\Operations.ServiceDefaults.Api\Operations.ServiceDefaults.Api.csproj"/>
-    </ItemGroup>
-
 </Project>

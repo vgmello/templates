@@ -5,10 +5,5 @@
         <Folder Include="Ledgers\Data\Entities\"/>
         <Folder Include="Ledgers\Queries\"/>
     </ItemGroup>
-
-    <ItemGroup>
-      <ProjectReference Include="..\Accounting.Contracts\Accounting.Contracts.csproj" />
-      <ProjectReference Include="..\Operations.ServiceDefaults\Operations.ServiceDefaults.csproj" />
-    </ItemGroup>
-
+    
 </Project>

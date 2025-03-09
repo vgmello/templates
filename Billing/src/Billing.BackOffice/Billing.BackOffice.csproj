@@ -4,18 +4,4 @@
         <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
     </PropertyGroup>
 
-    <ItemGroup>
-        <Content Include="..\.dockerignore">
-            <Link>.dockerignore</Link>
-        </Content>
-        <Content Update="appsettings.*.json">
-            <DependentUpon>appsettings.json</DependentUpon>
-        </Content>
-    </ItemGroup>
-
-    <ItemGroup>
-        <ProjectReference Include="..\Billing\Billing.csproj"/>
-        <ProjectReference Include="..\Operations.ServiceDefaults\Operations.ServiceDefaults.csproj" />
-    </ItemGroup>
-
 </Project>

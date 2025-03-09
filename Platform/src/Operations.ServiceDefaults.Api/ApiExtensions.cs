@@ -45,8 +45,6 @@ public static class ApiExtensions
         if (requireAuth)
             controllersEndpointBuilder.RequireAuthorization();
 
-        app.MapDefaultEndpoints();
-
         return app;
     }
 }

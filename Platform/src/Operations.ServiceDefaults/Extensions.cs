@@ -40,11 +40,4 @@ public static class Extensions
 
         return builder;
     }
-
-    public static WebApplication MapDefaultEndpoints(this WebApplication app)
-    {
-        app.MapDefaultHealthCheckEndpoints();
-
-        return app;
-    }
 }
