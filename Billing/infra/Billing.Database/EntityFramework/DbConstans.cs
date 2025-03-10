@@ -1,6 +1,6 @@
 // Copyright (c) ABCDEG. All rights reserved.
 
-namespace Billing.Infrastructure.Database;
+namespace Billing.Database.EntityFramework;
 
 internal static class DbConstants
 {

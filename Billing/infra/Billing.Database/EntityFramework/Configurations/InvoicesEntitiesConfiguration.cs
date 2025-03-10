@@ -4,7 +4,7 @@ using Billing.Invoices.Data.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace Billing.Infrastructure.Database.Configurations;
+namespace Billing.Database.EntityFramework.Configurations;
 
 public class InvoicesEntitiesConfiguration : IEntityTypeConfiguration<Invoice>
 {

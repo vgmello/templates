@@ -4,7 +4,7 @@ using Billing.Cashier.Data.Entities;
 using Billing.Invoices.Data.Entities;
 using Microsoft.EntityFrameworkCore;
 
-namespace Billing.Infrastructure.Database;
+namespace Billing.Database.EntityFramework;
 
 public class BillingDbContext(DbContextOptions<BillingDbContext> options) : DbContext(options)
 {

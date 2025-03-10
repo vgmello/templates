@@ -2,12 +2,9 @@
 
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using Microsoft.EntityFrameworkCore;
 
 namespace Billing.Cashier.Data.Entities;
 
-[Table("cashier_currencies")]
-[PrimaryKey(nameof(CashierId), nameof(CurrencyId), nameof(EffectiveDateUtc))]
 public record CashierCurrency
 {
     public Guid CashierId { get; set; }

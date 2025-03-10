@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.Extensions.Configuration;
 
-namespace Billing.Infrastructure.Database;
+namespace Billing.Database.EntityFramework;
 
 public class BillingDbContextDesignTimeFactory : IDesignTimeDbContextFactory<BillingDbContext>
 {

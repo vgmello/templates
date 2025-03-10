@@ -4,7 +4,7 @@ using Billing.Cashier.Data.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace Billing.Infrastructure.Database.Configurations;
+namespace Billing.Database.EntityFramework.Configurations;
 
 public class CashierEntitiesConfiguration :
     IEntityTypeConfiguration<Cashier.Data.Entities.Cashier>,
