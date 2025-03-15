@@ -9,7 +9,7 @@ using OpenTelemetry.Trace;
 
 namespace Operations.ServiceDefaults.OpenTelemetry;
 
-public static class OpenTelemetryExtensions
+public static class OpenTelemetrySetupExtensions
 {
     public static IHostApplicationBuilder ConfigureOpenTelemetry(this IHostApplicationBuilder builder)
     {

@@ -3,6 +3,6 @@
 namespace Billing;
 
 /// <summary>
-/// Marker interface for the Billing assembly
+///     Marker interface for the Billing assembly
 /// </summary>
 public interface IBillingAssembly;

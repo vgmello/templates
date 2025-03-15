@@ -3,6 +3,6 @@
 namespace Accounting;
 
 /// <summary>
-/// Marker interface for the Accounting assembly
+///     Marker interface for the Accounting assembly
 /// </summary>
 public interface IAccountingAssembly;

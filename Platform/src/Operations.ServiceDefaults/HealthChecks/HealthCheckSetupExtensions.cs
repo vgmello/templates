@@ -13,7 +13,7 @@ using Operations.ServiceDefaults.Api.EndpointFilters;
 
 namespace Operations.ServiceDefaults.HealthChecks;
 
-public static class HealthCheckExtensions
+public static class HealthCheckSetupExtensions
 {
     private const string HealthCheckLogName = "HealthChecks";
 
@@ -24,6 +24,40 @@ public static class HealthCheckExtensions
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
     };
 
+    /// <summary>
+    ///     Configures default health check endpoints for the application.
+    /// </summary>
+    /// <remarks>
+    ///     This method sets up the following health check endpoints:
+    ///     <list type="table">
+    ///         <item>
+    ///             <term>
+    ///                 <c>/status</c>
+    ///             </term>
+    ///             <description>
+    ///                 A lightweight endpoint returning the status string of the last health check. Used for liveness probes.
+    ///                 <br />
+    ///                 Note: This endpoint does not actually execute any health checks
+    ///             </description>
+    ///         </item>
+    ///         <item>
+    ///             <term>
+    ///                 <c>/health/internal</c>
+    ///             </term>
+    ///             <description>
+    ///                 A container-only endpoint that returns simplified version health status information. Used for readiness
+    ///                 probes in cloud environments.<br />
+    ///                 Locally, this endpoint will return the same information as the <c>/health</c> endpoint.
+    ///             </description>
+    ///         </item>
+    ///         <item>
+    ///             <term>
+    ///                 <c>/health</c>
+    ///             </term>
+    ///             <description>A public endpoint requiring authorization that returns detailed health status information.</description>
+    ///         </item>
+    ///     </list>
+    /// </remarks>
     public static WebApplication MapDefaultHealthCheckEndpoints(this WebApplication app)
     {
         // If the HealthCheckStatusStore is registered in the app DI container, we will use it,
@@ -33,9 +67,11 @@ public static class HealthCheckExtensions
 
         var logger = GetHealthCheckLogger(app);
 
+        // liveness probe
         app.MapGet("/status", () => healthCheckStore.GetLastStatus().ToString())
             .ExcludeFromDescription();
 
+        // container-only health check probe
         var isDevelopment = app.Environment.IsDevelopment();
         app.MapHealthChecks("/health/internal",
                 new HealthCheckOptions
@@ -46,10 +82,12 @@ public static class HealthCheckExtensions
             .RequireHost("localhost")
             .AddEndpointFilter(new LocalhostEndpointFilter(logger));
 
+        // public health check probe
         app.MapHealthChecks("/health",
                 new HealthCheckOptions
                 {
-                    ResponseWriter = (ctx, report) => ProcessHealthCheckResult(ctx, logger, healthCheckStore, report, outputResult: true)
+                    ResponseWriter = (ctx, report) =>
+                        ProcessHealthCheckResult(ctx, logger, healthCheckStore, report, outputResult: true)
                 })
             .RequireAuthorization();
 

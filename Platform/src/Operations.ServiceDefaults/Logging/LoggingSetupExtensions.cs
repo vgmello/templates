@@ -11,12 +11,12 @@ using Serilog.Events;
 
 namespace Operations.ServiceDefaults.Logging;
 
-public static class LoggingExtensions
+public static class LoggingSetupExtensions
 {
     public static IHostApplicationBuilder AddLogging(this IHostApplicationBuilder builder)
     {
         var logLevelSwitch = new LoggingLevelSwitch { MinimumLevel = LevelAlias.Off };
-        builder.Services.AddKeyedSingleton(logLevelSwitch, nameof(LoggingExtensions));
+        builder.Services.AddKeyedSingleton(logLevelSwitch, "DynamicLogLevelSwitch");
 
         builder.Services
             .AddOptions<DynamicLogLevelSettings>()

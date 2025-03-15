@@ -16,7 +16,6 @@ public static class Extensions
     {
         builder.AddLogging();
         builder.ConfigureOpenTelemetry();
-        builder.AddMediator();
 
         builder.Services.AddHealthChecks();
         builder.Services.AddServiceDiscovery();

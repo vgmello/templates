@@ -1,0 +1,9 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+    <ItemGroup>
+        <None Include="Operations.Extensions.props" Pack="true" PackagePath="build/"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="LanguageExt.Core" Version="4.4.9"/>
+    </ItemGroup>
+</Project>

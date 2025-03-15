@@ -1,1 +1,3 @@
-﻿Console.WriteLine("Hello, World!");
+﻿// Copyright (c) ABCDEG. All rights reserved.
+
+Console.WriteLine("Hello, World!");

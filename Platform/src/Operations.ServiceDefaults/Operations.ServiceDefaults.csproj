@@ -3,7 +3,7 @@
     <PropertyGroup>
         <IsAspireSharedProject>true</IsAspireSharedProject>
     </PropertyGroup>
-    
+
     <PropertyGroup>
         <PackageId>$(AssemblyName)</PackageId>
         <PackageVersion>$(Version)</PackageVersion>
@@ -25,24 +25,29 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="MassTransit" Version="8.3.6"/>
-        <PackageReference Include="MassTransit.SqlTransport.PostgreSQL" Version="8.3.6"/>
-        <PackageReference Include="MediatR" Version="12.4.1"/>
-        <PackageReference Include="Microsoft.Extensions.Http.Resilience" Version="9.2.0"/>
-        <PackageReference Include="Microsoft.Extensions.ServiceDiscovery" Version="9.0.0"/>
-        <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.11.1"/>
-        <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.11.1"/>
-        <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.11.0"/>
-        <PackageReference Include="OpenTelemetry.Instrumentation.Http" Version="1.11.0"/>
-        <PackageReference Include="OpenTelemetry.Instrumentation.Runtime" Version="1.11.0"/>
+        <PackageReference Include="Microsoft.Extensions.Http.Resilience" Version="9.3.0" />
+        <PackageReference Include="Microsoft.Extensions.ServiceDiscovery" Version="9.1.0" />
+        <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.11.2" />
+        <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.11.2" />
+        <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.11.1" />
+        <PackageReference Include="OpenTelemetry.Instrumentation.Http" Version="1.11.1" />
+        <PackageReference Include="OpenTelemetry.Instrumentation.Runtime" Version="1.11.1" />
         <PackageReference Include="Serilog.AspNetCore" Version="9.0.0"/>
         <PackageReference Include="Serilog.Exceptions" Version="8.4.0"/>
         <PackageReference Include="Serilog.Sinks.OpenTelemetry" Version="4.1.1"/>
+        <PackageReference Include="WolverineFx" Version="3.10.4" />
+        <PackageReference Include="WolverineFx.FluentValidation" Version="3.10.4" />
+        <PackageReference Include="WolverineFx.Kafka" Version="3.10.4" />
+        <PackageReference Include="WolverineFx.Postgresql" Version="3.10.4" />
     </ItemGroup>
 
     <ItemGroup>
         <Folder Include="Email\" />
         <Folder Include="Quartz\" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\..\..\Operations.Extensions\Operations.Extensions.csproj" />
     </ItemGroup>
 
 </Project>
