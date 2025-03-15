@@ -1,6 +1,7 @@
 {
+  "dotnet.defaultSolution": "Operations.slnx",
+  "dotnet.automaticallyCreateSolutionInWorkspace": false,
   "cSpell.words": [
-    "Mediatr",
     "liquibase",
   ]
 }

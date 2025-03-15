@@ -24,7 +24,7 @@ public class GetCashiersQueryHandler(IQueryServices services) :
         var cashiers = await SendQuery(new GetCashiersDbQuery
         {
             Offset = query.Offset,
-            Limit = query.Limit,
+            Limit = query.Limit
         });
 
         return cashiers.Select(c => new GetCashiersQuery.Result(c.CashierId, c.Name));

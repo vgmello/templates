@@ -31,7 +31,8 @@ public class CashiersController(ILogger<CashiersController> logger, IMediator me
     }
 
     [HttpGet("fake-error")]
-    public Task<ActionResult<Contracts.Cashier.Models.Cashier>> FakeError() => throw new DivideByZeroException("Fake error");
+    public Task<ActionResult<Contracts.Cashier.Models.Cashier>> FakeError() =>
+        throw new DivideByZeroException("Fake error");
 
     [HttpGet("id/{id}")]
     public async Task<Contracts.Cashier.Models.Cashier> GetCashierById([FromRoute] int id)

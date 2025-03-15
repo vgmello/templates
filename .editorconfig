@@ -180,7 +180,9 @@ csharp_new_line_before_members_in_object_initializers = false
 csharp_new_line_before_open_brace = all
 csharp_new_line_between_query_expression_clauses = true
 
-resharper_max_initializer_elements_on_line = 1
+csharp_place_accessorholder_attribute_on_same_line = false
+csharp_place_field_attribute_on_same_line = false
+csharp_max_initializer_elements_on_line = 1
 
 # Indentation preferences
 csharp_indent_block_contents = true

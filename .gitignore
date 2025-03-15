@@ -400,4 +400,5 @@ FodyWeavers.xsd
 #Output folder for release
 output-*/*
 
-.idea/*
+# Idea / Rider files
+.idea/
