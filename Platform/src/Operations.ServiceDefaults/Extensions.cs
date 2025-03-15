@@ -7,6 +7,7 @@ using Operations.ServiceDefaults.HealthChecks;
 using Operations.ServiceDefaults.Logging;
 using Operations.ServiceDefaults.Mediator;
 using Operations.ServiceDefaults.OpenTelemetry;
+using Operations.ServiceDefaults.Wolverine;
 
 namespace Operations.ServiceDefaults;
 
@@ -15,7 +16,8 @@ public static class Extensions
     public static IHostApplicationBuilder AddServiceDefaults(this IHostApplicationBuilder builder)
     {
         builder.AddLogging();
-        builder.ConfigureOpenTelemetry();
+        builder.AddOpenTelemetry();
+        builder.AddWolverine();
 
         builder.Services.AddHealthChecks();
         builder.Services.AddServiceDiscovery();

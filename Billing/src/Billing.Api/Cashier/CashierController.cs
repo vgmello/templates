@@ -4,7 +4,7 @@ namespace Billing.Api.Cashier;
 
 [ApiController]
 [Route("[controller]")]
-public class CashiersController(ILogger<CashiersController> logger, IMediator mediator) : ControllerBase
+public class CashiersController(ILogger<CashiersController> logger) : ControllerBase
 {
     [HttpGet("{id:guid}")]
     public async Task<Contracts.Cashier.Models.Cashier> GetCashier([FromRoute] Guid id)

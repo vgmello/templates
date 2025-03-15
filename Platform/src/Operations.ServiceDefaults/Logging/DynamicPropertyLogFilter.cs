@@ -17,7 +17,8 @@ public sealed class DynamicPropertyLogFilter : ILogEventFilter, IDisposable
     private Dictionary<string, HashSet<string>> _monitoredProperties;
 
     public DynamicPropertyLogFilter(
-        Logger standardLogger, IOptionsMonitor<DynamicLogLevelSettings> dynamicLogLevelSettings, LoggingLevelSwitch logLevelSwitch)
+        Logger standardLogger, IOptionsMonitor<DynamicLogLevelSettings> dynamicLogLevelSettings,
+        LoggingLevelSwitch logLevelSwitch)
     {
         _logger = standardLogger.ForContext<DynamicPropertyLogFilter>();
         _standardLogger = standardLogger;
@@ -33,7 +34,8 @@ public sealed class DynamicPropertyLogFilter : ILogEventFilter, IDisposable
 
         foreach (var property in logEvent.Properties)
         {
-            if (_monitoredProperties.TryGetValue(property.Key, out var values) && values.Contains(property.Value.ToString()))
+            if (_monitoredProperties.TryGetValue(property.Key, out var values) &&
+                values.Contains(property.Value.ToString()))
                 return true;
         }
 
@@ -50,15 +52,21 @@ public sealed class DynamicPropertyLogFilter : ILogEventFilter, IDisposable
         if (logLevelSwitch.MinimumLevel != newLogLevel)
         {
             logLevelSwitch.MinimumLevel = newLogLevel;
-            _logger.Information("Dynamic log level changed. Debug Enabled: {DebugLevelEnabled}", newLogLevel == LogEventLevel.Debug);
+            _logger.Information("Dynamic log level changed. Debug Enabled: {DebugLevelEnabled}",
+                newLogLevel == LogEventLevel.Debug);
         }
 
         _monitoredProperties = settings.Properties;
 
         if (_logger.IsEnabled(LogEventLevel.Debug))
-            _logger.Debug("Dynamic log level properties updated. MonitoredProperties: {@MonitoredProperties}", _monitoredProperties);
+        {
+            _logger.Debug("Dynamic log level properties updated. MonitoredProperties: {@MonitoredProperties}",
+                _monitoredProperties);
+        }
         else
+        {
             _logger.Information("Dynamic log level properties updated");
+        }
     }
 
     public void Dispose() => _propertiesChangedHandler?.Dispose();

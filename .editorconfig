@@ -140,9 +140,9 @@ csharp_style_prefer_method_group_conversion = true
 csharp_style_prefer_primary_constructors = true
 csharp_style_prefer_top_level_statements = true
 
-resharper_braces_for_for = required_for_multiline
-resharper_braces_for_foreach = required_for_multiline
-resharper_braces_for_ifelse = not_required_for_both
+csharp_braces_for_for = required_for_multiline
+csharp_braces_for_foreach = required_for_multiline
+csharp_braces_for_ifelse = required_for_multiline
 
 # Expression-level preferences
 csharp_prefer_simple_default_expression = true
@@ -183,6 +183,11 @@ csharp_new_line_between_query_expression_clauses = true
 csharp_place_accessorholder_attribute_on_same_line = false
 csharp_place_field_attribute_on_same_line = false
 csharp_max_initializer_elements_on_line = 1
+
+# Blank lines preferences
+csharp_blank_lines_before_block_statements = 1
+csharp_blank_lines_after_control_transfer_statements = 1
+csharp_blank_lines_before_control_transfer_statements = 1
 
 # Indentation preferences
 csharp_indent_block_contents = true

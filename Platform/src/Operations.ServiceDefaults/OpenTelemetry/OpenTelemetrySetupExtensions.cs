@@ -11,7 +11,7 @@ namespace Operations.ServiceDefaults.OpenTelemetry;
 
 public static class OpenTelemetrySetupExtensions
 {
-    public static IHostApplicationBuilder ConfigureOpenTelemetry(this IHostApplicationBuilder builder)
+    public static IHostApplicationBuilder AddOpenTelemetry(this IHostApplicationBuilder builder)
     {
         builder.Logging.AddOpenTelemetry(logging =>
         {

@@ -65,7 +65,7 @@ public static class HealthCheckSetupExtensions
         // while allowing the app to query for health status if it ever needs to.
         var healthCheckStore = app.Services.GetService<HealthCheckStatusStore>() ?? new HealthCheckStatusStore();
 
-        var logger = GetHealthCheckLogger(app);
+        var logger = GetHealthCheckLogger(app.Services);
 
         // liveness probe
         app.MapGet("/status", () => healthCheckStore.GetLastStatus().ToString())
@@ -139,7 +139,7 @@ public static class HealthCheckSetupExtensions
                         e.Key,
                         e.Value.Description,
                         e.Value.Duration,
-                        Status = Enum.GetName(typeof(HealthStatus), e.Value.Status),
+                        Status = Enum.GetName(e.Value.Status),
                         Error = e.Value.Exception?.Message,
                         e.Value.Data
                     })
@@ -149,9 +149,9 @@ public static class HealthCheckSetupExtensions
         return context.Response.WriteAsJsonAsync(response, options: JsonSerializerOptions);
     }
 
-    private static ILogger GetHealthCheckLogger(WebApplication app)
+    private static ILogger GetHealthCheckLogger(IServiceProvider provider)
     {
-        var loggerFactory = app.Services.GetRequiredService<ILoggerFactory>();
+        var loggerFactory = provider.GetRequiredService<ILoggerFactory>();
 
         return loggerFactory.CreateLogger(HealthCheckLogName);
     }
