@@ -10,7 +10,8 @@ public record UpdateCashierCommand : IRequest<Guid>
     public string Name { get; set; } = null!;
 }
 
-public class UpdateCashierCommandHandler(ICommandServices services) : CommandHandler<UpdateCashierCommand, Guid>(services)
+public class UpdateCashierCommandHandler(ICommandServices services)
+    : CommandHandler<UpdateCashierCommand, Guid>(services)
 {
     protected override async Task<Guid> Handle(UpdateCashierCommand command)
     {

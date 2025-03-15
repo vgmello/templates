@@ -10,7 +10,8 @@ public record CreateCashierCommand : IRequest<Contracts.Cashier.Models.Cashier>
     public string Name { get; set; } = null!;
 }
 
-public class CreateCashierCommandHandler(ICommandServices services) : CommandHandler<CreateCashierCommand, Contracts.Cashier.Models.Cashier>(services)
+public class CreateCashierCommandHandler(ICommandServices services)
+    : CommandHandler<CreateCashierCommand, Contracts.Cashier.Models.Cashier>(services)
 {
     protected override async Task<Contracts.Cashier.Models.Cashier> Handle(CreateCashierCommand command)
     {
