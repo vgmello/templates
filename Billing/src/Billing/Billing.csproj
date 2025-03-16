@@ -1,12 +1,18 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
     <ItemGroup>
+        <Folder Include="Cashier\Events\" />
         <Folder Include="Invoices\Commands\"/>
         <Folder Include="Invoices\Queries\"/>
     </ItemGroup>
 
     <ItemGroup>
         <ProjectReference Include="..\Billing.Contracts\Billing.Contracts.csproj"/>
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="FluentValidation" Version="11.10.0" />
+      <PackageReference Include="WolverineFx" Version="3.10.4" />
     </ItemGroup>
 
 </Project>

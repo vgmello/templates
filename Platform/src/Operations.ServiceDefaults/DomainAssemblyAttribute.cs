@@ -1,13 +1,31 @@
 // Copyright (c) ABCDEG. All rights reserved.
 
+using System.Collections.Immutable;
+using System.Reflection;
+
 namespace Operations.ServiceDefaults;
 
 /// <summary>
 ///     Used to mark the assembly that contains the domain logic.
 /// </summary>
-/// <param name="typeMarker"></param>
+/// <param name="typeMarkers"></param>
 [AttributeUsage(AttributeTargets.Assembly, AllowMultiple = true)]
-public class DomainAssemblyAttribute(Type typeMarker) : Attribute
+public class DomainAssemblyAttribute(params Type[] typeMarkers) : Attribute
 {
-    public Type DomainAssemblyTypeMarker { get; } = typeMarker;
+    private static IReadOnlyList<Assembly>? _domainAssemblies;
+
+    private Type[] DomainAssemblyTypeMarkers { get; } = typeMarkers;
+
+    internal static IReadOnlyList<Assembly> GetDomainAssemblies()
+    {
+        if (_domainAssemblies is not null)
+            return _domainAssemblies;
+
+        _domainAssemblies = Extensions.EntryAssembly.GetCustomAttribute<DomainAssemblyAttribute>()?
+            .DomainAssemblyTypeMarkers
+            .Select(t => t.Assembly)
+            .ToImmutableList() ?? [];
+
+        return _domainAssemblies;
+    }
 }

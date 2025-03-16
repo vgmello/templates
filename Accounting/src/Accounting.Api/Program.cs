@@ -3,6 +3,9 @@
 using Accounting;
 using Operations.ServiceDefaults;
 using Operations.ServiceDefaults.Api;
+using System.Reflection;
+using Wolverine.Persistence;
+using Wolverine.Runtime;
 
 [assembly: DomainAssembly(typeof(IAccountingAssembly))]
 
@@ -14,5 +17,7 @@ builder.AddServiceDefaults();
 var app = builder.Build();
 
 app.ConfigureApiUsingDefaults();
+
+var x = app.Services.GetService<IWolverineRuntime>();
 
 await app.RunAsync();

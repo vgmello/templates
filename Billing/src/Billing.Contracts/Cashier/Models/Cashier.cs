@@ -6,6 +6,8 @@ public record Cashier
 {
     public Guid CashierId { get; set; }
 
+    public int CashierNumber { get; set; }
+
     public string Name { get; set; }
 
     public string Email { get; set; }

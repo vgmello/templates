@@ -1,35 +1,55 @@
 // Copyright (c) ABCDEG. All rights reserved.
 
-using Billing.Cashier.Data.Persistence;
 using Billing.Contracts.Cashier.IntegrationEvents;
+using FluentValidation;
+using System.Data;
+using Wolverine;
+using Wolverine.Persistence;
+using CashierEntity = Billing.Cashier.Data.Entities.Cashier;
 
 namespace Billing.Cashier.Commands;
 
-public record CreateCashierCommand : IRequest<Contracts.Cashier.Models.Cashier>
+public record CreateCashierCommand
 {
     public string Name { get; set; } = null!;
 }
 
-public class CreateCashierCommandHandler(ICommandServices services)
-    : CommandHandler<CreateCashierCommand, Contracts.Cashier.Models.Cashier>(services)
+public class CreateCustomerValidator : AbstractValidator<CreateCashierCommand>
 {
-    protected override async Task<Contracts.Cashier.Models.Cashier> Handle(CreateCashierCommand command)
+    public CreateCustomerValidator()
     {
-        var entity = new Data.Entities.Cashier
+        RuleFor(c => c.Name).NotEmpty();
+        RuleFor(c => c.Name).MaximumLength(100);
+        RuleFor(c => c.Name).MinimumLength(2);
+    }
+}
+
+public static class CreateCashierCommandHandler
+{
+    public static async Task<CashierCreatedEvent> Handle(CreateCashierCommand command, IMessageBus bus)
+    {
+        var entity = new CashierEntity
         {
-            Name = command.Name
+            CashierId = Guid.NewGuid(),
+            Name = command.Name,
+            CreatedDateUtc = DateTime.UtcNow,
+            UpdatedDateUtc = DateTime.UtcNow
         };
 
-        var cashierId = await SendCommand(new AddCashierDbCommand(entity));
+        var number = await bus.InvokeAsync<int>(new Insert<CashierEntity>(entity));
 
-        await PublishEvent(new CashierCreatedEvent(cashierId));
-
-        var cashier = await SendQuery(new GetCashierByIdDbQuery(cashierId));
-
-        return new Contracts.Cashier.Models.Cashier
+        var result = new Contracts.Cashier.Models.Cashier
         {
-            CashierId = cashier.CashierId,
-            Name = cashier.Name
+            CashierId = entity.CashierId,
+            CashierNumber = number,
+            Name = entity.Name
         };
+
+        return new CashierCreatedEvent(result);
+    }
+
+    public static Task<int> Handle(Insert<CashierEntity> command, IDbConnection connection)
+    {
+        return Task.FromResult(1);
     }
 }

@@ -1,18 +1,24 @@
 // Copyright (c) ABCDEG. All rights reserved.
 
-using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Operations.ServiceDefaults.HealthChecks;
 using Operations.ServiceDefaults.Logging;
-using Operations.ServiceDefaults.Mediator;
 using Operations.ServiceDefaults.OpenTelemetry;
 using Operations.ServiceDefaults.Wolverine;
+using System.Reflection;
 
 namespace Operations.ServiceDefaults;
 
 public static class Extensions
 {
+    private static Assembly? _entryAssembly;
+
+    public static Assembly EntryAssembly
+    {
+        get => _entryAssembly ??= GetEntryAssembly();
+        set => _entryAssembly = value;
+    }
+
     public static IHostApplicationBuilder AddServiceDefaults(this IHostApplicationBuilder builder)
     {
         builder.AddLogging();
@@ -40,5 +46,12 @@ public static class Extensions
 #pragma warning restore S125
 
         return builder;
+    }
+
+    private static Assembly GetEntryAssembly()
+    {
+        return Assembly.GetEntryAssembly() ??
+               throw new InvalidOperationException(
+                   "Unable to identify entry assembly. Please provide an assembly via the Extensions.AssemblyMarker property.");
     }
 }

@@ -2,6 +2,4 @@
 
 namespace Billing.Contracts.Cashier.IntegrationEvents;
 
-public record CashierCreatedEvent(Guid CashierId)
-{
-}
+public record CashierCreatedEvent(Models.Cashier Cashier);
