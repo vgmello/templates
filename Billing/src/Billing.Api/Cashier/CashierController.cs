@@ -1,15 +1,17 @@
 // Copyright (c) ABCDEG. All rights reserved.
 
+using Wolverine;
+
 namespace Billing.Api.Cashier;
 
 [ApiController]
 [Route("[controller]")]
-public class CashiersController(ILogger<CashiersController> logger) : ControllerBase
+public class CashiersController(ILogger<CashiersController> logger, IMessageBus bus) : ControllerBase
 {
     [HttpGet("{id:guid}")]
     public async Task<Contracts.Cashier.Models.Cashier> GetCashier([FromRoute] Guid id)
     {
-        var cashier = await mediator.Send(new GetCashierQuery(id));
+        var cashier = await bus.InvokeAsync<Contracts.Cashier.Models.Cashier>(new GetCashierQuery(id));
 
         return cashier;
     }
@@ -17,7 +19,7 @@ public class CashiersController(ILogger<CashiersController> logger) : Controller
     [HttpGet]
     public async Task<IEnumerable<GetCashiersQuery.Result>> GetCashiers([FromQuery] GetCashiersQuery query)
     {
-        var cashiers = await mediator.Send(query);
+        var cashiers = await bus.InvokeAsync<IEnumerable<GetCashiersQuery.Result>>(query);
 
         return cashiers;
     }
@@ -25,7 +27,7 @@ public class CashiersController(ILogger<CashiersController> logger) : Controller
     [HttpPost]
     public async Task<ActionResult<Contracts.Cashier.Models.Cashier>> CreateCashier(CreateCashierCommand command)
     {
-        var cashier = await mediator.Send(command);
+        var cashier = await bus.InvokeAsync<Contracts.Cashier.Models.Cashier>(command);
 
         return StatusCode(StatusCodes.Status201Created, cashier);
     }
@@ -39,7 +41,7 @@ public class CashiersController(ILogger<CashiersController> logger) : Controller
     {
         using var loggerScope = logger.BeginScope(new Dictionary<string, object?> { ["Id"] = id });
 
-        var cashier = await mediator.Send(new GetCashierQuery(Guid.NewGuid()));
+        var cashier = await bus.InvokeAsync<Contracts.Cashier.Models.Cashier>(new GetCashierQuery(Guid.NewGuid()));
 
         return cashier;
     }

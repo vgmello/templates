@@ -1,7 +1,6 @@
 // Copyright (c) ABCDEG. All rights reserved.
 
 using Microsoft.Extensions.Hosting;
-using System.Reflection;
 using Wolverine;
 using Wolverine.FluentValidation;
 using Wolverine.Runtime;
@@ -30,6 +29,8 @@ public static class WolverineSetupExtensions
             {
                 o.Discovery.IncludeAssembly(handlerAssembly);
             }
+
+            configure?.Invoke(o);
         });
     }
 }

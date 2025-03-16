@@ -1,25 +1,20 @@
 // Copyright (c) ABCDEG. All rights reserved.
 
-using Billing.Cashier.Data.Persistence;
+using System.Data;
 
 namespace Billing.Cashier.Queries;
 
-public record GetCashierQuery(Guid Id) : IRequest<Contracts.Cashier.Models.Cashier?>;
+public record GetCashierQuery(Guid Id);
 
-public class GetCashierQueryHandler(IQueryServices services) :
-    QueryHandler<GetCashierQuery, Contracts.Cashier.Models.Cashier?>(services)
+public static class GetCashierQueryHandler
 {
-    protected override async Task<Contracts.Cashier.Models.Cashier?> Handle(GetCashierQuery request)
+    public static async Task<Contracts.Cashier.Models.Cashier> Handle(GetCashierQuery query,
+        IDbConnection connection,
+        CancellationToken cancellationToken)
     {
-        var cashier = await SendQuery(new GetCashierByIdDbQuery(request.Id));
-
-        if (cashier is null)
-            return null;
-
         return new Contracts.Cashier.Models.Cashier
         {
-            CashierId = cashier.CashierId,
-            Name = cashier.Name
+            CashierId = query.Id
         };
     }
 }

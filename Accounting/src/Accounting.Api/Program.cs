@@ -3,8 +3,6 @@
 using Accounting;
 using Operations.ServiceDefaults;
 using Operations.ServiceDefaults.Api;
-using System.Reflection;
-using Wolverine.Persistence;
 using Wolverine.Runtime;
 
 [assembly: DomainAssembly(typeof(IAccountingAssembly))]

@@ -1,9 +1,6 @@
 // Copyright (c) ABCDEG. All rights reserved.
 
-using System.Diagnostics;
-using Microsoft.Extensions.Logging;
-
-namespace Operations.ServiceDefaults.Mediator.Behaviors;
+namespace Operations.ServiceDefaults.Wolverine.Behaviors;
 
 //
 // public partial class RequestPerformanceBehavior<TRequest, TResponse>(ILogger<TRequest> logger) : IPipelineBehavior<TRequest, TResponse>
