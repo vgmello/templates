@@ -2,7 +2,7 @@
 
 using System.ComponentModel.DataAnnotations;
 
-namespace Operations.Extensions.Data;
+namespace Billing.Cashier.Data;
 
 public record Entity
 {

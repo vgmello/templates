@@ -1,6 +1,5 @@
 // Copyright (c) ABCDEG. All rights reserved.
 
-using Operations.Extensions.Data;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 

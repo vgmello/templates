@@ -42,8 +42,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <Folder Include="Email\"/>
-        <Folder Include="Quartz\"/>
+      <ProjectReference Include="..\Operations.Extensions\Operations.Extensions.csproj" />
     </ItemGroup>
 
 </Project>

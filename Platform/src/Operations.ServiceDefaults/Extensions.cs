@@ -3,8 +3,8 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Operations.ServiceDefaults.Logging;
+using Operations.ServiceDefaults.Messaging.Wolverine;
 using Operations.ServiceDefaults.OpenTelemetry;
-using Operations.ServiceDefaults.Wolverine;
 using System.Reflection;
 
 namespace Operations.ServiceDefaults;
@@ -32,18 +32,7 @@ public static class Extensions
         {
             // Turn on resilience by default
             http.AddStandardResilienceHandler();
-
-            // Turn on service discovery by default
-            http.AddServiceDiscovery();
         });
-
-#pragma warning disable S125
-        // Uncomment the following to restrict the allowed schemes for service discovery.
-        // builder.Services.Configure<ServiceDiscoveryOptions>(options =>
-        // {
-        //     options.AllowedSchemes = ["https"];
-        // });
-#pragma warning restore S125
 
         return builder;
     }

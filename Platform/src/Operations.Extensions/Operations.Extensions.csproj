@@ -1,14 +1,14 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-    
+
     <ItemGroup>
         <None Include="Operations.Extensions.props" Pack="true" PackagePath="build/"/>
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="FluentValidation" Version="11.11.0" />
+        <PackageReference Include="FluentValidation" Version="11.11.0"/>
         <PackageReference Include="OneOf" Version="3.0.271"/>
-        <PackageReference Include="OneOf.SourceGenerator" Version="3.0.271" />
-        <PackageReference Include="WolverineFx" Version="3.10.4" />
+        <PackageReference Include="OneOf.SourceGenerator" Version="3.0.271"/>
+        <PackageReference Include="WolverineFx" Version="3.10.4"/>
     </ItemGroup>
-
+    
 </Project>

@@ -1,6 +1,6 @@
 // Copyright (c) ABCDEG. All rights reserved.
 
-namespace Operations.ServiceDefaults.Wolverine.Behaviors;
+namespace Operations.ServiceDefaults.Messaging.Behaviors;
 
 //
 // public partial class RequestPerformanceBehavior<TRequest, TResponse>(ILogger<TRequest> logger) : IPipelineBehavior<TRequest, TResponse>

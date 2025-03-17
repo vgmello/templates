@@ -2,14 +2,15 @@
 
 using Billing.Contracts.Cashier.IntegrationEvents;
 using FluentValidation;
+using Operations.Extensions.Messaging;
 using System.Data;
 using Wolverine;
-using Wolverine.Persistence;
 using CashierEntity = Billing.Cashier.Data.Entities.Cashier;
+using CashierModel = Billing.Contracts.Cashier.Models.Cashier;
 
 namespace Billing.Cashier.Commands;
 
-public record CreateCashierCommand(string Name, string Email);
+public record CreateCashierCommand(string Name, string Email) : ICommand<CashierModel>;
 
 public class CreateCustomerValidator : AbstractValidator<CreateCashierCommand>
 {
@@ -23,7 +24,10 @@ public class CreateCustomerValidator : AbstractValidator<CreateCashierCommand>
 
 public static class CreateCashierCommandHandler
 {
-    public static async Task<CashierCreatedEvent> Handle(CreateCashierCommand command, IMessageBus bus,
+    public record InsertCashierCommand(CashierEntity Cashier) : ICommand<int>;
+
+    public static async Task<(CashierModel, CashierCreatedEvent)> Handle(CreateCashierCommand command,
+        IMessageContext messaging,
         CancellationToken cancellationToken)
     {
         var entity = new CashierEntity
@@ -33,19 +37,19 @@ public static class CreateCashierCommandHandler
             Email = command.Email
         };
 
-        var number = await bus.InvokeAsync<int>(new Insert<CashierEntity>(entity), cancellationToken);
+        var number = await messaging.InvokeCommandAsync(new InsertCashierCommand(entity), cancellationToken);
 
-        var result = new Contracts.Cashier.Models.Cashier
+        var result = new CashierModel
         {
             CashierId = entity.CashierId,
             CashierNumber = number,
             Name = entity.Name
         };
 
-        return new CashierCreatedEvent(result);
+        return (result, new CashierCreatedEvent(result));
     }
 
-    public static Task<int> Handle(Insert<CashierEntity> command, IDbConnection connection,
+    public static Task<int> Handle(InsertCashierCommand command, IDbConnection connection,
         CancellationToken cancellationToken)
     {
         return Task.FromResult(1);

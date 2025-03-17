@@ -33,6 +33,8 @@ public static class OpenTelemetrySetupExtensions
                     // Uncomment the following line to enable gRPC instrumentation (requires the OpenTelemetry.Instrumentation.GrpcNetClient package)
                     //.AddGrpcClientInstrumentation()
                     .AddHttpClientInstrumentation();
+
+                tracing.AddSource("Wolverine");
             });
 
         builder.AddOpenTelemetryExporters();
