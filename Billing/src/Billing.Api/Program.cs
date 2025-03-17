@@ -9,8 +9,8 @@ using Operations.ServiceDefaults.Api;
 
 var builder = WebApplication.CreateSlimBuilder(args);
 
-builder.AddApiServiceDefaults();
 builder.AddServiceDefaults();
+builder.AddApiServiceDefaults();
 
 builder.AddApplicationServices();
 

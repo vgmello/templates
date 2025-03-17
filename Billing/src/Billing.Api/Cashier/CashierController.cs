@@ -1,5 +1,6 @@
 // Copyright (c) ABCDEG. All rights reserved.
 
+using Operations.Extensions.Messaging;
 using Wolverine;
 
 namespace Billing.Api.Cashier;
@@ -27,9 +28,11 @@ public class CashiersController(ILogger<CashiersController> logger, IMessageBus 
     [HttpPost]
     public async Task<ActionResult<Contracts.Cashier.Models.Cashier>> CreateCashier(CreateCashierCommand command)
     {
-        var cashier = await bus.InvokeAsync<Contracts.Cashier.Models.Cashier>(command);
+        var commandResult = await bus.InvokeCommandAsync(command);
 
-        return StatusCode(StatusCodes.Status201Created, cashier);
+        return commandResult.Match(
+            cashier => StatusCode(StatusCodes.Status201Created, cashier),
+            error => BadRequest(error.Errors));
     }
 
     [HttpGet("fake-error")]

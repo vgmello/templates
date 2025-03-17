@@ -1,16 +1,12 @@
 // Copyright (c) ABCDEG. All rights reserved.
 
 using Billing.Contracts.Cashier.IntegrationEvents;
-using FluentValidation;
-using Operations.Extensions.Messaging;
-using System.Data;
-using Wolverine;
 using CashierEntity = Billing.Cashier.Data.Entities.Cashier;
 using CashierModel = Billing.Contracts.Cashier.Models.Cashier;
 
 namespace Billing.Cashier.Commands;
 
-public record CreateCashierCommand(string Name, string Email) : ICommand<CashierModel>;
+public record CreateCashierCommand(string Name, string Email) : ICommand<Result<CashierModel>>;
 
 public class CreateCustomerValidator : AbstractValidator<CreateCashierCommand>
 {
@@ -49,9 +45,8 @@ public static class CreateCashierCommandHandler
         return (result, new CashierCreatedEvent(result));
     }
 
-    public static Task<int> Handle(InsertCashierCommand command, IDbConnection connection,
-        CancellationToken cancellationToken)
+    public static Task<int> Handle(InsertCashierCommand command, CancellationToken cancellationToken)
     {
-        return Task.FromResult(1);
+        return Task.FromResult(command.Cashier.CashierNumber + 1);
     }
 }

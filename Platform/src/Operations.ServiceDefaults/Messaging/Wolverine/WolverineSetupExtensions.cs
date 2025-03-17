@@ -2,6 +2,7 @@
 
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
+using Operations.ServiceDefaults.Messaging.Behaviors;
 using Wolverine;
 using Wolverine.FluentValidation;
 using Wolverine.Postgresql;
@@ -19,16 +20,17 @@ public static class WolverineSetupExtensions
         if (wolverineRegistered)
             return builder;
 
-        var messageBusOpts = builder.Configuration.GetValue<MessageBusOptions>("Messaging") ??
+        var messageBusOpts = builder.Configuration.GetSection("Messaging").Get<MessageBusOptions>() ??
                              new MessageBusOptions();
 
         MessageBusOptions.Validate(messageBusOpts);
 
         return builder.UseWolverine(opts =>
         {
+            opts.ApplicationAssembly = Extensions.EntryAssembly;
             opts.ServiceName = messageBusOpts.ServiceName;
 
-            opts.UseFluentValidation();
+            // opts.UseFluentValidation();
             opts.UseSystemTextJsonForSerialization();
 
             opts.ConfigureAppHandlers();
@@ -39,6 +41,8 @@ public static class WolverineSetupExtensions
                 opts.ConfigureReliableMessaging();
             }
 
+            opts.Policies.AddMiddleware(typeof(RequestPerformanceBehavior));
+
             configure?.Invoke(opts);
         });
     }
@@ -46,8 +50,7 @@ public static class WolverineSetupExtensions
     public static WolverineOptions ConfigureAppHandlers(this WolverineOptions options)
     {
         var handlerAssemblies = DomainAssemblyAttribute
-            .GetDomainAssemblies()
-            .Append(Extensions.EntryAssembly);
+            .GetDomainAssemblies();
 
         foreach (var handlerAssembly in handlerAssemblies)
         {

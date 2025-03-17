@@ -8,7 +8,7 @@ namespace Operations.ServiceDefaults.Messaging;
 public class MessageBusOptions
 {
     [Required]
-    public string ServiceName { get; init; } = Extensions.EntryAssembly.GetName().Name ?? string.Empty;
+    public string ServiceName { get; init; } = GetServiceName();
 
     public string? ConnectionString { get; init; }
 
@@ -20,4 +20,7 @@ public class MessageBusOptions
                         "Transactional Inbox/Outbox and Message Persistence features disabled");
         }
     }
+
+    private static string GetServiceName() =>
+        Extensions.EntryAssembly.GetName().Name?.Replace('.', '_') ?? string.Empty;
 }

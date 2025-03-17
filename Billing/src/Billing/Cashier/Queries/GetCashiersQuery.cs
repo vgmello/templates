@@ -1,7 +1,6 @@
 // Copyright (c) ABCDEG. All rights reserved.
 
 using System.ComponentModel.DataAnnotations;
-using System.Data;
 
 namespace Billing.Cashier.Queries;
 
@@ -19,7 +18,6 @@ public record GetCashiersQuery
 public static class GetCashiersQueryHandler
 {
     public static async Task<IEnumerable<GetCashiersQuery.Result>> Handle(GetCashiersQuery query,
-        IDbConnection dbConnection,
         CancellationToken cancellationToken)
     {
         return [];

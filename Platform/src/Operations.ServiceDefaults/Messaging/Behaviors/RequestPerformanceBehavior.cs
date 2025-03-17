@@ -1,40 +1,41 @@
 // Copyright (c) ABCDEG. All rights reserved.
 
+using Microsoft.Extensions.Logging;
+using System.Diagnostics;
+using Wolverine;
+
 namespace Operations.ServiceDefaults.Messaging.Behaviors;
 
-//
-// public partial class RequestPerformanceBehavior<TRequest, TResponse>(ILogger<TRequest> logger) : IPipelineBehavior<TRequest, TResponse>
-//     where TRequest : IRequest<TResponse>
-// {
-//     public async Task<TResponse> Handle(TRequest request, RequestHandlerDelegate<TResponse> next, CancellationToken cancellationToken)
-//     {
-//         if (!logger.IsEnabled(LogLevel.Debug))
-//         {
-//             return await next();
-//         }
-//
-//         LogRequestReceived(typeof(TRequest).Name, request);
-//
-//         var startedTime = Stopwatch.GetTimestamp();
-//
-//         var response = await next();
-//
-//         var elapsedTime = Stopwatch.GetElapsedTime(startedTime);
-//
-//         LogRequestCompleted(typeof(TRequest).Name, elapsedTime.TotalMilliseconds);
-//
-//         return response;
-//     }
-//
-//     [LoggerMessage(
-//         EventId = 1,
-//         Level = LogLevel.Debug,
-//         Message = "{RequestType} received. Request: {@Request}")]
-//     private partial void LogRequestReceived(string requestType, TRequest request);
-//
-//     [LoggerMessage(
-//         EventId = 2,
-//         Level = LogLevel.Debug,
-//         Message = "{RequestType} completed in {RequestExecutionTime:000} ms")]
-//     private partial void LogRequestCompleted(string requestType, double requestExecutionTime);
-// }
+public static partial class RequestPerformanceBehavior
+{
+    public static long Before(ILogger logger, Envelope envelope)
+    {
+        var startedTime = Stopwatch.GetTimestamp();
+
+        LogRequestReceived(logger, GetMessageTypeName(envelope), envelope.Message);
+
+        return startedTime;
+    }
+
+    public static void Finally(long startedTime, ILogger logger, Envelope envelope)
+    {
+        var elapsedTime = Stopwatch.GetElapsedTime(startedTime);
+
+        LogRequestCompleted(logger, GetMessageTypeName(envelope), elapsedTime.TotalMilliseconds);
+    }
+
+    [LoggerMessage(
+        EventId = 1,
+        Level = LogLevel.Debug,
+        Message = "{MessageType} received. Message: {@Message}")]
+    private static partial void LogRequestReceived(ILogger logger, string messageType, object? message);
+
+    [LoggerMessage(
+        EventId = 2,
+        Level = LogLevel.Debug,
+        Message = "{MessageType} completed in {MessageExecutionTime:000} ms")]
+    private static partial void LogRequestCompleted(ILogger logger, string messageType, double messageExecutionTime);
+
+    private static string GetMessageTypeName(Envelope envelope) =>
+        envelope.Message?.GetType().Name ?? envelope.MessageType ?? envelope.Id.ToString();
+}

@@ -227,7 +227,7 @@ csharp_preserve_single_line_statements = true
 
 #### C# Code Analysis ####
 
-resharper_unused_type_global_highlighting = hint
+resharper_unused_type_global_highlighting = none
 
 #### Naming styles ####
 
