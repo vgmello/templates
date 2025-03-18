@@ -1,26 +1,32 @@
 // Copyright (c) ABCDEG. All rights reserved.
 
-using Serilog;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using System.ComponentModel.DataAnnotations;
 
 namespace Operations.ServiceDefaults.Messaging;
 
 public class MessageBusOptions
 {
+    public static string SectionName => "Messaging";
+
     [Required]
     public string ServiceName { get; init; } = GetServiceName();
 
     public string? ConnectionString { get; init; }
 
-    public static void Validate(MessageBusOptions options)
-    {
-        if (string.IsNullOrWhiteSpace(options.ConnectionString))
-        {
-            Log.Warning("Messaging:ConnectionString is not set. " +
-                        "Transactional Inbox/Outbox and Message Persistence features disabled");
-        }
-    }
-
     private static string GetServiceName() =>
         Extensions.EntryAssembly.GetName().Name?.Replace('.', '_') ?? string.Empty;
+
+    public class Configurator(ILogger<Configurator> logger) : IPostConfigureOptions<MessageBusOptions>
+    {
+        public void PostConfigure(string? name, MessageBusOptions options)
+        {
+            if (string.IsNullOrWhiteSpace(options.ConnectionString))
+            {
+                logger.LogWarning("Messaging:ConnectionString is not set. " +
+                                  "Transactional Inbox/Outbox and Message Persistence features disabled");
+            }
+        }
+    }
 }

@@ -1,6 +1,7 @@
 // Copyright (c) ABCDEG. All rights reserved.
 
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Operations.ServiceDefaults.Messaging.Behaviors;
 using Wolverine;
@@ -20,10 +21,14 @@ public static class WolverineSetupExtensions
         if (wolverineRegistered)
             return builder;
 
-        var messageBusOpts = builder.Configuration.GetSection("Messaging").Get<MessageBusOptions>() ??
-                             new MessageBusOptions();
+        builder.Services
+            .ConfigureOptions<MessageBusOptions.Configurator>()
+            .AddOptions<MessageBusOptions>()
+            .BindConfiguration(MessageBusOptions.SectionName)
+            .ValidateOnStart();
 
-        MessageBusOptions.Validate(messageBusOpts);
+        var messageBusOpts = builder.Configuration.GetSection(MessageBusOptions.SectionName).Get<MessageBusOptions>() ??
+                             new MessageBusOptions();
 
         return builder.UseWolverine(opts =>
         {
@@ -32,7 +37,6 @@ public static class WolverineSetupExtensions
 
             // opts.UseFluentValidation();
             opts.UseSystemTextJsonForSerialization();
-
             opts.ConfigureAppHandlers();
 
             if (!string.IsNullOrWhiteSpace(messageBusOpts.ConnectionString))
@@ -49,8 +53,7 @@ public static class WolverineSetupExtensions
 
     public static WolverineOptions ConfigureAppHandlers(this WolverineOptions options)
     {
-        var handlerAssemblies = DomainAssemblyAttribute
-            .GetDomainAssemblies();
+        var handlerAssemblies = DomainAssemblyAttribute.GetDomainAssemblies();
 
         foreach (var handlerAssembly in handlerAssemblies)
         {

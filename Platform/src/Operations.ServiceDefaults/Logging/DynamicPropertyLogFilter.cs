@@ -11,13 +11,14 @@ namespace Operations.ServiceDefaults.Logging;
 public sealed class DynamicPropertyLogFilter : ILogEventFilter, IDisposable
 {
     private readonly ILogger _logger;
-    private readonly Logger _standardLogger;
+    private readonly ILogger _standardLogger;
     private readonly IDisposable? _propertiesChangedHandler;
 
     private Dictionary<string, HashSet<string>> _monitoredProperties;
 
     public DynamicPropertyLogFilter(
-        Logger standardLogger, IOptionsMonitor<DynamicLogLevelSettings> dynamicLogLevelSettings,
+        ILogger standardLogger,
+        IOptionsMonitor<DynamicLogLevelSettings> dynamicLogLevelSettings,
         LoggingLevelSwitch logLevelSwitch)
     {
         _logger = standardLogger.ForContext<DynamicPropertyLogFilter>();
