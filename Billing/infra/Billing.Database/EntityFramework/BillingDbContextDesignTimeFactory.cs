@@ -10,16 +10,13 @@ public class BillingDbContextDesignTimeFactory : IDesignTimeDbContextFactory<Bil
 {
     public BillingDbContext CreateDbContext(string[] args)
     {
-        var appSettingsPath = Path.Combine(Directory.GetCurrentDirectory(), "../Billing.AppHost");
-
         var configuration = new ConfigurationBuilder()
-            .SetBasePath(appSettingsPath)
-            .AddJsonFile("appsettings.json", optional: false)
-            .AddUserSecrets("4cf68e53-c914-4dd3-aa99-9d1c9e31c02a")
+            .AddJsonFile("appsettings.json", optional: true)
+            .AddUserSecrets<Program>()
             .AddEnvironmentVariables()
             .Build();
 
-        var connectionString = configuration.GetConnectionString("BillingDatabase");
+        var connectionString = configuration.GetConnectionString("BillingDb");
 
         var optionsBuilder = new DbContextOptionsBuilder<BillingDbContext>();
         optionsBuilder

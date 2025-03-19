@@ -20,6 +20,7 @@ public static class OpenTelemetrySetupExtensions
         });
 
         builder.Services.AddOpenTelemetry()
+            .UseOtlpExporter()
             .WithMetrics(metrics =>
             {
                 metrics
@@ -37,16 +38,6 @@ public static class OpenTelemetrySetupExtensions
                 tracing.AddSource("Wolverine");
             });
 
-        builder.AddOpenTelemetryExporters();
-
         return builder;
-    }
-
-    private static void AddOpenTelemetryExporters(this IHostApplicationBuilder builder)
-    {
-        var useOtlpExporter = !string.IsNullOrWhiteSpace(builder.Configuration["OTEL_EXPORTER_OTLP_ENDPOINT"]);
-
-        if (useOtlpExporter)
-            builder.Services.AddOpenTelemetry().UseOtlpExporter();
     }
 }

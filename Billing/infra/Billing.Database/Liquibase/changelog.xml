@@ -8,6 +8,7 @@
                         http://www.liquibase.org/xml/ns/pro http://www.liquibase.org/xml/ns/pro/liquibase-pro-latest.xsd
                         ">
 
-    <include file="billing/changelog.xml" />
-    <include file="messaging/changelog.xml" />
+    <include file="billing/changelog.xml"/>
+    <include file="message_bus/changelog.xml"/>
+
 </databaseChangeLog>

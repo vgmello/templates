@@ -12,7 +12,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="Internal\Generated\" />
+      <Folder Include="Internal\" />
     </ItemGroup>
 
 </Project>

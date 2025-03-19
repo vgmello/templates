@@ -11,7 +11,7 @@ public record CreateCashierCommand(string Name, string Email) : ICommand<Result<
 
 public class CreateCustomerValidator : AbstractValidator<CreateCashierCommand>
 {
-    public CreateCustomerValidator(ILogger<CreateCustomerValidator> logger)
+    public CreateCustomerValidator()
     {
         RuleFor(c => c.Name).NotEmpty();
         RuleFor(c => c.Name).MaximumLength(100);

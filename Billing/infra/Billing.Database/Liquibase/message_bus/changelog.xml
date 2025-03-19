@@ -8,6 +8,6 @@
                         http://www.liquibase.org/xml/ns/pro http://www.liquibase.org/xml/ns/pro/liquibase-pro-latest.xsd
                         ">
 
-    <include file="messaging/messaging.sql" />
-    <include file="messaging/tables/outbox_messages.sql" />
+    <include file="message_bus/message_bus.sql"/>
+    
 </databaseChangeLog>
