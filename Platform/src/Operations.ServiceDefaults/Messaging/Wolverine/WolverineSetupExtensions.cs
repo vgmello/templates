@@ -3,9 +3,8 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Operations.ServiceDefaults.Messaging.Behaviors;
+using Operations.ServiceDefaults.Messaging.Middlewares;
 using Wolverine;
-using Wolverine.FluentValidation;
 using Wolverine.Postgresql;
 using Wolverine.Runtime;
 
@@ -35,7 +34,6 @@ public static class WolverineSetupExtensions
             opts.ApplicationAssembly = Extensions.EntryAssembly;
             opts.ServiceName = messageBusOpts.ServiceName;
 
-            // opts.UseFluentValidation();
             opts.UseSystemTextJsonForSerialization();
             opts.ConfigureAppHandlers();
 
@@ -45,8 +43,10 @@ public static class WolverineSetupExtensions
                 opts.ConfigureReliableMessaging();
             }
 
-            opts.Policies.AddMiddleware(typeof(RequestPerformanceBehavior));
+            opts.Policies.AddMiddleware(typeof(RequestPerformanceMiddleware));
+            opts.Policies.Add<FluentValidationPolicy>();
 
+            opts.OptimizeArtifactWorkflow();
             configure?.Invoke(opts);
         });
     }

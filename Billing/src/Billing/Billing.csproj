@@ -1,7 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
     <ItemGroup>
-        <Folder Include="Cashier\Events\"/>
         <Folder Include="Invoices\Commands\"/>
         <Folder Include="Invoices\Queries\"/>
     </ItemGroup>

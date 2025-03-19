@@ -1,19 +1,16 @@
-// Copyright (c) ABCDEG.All rights reserved.
+// Copyright (c) ABCDEG. All rights reserved.
 
 using Microsoft.Extensions.Logging;
 using System.Diagnostics;
 using Wolverine;
 
-namespace Operations.ServiceDefaults.Messaging.Behaviors;
+namespace Operations.ServiceDefaults.Messaging.Middlewares;
 
-public static partial class RequestPerformanceBehavior
+public static partial class RequestPerformanceMiddleware
 {
     public static long Before(ILogger logger, Envelope envelope)
     {
         var startedTime = Stopwatch.GetTimestamp();
-
-        logger.LogDebug("AAA Request received: {MessageType} {@Message}", GetMessageTypeName(envelope),
-            envelope.Message);
 
         LogRequestReceived(logger, GetMessageTypeName(envelope), envelope.Message);
 

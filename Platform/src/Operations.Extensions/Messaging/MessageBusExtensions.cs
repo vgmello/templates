@@ -11,4 +11,10 @@ public static class MessageBusExtensions
     {
         return bus.InvokeAsync<TCommandResult>(command, cancellationToken);
     }
+
+    public static Task<TQueryResult> InvokeQueryAsync<TQueryResult>(this IMessageBus bus,
+        IQuery<TQueryResult> query, CancellationToken cancellationToken = default)
+    {
+        return bus.InvokeAsync<TQueryResult>(query, cancellationToken);
+    }
 }

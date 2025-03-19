@@ -2,6 +2,7 @@
 
 using Billing;
 using Billing.Api;
+using Oakton;
 using Operations.ServiceDefaults;
 using Operations.ServiceDefaults.Api;
 
@@ -18,4 +19,4 @@ var app = builder.Build();
 
 app.ConfigureApiUsingDefaults(requireAuth: false);
 
-await app.RunAsync();
+return await app.RunOaktonCommands(args);

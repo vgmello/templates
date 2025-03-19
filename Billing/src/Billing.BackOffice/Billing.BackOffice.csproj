@@ -9,5 +9,5 @@
       <ProjectReference Include="..\..\..\Platform\src\Operations.ServiceDefaults\Operations.ServiceDefaults.csproj" />
       <ProjectReference Include="..\Billing\Billing.csproj" />
     </ItemGroup>
-
+    
 </Project>

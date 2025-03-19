@@ -1,5 +1,6 @@
 // Copyright (c) ABCDEG. All rights reserved.
 
+using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Operations.ServiceDefaults.Logging;
@@ -24,6 +25,11 @@ public static class Extensions
         builder.AddLogging();
         builder.AddOpenTelemetry();
         builder.AddWolverine();
+
+        builder.Services.AddValidatorsFromAssembly(EntryAssembly);
+
+        foreach (var assembly in DomainAssemblyAttribute.GetDomainAssemblies())
+            builder.Services.AddValidatorsFromAssembly(assembly);
 
         builder.Services.AddHealthChecks();
         builder.Services.AddServiceDiscovery();

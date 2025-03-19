@@ -22,9 +22,8 @@ public static class CreateCashierCommandHandler
 {
     public record InsertCashierCommand(CashierEntity Cashier) : ICommand<int>;
 
-    public static async Task<(CashierModel, CashierCreatedEvent)> Handle(CreateCashierCommand command,
-        IMessageContext messaging,
-        CancellationToken cancellationToken)
+    public static async Task<(Result<CashierModel>, CashierCreatedEvent)> Handle(
+        CreateCashierCommand command, IMessageContext messaging, CancellationToken cancellationToken)
     {
         var entity = new CashierEntity
         {

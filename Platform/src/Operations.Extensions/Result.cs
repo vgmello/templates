@@ -6,6 +6,6 @@ using OneOf;
 namespace Operations.Extensions;
 
 [GenerateOneOf]
-public partial class Result<T> : OneOfBase<T, ValidationResult>
+public partial class Result<T> : OneOfBase<T, List<ValidationFailure>>
 {
 }

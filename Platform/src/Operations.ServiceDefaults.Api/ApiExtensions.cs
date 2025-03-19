@@ -15,6 +15,7 @@ public static class ApiExtensions
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddProblemDetails();
         builder.Services.AddOpenApi();
+        builder.Services.AddHttpLogging();
 
         // Authentication and authorization services
         builder.Services.AddAuthentication();
@@ -25,6 +26,7 @@ public static class ApiExtensions
 
     public static WebApplication ConfigureApiUsingDefaults(this WebApplication app, bool requireAuth = true)
     {
+        app.UseHttpLogging();
         app.UseRouting();
         app.UseAuthentication();
         app.UseAuthorization();

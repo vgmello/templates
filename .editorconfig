@@ -31,7 +31,7 @@ tab_width = 2
 # C# files
 [*.cs]
 # Core Settings
-file_header_template = Copyright (c) ABCDEG.All rights reserved.
+file_header_template = Copyright (c) ABCDEG. All rights reserved.
 
 # Line preferences
 max_line_length = 120
