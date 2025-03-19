@@ -1,6 +1,7 @@
 // Copyright (c) ABCDEG. All rights reserved.
 
 using Billing.Contracts.Cashier.IntegrationEvents;
+using Microsoft.Extensions.Logging;
 using CashierEntity = Billing.Cashier.Data.Entities.Cashier;
 using CashierModel = Billing.Contracts.Cashier.Models.Cashier;
 
@@ -10,7 +11,7 @@ public record CreateCashierCommand(string Name, string Email) : ICommand<Result<
 
 public class CreateCustomerValidator : AbstractValidator<CreateCashierCommand>
 {
-    public CreateCustomerValidator()
+    public CreateCustomerValidator(ILogger<CreateCustomerValidator> logger)
     {
         RuleFor(c => c.Name).NotEmpty();
         RuleFor(c => c.Name).MaximumLength(100);

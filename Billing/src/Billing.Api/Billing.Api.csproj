@@ -11,4 +11,8 @@
       <ProjectReference Include="..\Billing\Billing.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="Internal\Generated\" />
+    </ItemGroup>
+
 </Project>
