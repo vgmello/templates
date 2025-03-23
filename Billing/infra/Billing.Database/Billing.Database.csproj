@@ -2,6 +2,7 @@
 
     <PropertyGroup>
         <OutputType>Exe</OutputType>
+        <UserSecretsId>9668b5bb-c002-4f58-888c-5d6c5a49add8</UserSecretsId>
     </PropertyGroup>
 
     <ItemGroup>
@@ -29,10 +30,6 @@
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
       </Content>
-    </ItemGroup>
-
-    <ItemGroup>
-      <Folder Include="Liquibase\message_bus\tables\" />
     </ItemGroup>
 
 </Project>

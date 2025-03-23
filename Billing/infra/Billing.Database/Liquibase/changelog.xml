@@ -9,6 +9,6 @@
                         ">
 
     <include file="billing/changelog.xml"/>
-    <include file="message_bus/changelog.xml"/>
+    <include file="service_bus/changelog.xml"/>
 
 </databaseChangeLog>

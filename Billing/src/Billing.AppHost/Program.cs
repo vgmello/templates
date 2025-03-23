@@ -4,18 +4,18 @@ var builder = DistributedApplication.CreateBuilder(args);
 
 var pgsql = builder.AddPostgres("billing-db");
 var database = pgsql.AddDatabase(name: "BillingDb", databaseName: "billing");
-var messagingDb = pgsql.AddDatabase(name: "MessagingDb", databaseName: "message_bus");
+var serviceBusDb = pgsql.AddDatabase(name: "ServiceBusDb", databaseName: "service_bus");
 
 builder
     .AddProject<Projects.Billing_Api>("billing-api")
-    .WithEnvironment("Messaging__ConnectionString", messagingDb)
-    .WithReference(messagingDb)
+    .WithEnvironment("ServiceBus__ConnectionString", serviceBusDb)
+    .WithReference(serviceBusDb)
     .WithReference(database);
 
 builder
     .AddProject<Projects.Billing_BackOffice>("billing-backoffice")
-    .WithEnvironment("Messaging__ConnectionString", messagingDb)
-    .WithReference(messagingDb)
+    .WithEnvironment("ServiceBus__ConnectionString", serviceBusDb)
+    .WithReference(serviceBusDb)
     .WithReference(database);
 
 await builder.Build().RunAsync();
