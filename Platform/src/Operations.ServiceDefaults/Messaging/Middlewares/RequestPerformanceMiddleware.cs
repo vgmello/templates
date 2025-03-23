@@ -6,6 +6,10 @@ using Wolverine;
 
 namespace Operations.ServiceDefaults.Messaging.Middlewares;
 
+// Rule: A value being logged doesn't have an effective way to be converted into a string
+// Reason: Middleware log message
+#pragma warning disable LOGGEN036
+
 public static partial class RequestPerformanceMiddleware
 {
     public static long Before(ILogger logger, Envelope envelope)

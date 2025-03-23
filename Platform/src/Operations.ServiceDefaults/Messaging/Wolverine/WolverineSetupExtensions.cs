@@ -21,25 +21,26 @@ public static class WolverineSetupExtensions
             return builder;
 
         builder.Services
-            .ConfigureOptions<MessageBusOptions.Configurator>()
-            .AddOptions<MessageBusOptions>()
-            .BindConfiguration(MessageBusOptions.SectionName)
+            .ConfigureOptions<ServiceBusOptions.Configurator>()
+            .AddOptions<ServiceBusOptions>()
+            .BindConfiguration(ServiceBusOptions.SectionName)
             .ValidateOnStart();
 
-        var messageBusOpts = builder.Configuration.GetSection(MessageBusOptions.SectionName).Get<MessageBusOptions>() ??
-                             new MessageBusOptions();
+        var serviceBusOptions =
+            builder.Configuration.GetSection(ServiceBusOptions.SectionName).Get<ServiceBusOptions>() ??
+            new ServiceBusOptions();
 
         return builder.UseWolverine(opts =>
         {
             opts.ApplicationAssembly = Extensions.EntryAssembly;
-            opts.ServiceName = messageBusOpts.ServiceName;
+            opts.ServiceName = serviceBusOptions.ServiceName;
 
             opts.UseSystemTextJsonForSerialization();
             opts.ConfigureAppHandlers();
 
-            if (!string.IsNullOrWhiteSpace(messageBusOpts.ConnectionString))
+            if (!string.IsNullOrWhiteSpace(serviceBusOptions.ConnectionString))
             {
-                opts.ConfigurePostgresql(messageBusOpts.ConnectionString);
+                opts.ConfigurePostgresql(serviceBusOptions.ConnectionString);
                 opts.ConfigureReliableMessaging();
             }
 

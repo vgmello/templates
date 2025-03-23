@@ -6,9 +6,9 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Operations.ServiceDefaults.Messaging;
 
-public class MessageBusOptions
+public class ServiceBusOptions
 {
-    public static string SectionName => "Messaging";
+    public static string SectionName => "ServiceBus";
 
     [Required]
     public string ServiceName { get; init; } = GetServiceName();
@@ -18,9 +18,9 @@ public class MessageBusOptions
     private static string GetServiceName() =>
         Extensions.EntryAssembly.GetName().Name?.Replace('.', '_') ?? string.Empty;
 
-    public class Configurator(ILogger<Configurator> logger) : IPostConfigureOptions<MessageBusOptions>
+    public class Configurator(ILogger<Configurator> logger) : IPostConfigureOptions<ServiceBusOptions>
     {
-        public void PostConfigure(string? name, MessageBusOptions options)
+        public void PostConfigure(string? name, ServiceBusOptions options)
         {
             if (string.IsNullOrWhiteSpace(options.ConnectionString))
             {
