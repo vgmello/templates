@@ -228,6 +228,7 @@ csharp_preserve_single_line_statements = true
 #### C# Code Analysis ####
 
 resharper_unused_type_global_highlighting = none
+resharper_unused_member_global_highlighting = none
 dotnet_diagnostic.S1135.severity = none # Track uses of "TODO" tags
 
 #### Naming styles ####

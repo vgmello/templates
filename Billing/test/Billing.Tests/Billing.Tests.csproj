@@ -19,7 +19,7 @@
         <PackageReference Include="NSubstitute" Version="5.3.0"/>
         <PackageReference Include="Shouldly" Version="4.3.0"/>
         <PackageReference Include="Testcontainers" Version="4.3.0"/>
-        <PackageReference Include="xunit.v3" Version="2.0.0"/>
+        <PackageReference Include="xunit.v3" Version="1.0.1"/>
         <PackageReference Include="xunit.runner.visualstudio" Version="3.0.2"/>
     </ItemGroup>
 
@@ -31,6 +31,13 @@
         <Folder Include="Architecture\"/>
         <Folder Include="Integration\"/>
         <Folder Include="Unit\"/>
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\..\src\Billing.Api\Billing.Api.csproj" />
+      <ProjectReference Include="..\..\src\Billing.BackOffice\Billing.BackOffice.csproj" />
+      <ProjectReference Include="..\..\src\Billing.Contracts\Billing.Contracts.csproj" />
+      <ProjectReference Include="..\..\src\Billing\Billing.csproj" />
     </ItemGroup>
 
 </Project>
