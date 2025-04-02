@@ -20,7 +20,7 @@ public class ArchTests
             .Distinct()
             .ToList();
 
-        foreach (var prefix in dataNamespaces)
+        foreach (var prefix in dataNamespaces.Where(ns => !ns.EndsWith(".Core")))
         {
             var result = Types
                 .InAssemblies(assemblies)

@@ -10,7 +10,7 @@ namespace Billing.Api.Cashier;
 public class CashiersController(ILogger<CashiersController> logger, IMessageBus bus) : ControllerBase
 {
     [HttpGet("{id:guid}")]
-    public async Task<Contracts.Cashier.Models.Cashier> GetCashier([FromRoute] Guid id)
+    public async Task<ActionResult<Contracts.Cashier.Models.Cashier>> GetCashier([FromRoute] Guid id)
     {
         var cashier = await bus.InvokeAsync<Contracts.Cashier.Models.Cashier>(new GetCashierQuery(id));
 
@@ -18,11 +18,12 @@ public class CashiersController(ILogger<CashiersController> logger, IMessageBus 
     }
 
     [HttpGet]
-    public async Task<IEnumerable<GetCashiersQuery.Result>> GetCashiers([FromQuery] GetCashiersQuery query)
+    public async Task<ActionResult<IEnumerable<GetCashiersQuery.Result>>> GetCashiers(
+        [FromQuery] GetCashiersQuery query)
     {
         var cashiers = await bus.InvokeAsync<IEnumerable<GetCashiersQuery.Result>>(query);
 
-        return cashiers;
+        return Ok(cashiers);
     }
 
     [HttpPost]
@@ -40,7 +41,7 @@ public class CashiersController(ILogger<CashiersController> logger, IMessageBus 
         throw new DivideByZeroException("Fake error");
 
     [HttpGet("id/{id}")]
-    public async Task<Contracts.Cashier.Models.Cashier> GetCashierById([FromRoute] int id)
+    public async Task<ActionResult<Contracts.Cashier.Models.Cashier>> GetCashierById([FromRoute] int id)
     {
         using var loggerScope = logger.BeginScope(new Dictionary<string, object?> { ["Id"] = id });
 

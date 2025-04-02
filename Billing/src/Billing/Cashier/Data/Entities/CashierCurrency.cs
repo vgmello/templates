@@ -1,11 +1,12 @@
 // Copyright (c) ABCDEG. All rights reserved.
 
+using Billing.Core.Data;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Billing.Cashier.Data.Entities;
 
-public record CashierCurrency
+public record CashierCurrency : Entity
 {
     public Guid CashierId { get; set; }
 
@@ -15,8 +16,6 @@ public record CashierCurrency
 
     [MaxLength(10)]
     public string CustomCurrencyCode { get; set; } = string.Empty;
-
-    public DateTime CreatedDateUtc { get; set; }
 
     [ForeignKey(nameof(CashierId))]
     public Cashier Cashier { get; set; } = null!;

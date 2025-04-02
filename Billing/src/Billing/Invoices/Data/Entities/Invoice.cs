@@ -1,12 +1,13 @@
 // Copyright (c) ABCDEG. All rights reserved.
 
+using Billing.Core.Data;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Billing.Invoices.Data.Entities;
 
 [Table("invoices")]
-public record Invoice
+public record Invoice : Entity
 {
     [Key]
     public Guid InvoiceId { get; set; }
@@ -16,11 +17,4 @@ public record Invoice
     public string Name { get; set; } = string.Empty;
 
     public string Status { get; set; } = string.Empty;
-
-    public DateTime CreatedDateUtc { get; set; } = DateTime.UtcNow;
-
-    public DateTime UpdatedDateUtc { get; set; } = DateTime.UtcNow;
-
-    [ConcurrencyCheck]
-    public int Version { get; set; }
 }
