@@ -1,21 +1,33 @@
 // Copyright (c) ABCDEG. All rights reserved.
 
+using Billing.AppHost.Extensions;
+
 var builder = DistributedApplication.CreateBuilder(args);
 
-var pgsql = builder.AddPostgres("billing-db");
+var dbPassword = builder.AddParameter("DbPassword", secret: true);
+
+var pgsql = builder
+    .AddPostgres("billing-db", password: dbPassword)
+    .WithContainerName("billing-db")
+    .WithPgAdmin(r => r.WithImage("dpage/pgadmin4", "latest"))
+    .WithLifetime(ContainerLifetime.Persistent);
+
 var database = pgsql.AddDatabase(name: "BillingDb", databaseName: "billing");
 var serviceBusDb = pgsql.AddDatabase(name: "ServiceBusDb", databaseName: "service_bus");
+var liquibase = builder.AddLiquibaseMigrations(pgsql, dbPassword);
 
 builder
     .AddProject<Projects.Billing_Api>("billing-api")
     .WithEnvironment("ServiceBus__ConnectionString", serviceBusDb)
+    .WithReference(database)
     .WithReference(serviceBusDb)
-    .WithReference(database);
+    .WaitForCompletion(liquibase);
 
 builder
     .AddProject<Projects.Billing_BackOffice>("billing-backoffice")
     .WithEnvironment("ServiceBus__ConnectionString", serviceBusDb)
+    .WithReference(database)
     .WithReference(serviceBusDb)
-    .WithReference(database);
+    .WaitForCompletion(liquibase);
 
 await builder.Build().RunAsync();

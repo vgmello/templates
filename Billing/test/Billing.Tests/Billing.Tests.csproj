@@ -28,7 +28,6 @@
     </ItemGroup>
 
     <ItemGroup>
-        <Folder Include="Architecture\"/>
         <Folder Include="Integration\"/>
         <Folder Include="Unit\"/>
     </ItemGroup>

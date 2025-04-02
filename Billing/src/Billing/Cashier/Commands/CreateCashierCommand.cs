@@ -1,7 +1,6 @@
 // Copyright (c) ABCDEG. All rights reserved.
 
 using Billing.Contracts.Cashier.IntegrationEvents;
-using Microsoft.Extensions.Logging;
 using CashierEntity = Billing.Cashier.Data.Entities.Cashier;
 using CashierModel = Billing.Contracts.Cashier.Models.Cashier;
 

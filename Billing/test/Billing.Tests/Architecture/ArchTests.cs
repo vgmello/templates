@@ -3,9 +3,9 @@
 using NetArchTest.Rules;
 using Shouldly;
 
-namespace Billing.Tests;
+namespace Billing.Tests.Architecture;
 
-public class UnitTest1
+public class ArchTests
 {
     [Fact]
     public void DataClasses_ShouldOnlyBeUsedByDomainClasses()

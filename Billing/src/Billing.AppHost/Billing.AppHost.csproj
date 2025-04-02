@@ -4,6 +4,7 @@
     <PropertyGroup>
         <OutputType>Exe</OutputType>
         <IsAspireHost>true</IsAspireHost>
+        <UserSecretsId>5196deed-b92b-45ff-8da8-ebc24b8f58ae</UserSecretsId>
     </PropertyGroup>
 
     <ItemGroup>
