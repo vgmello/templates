@@ -16,13 +16,13 @@ public static class LiquibaseExtensions
             .WithEnvironment("LIQUIBASE_COMMAND_PASSWORD", dbPassword)
             .WithEnvironment("LIQUIBASE_COMMAND_CHANGELOG_FILE", "changelog.xml")
             .WithEnvironment("LIQUIBASE_SEARCH_PATH", "/liquibase/changelog")
+            .WaitFor(dbServerResource)
             .WithReference(dbServerResource)
             .WithEntrypoint("/bin/sh")
             .WithArgs("-c",
                 """
-                liquibase --url=jdbc:postgresql://billing-db:5432/postgres --contexts=@setup update && \
-                liquibase --url=jdbc:postgresql://billing-db:5432/service_bus --contexts=@service_bus update && \
-                liquibase --url=jdbc:postgresql://billing-db:5432/billing update
+                liquibase --url=jdbc:postgresql://billing-db:5432/service_bus update --changelog-file=service_bus/changelog.xml && \
+                liquibase --url=jdbc:postgresql://billing-db:5432/billing update --changelog-file=billing/changelog.xml
                 """);
     }
 }
