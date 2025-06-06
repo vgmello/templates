@@ -10,7 +10,9 @@ var dbPassword = builder.AddParameter("DbPassword", secret: true);
 var pgsql = builder
     .AddPostgres("billing-db", password: dbPassword)
     .WithContainerName("billing-db")
-    .WithPgAdmin(r => r.WithImage("dpage/pgadmin4", "latest"))
+    .WithPgAdmin(pgAdmin => pgAdmin
+        .WithImage("dpage/pgadmin4", "latest")
+        .WithLifetime(ContainerLifetime.Persistent))
     .WithLifetime(ContainerLifetime.Persistent);
 
 var database = pgsql.AddDatabase(name: "BillingDb", databaseName: "billing");

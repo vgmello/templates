@@ -1,5 +1,6 @@
 // Copyright (c) ABCDEG. All rights reserved.
 
+using JasperFx.Resources;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -47,6 +48,8 @@ public static class WolverineSetupExtensions
             opts.Policies.Add<FluentValidationPolicy>();
 
             configure?.Invoke(opts);
+
+            opts.Services.AddResourceSetupOnStartup();
         });
     }
 
@@ -66,16 +69,23 @@ public static class WolverineSetupExtensions
     {
         var persistenceSchema = options.ServiceName.ToLowerInvariant();
 
+#pragma warning disable CS0618 // Remove when EnableMessageTransport is implemented
+#pragma warning disable S125 // Remove when EnableMessageTransport is implemented
+
         options
-            .PersistMessagesWithPostgresql(
-                connectionString: connectionString,
-                schemaName: persistenceSchema
-            )
-            .EnableMessageTransport(transportCfg =>
-                transportCfg
-                    .TransportSchemaName("queues")
-                    .AutoProvision()
-            );
+            .UsePostgresqlPersistenceAndTransport(connectionString, schema: persistenceSchema, transportSchema: "queues")
+            .AutoProvision();
+
+        // Uncomment the following lines once EnableMessageTransport is fully implemented in Wolverine
+        // options
+        //     .PersistMessagesWithPostgresql(connectionString, schemaName: persistenceSchema)
+        //     .EnableMessageTransport(transport =>
+        //         transport
+        //             .TransportSchemaName("queues")
+        //             .AutoProvision());
+
+#pragma warning restore S125
+#pragma warning restore CS0618
 
         options
             .PublishAllMessages()
