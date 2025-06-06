@@ -2,7 +2,7 @@
 
 using Billing;
 using Billing.Api;
-using Oakton;
+using JasperFx;
 using Operations.ServiceDefaults;
 using Operations.ServiceDefaults.Api;
 
@@ -19,4 +19,4 @@ var app = builder.Build();
 
 app.ConfigureApiUsingDefaults(requireAuth: false);
 
-return await app.RunOaktonCommands(args);
+return await app.RunJasperFxCommands(args);

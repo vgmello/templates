@@ -14,8 +14,7 @@ public static class FluentValidationExecutor
         return result.Errors;
     }
 
-    public static async Task<List<ValidationFailure>> ExecuteMany<T>(
-        IEnumerable<IValidator<T>> validators, T message)
+    public static async Task<List<ValidationFailure>> ExecuteMany<T>(IEnumerable<IValidator<T>> validators, T message)
     {
         var failures = new List<ValidationFailure>();
 

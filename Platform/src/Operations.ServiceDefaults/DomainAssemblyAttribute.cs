@@ -14,7 +14,7 @@ public class DomainAssemblyAttribute(params Type[] typeMarkers) : Attribute
 {
     private static IReadOnlyList<Assembly>? _domainAssemblies;
 
-    private Type[] DomainAssemblyTypeMarkers { get; } = typeMarkers;
+    private Type[] DomainAssemblyTypeMarkers => typeMarkers;
 
     internal static IReadOnlyList<Assembly> GetDomainAssemblies()
     {

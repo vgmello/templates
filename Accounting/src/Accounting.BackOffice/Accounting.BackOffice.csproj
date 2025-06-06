@@ -1,22 +1,23 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
 
-    <PropertyGroup>
-        <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
-    </PropertyGroup>
+  <PropertyGroup>
+    <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+  </PropertyGroup>
 
-    <ItemGroup>
-        <Folder Include="Ledgers\DomainEvents\"/>
-        <Folder Include="Ledgers\IntegrationEvents\"/>
-        <Folder Include="Ledgers\Jobs\"/>
-    </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Ledgers\DomainEvents\" />
+    <Folder Include="Ledgers\IntegrationEvents\" />
+    <Folder Include="Ledgers\Jobs\" />
+  </ItemGroup>
 
-    <ItemGroup>
-      <ProjectReference Include="..\..\..\Platform\src\Operations.ServiceDefaults\Operations.ServiceDefaults.csproj" />
-      <ProjectReference Include="..\Accounting.Contracts\Accounting.Contracts.csproj" />
-    </ItemGroup>
+  <ItemGroup>
+    <ProjectReference
+      Include="..\..\..\Platform\src\Operations.ServiceDefaults\Operations.ServiceDefaults.csproj" />
+    <ProjectReference Include="..\Accounting.Contracts\Accounting.Contracts.csproj" />
+  </ItemGroup>
 
-    <ItemGroup>
-      <PackageReference Include="WolverineFx" Version="3.10.4" />
-    </ItemGroup>
-    
+  <ItemGroup>
+    <PackageReference Include="WolverineFx" />
+  </ItemGroup>
+
 </Project>

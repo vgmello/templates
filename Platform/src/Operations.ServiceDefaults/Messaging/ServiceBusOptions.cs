@@ -15,8 +15,7 @@ public class ServiceBusOptions
 
     public string? ConnectionString { get; init; }
 
-    private static string GetServiceName() =>
-        Extensions.EntryAssembly.GetName().Name?.Replace('.', '_') ?? string.Empty;
+    private static string GetServiceName() => Extensions.EntryAssembly.GetName().Name?.Replace('.', '_') ?? string.Empty;
 
     public class Configurator(ILogger<Configurator> logger) : IPostConfigureOptions<ServiceBusOptions>
     {

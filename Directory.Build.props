@@ -12,7 +12,6 @@
 
     <ItemGroup>
         <PackageReference Include="SonarAnalyzer.CSharp" developmentDependency="true">
-            <Version>10.*</Version>
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>

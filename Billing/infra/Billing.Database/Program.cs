@@ -1,3 +1,3 @@
 ﻿// Copyright (c) ABCDEG. All rights reserved.
 
-Console.WriteLine("Hello, World!");
+Console.WriteLine("DB Project");

@@ -34,6 +34,7 @@
     <File Path=".editorconfig" />
     <File Path="Operations.slnx.DotSettings" />
     <File Path=".gitignore" />
+    <File Path="Directory.Packages.props" />
   </Folder>
   <Folder Name="/Solution Items/.http/">
     <File Path=".http\Accounting.Api.http" />

@@ -68,7 +68,7 @@ public static class HealthCheckSetupExtensions
         var logger = GetHealthCheckLogger(app.Services);
 
         // liveness probe
-        app.MapGet("/status", () => healthCheckStore.GetLastStatus().ToString())
+        app.MapGet("/status", () => healthCheckStore.LastHealthStatus.ToString())
             .ExcludeFromDescription();
 
         // container-only health check probe
@@ -102,7 +102,8 @@ public static class HealthCheckSetupExtensions
         bool outputResult)
     {
         LogHealthCheckResponse(logger, report);
-        healthCheckStore.StoreHealthStatus(report);
+
+        healthCheckStore.LastHealthStatus = report.Status;
 
         return outputResult
             ? WriteReportObject(httpContext, report)

@@ -33,10 +33,8 @@ tab_width = 2
 # Core Settings
 file_header_template = Copyright (c) ABCDEG. All rights reserved.
 
-# Line preferences
-max_line_length = 120
-
 #### .NET Coding Conventions ####
+csharp_use_heuristics_for_body_style = true:suggestion
 
 # Organize usings
 dotnet_separate_import_directive_groups = false
@@ -188,6 +186,7 @@ csharp_max_initializer_elements_on_line = 1
 csharp_blank_lines_before_block_statements = 1
 csharp_blank_lines_after_control_transfer_statements = 1
 csharp_blank_lines_before_control_transfer_statements = 1
+csharp_keep_blank_lines_in_code = 1
 
 # Indentation preferences
 csharp_indent_block_contents = true

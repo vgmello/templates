@@ -12,8 +12,7 @@ namespace Operations.ServiceDefaults.Messaging.Wolverine;
 
 public static class WolverineSetupExtensions
 {
-    public static IHostApplicationBuilder AddWolverine(this IHostApplicationBuilder builder,
-        Action<WolverineOptions>? configure = null)
+    public static IHostApplicationBuilder AddWolverine(this IHostApplicationBuilder builder, Action<WolverineOptions>? configure = null)
     {
         var wolverineRegistered = builder.Services.Any(s => s.ServiceType == typeof(IWolverineRuntime));
 
@@ -21,14 +20,14 @@ public static class WolverineSetupExtensions
             return builder;
 
         builder.Services
-            .ConfigureOptions<ServiceBusOptions.Configurator>()
             .AddOptions<ServiceBusOptions>()
             .BindConfiguration(ServiceBusOptions.SectionName)
             .ValidateOnStart();
 
-        var serviceBusOptions =
-            builder.Configuration.GetSection(ServiceBusOptions.SectionName).Get<ServiceBusOptions>() ??
-            new ServiceBusOptions();
+        builder.Services.ConfigureOptions<ServiceBusOptions.Configurator>();
+
+        var serviceBusOptions = builder.Configuration
+            .GetSection(ServiceBusOptions.SectionName).Get<ServiceBusOptions>() ?? new ServiceBusOptions();
 
         return builder.UseWolverine(opts =>
         {
@@ -47,7 +46,6 @@ public static class WolverineSetupExtensions
             opts.Policies.AddMiddleware(typeof(RequestPerformanceMiddleware));
             opts.Policies.Add<FluentValidationPolicy>();
 
-            opts.OptimizeArtifactWorkflow();
             configure?.Invoke(opts);
         });
     }
@@ -68,12 +66,16 @@ public static class WolverineSetupExtensions
     {
         var persistenceSchema = options.ServiceName.ToLowerInvariant();
 
-        options.UsePostgresqlPersistenceAndTransport(
+        options
+            .PersistMessagesWithPostgresql(
                 connectionString: connectionString,
-                schema: persistenceSchema,
-                transportSchema: "queues"
+                schemaName: persistenceSchema
             )
-            .AutoProvision();
+            .EnableMessageTransport(transportCfg =>
+                transportCfg
+                    .TransportSchemaName("queues")
+                    .AutoProvision()
+            );
 
         options
             .PublishAllMessages()
