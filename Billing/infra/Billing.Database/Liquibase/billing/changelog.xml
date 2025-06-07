@@ -9,5 +9,6 @@
     <include file="billing/tables/cashiers.sql"/>
     <include file="billing/tables/cashier_currencies.sql"/>
     <include file="billing/tables/invoices.sql"/>
+    <include file="billing/procedures/create_cashier.sql"/>
 
 </databaseChangeLog>
