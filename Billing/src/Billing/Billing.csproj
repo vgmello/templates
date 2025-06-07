@@ -5,9 +5,11 @@
         <Folder Include="Invoices\Queries\"/>
     </ItemGroup>
 
-    <ItemGroup>
-        <ProjectReference Include="..\..\..\Platform\src\Operations.Extensions\Operations.Extensions.csproj"/>
-        <ProjectReference Include="..\Billing.Contracts\Billing.Contracts.csproj"/>
-    </ItemGroup>
+  <ItemGroup>
+      <ProjectReference Include="..\..\..\Platform\src\Operations.Extensions\Operations.Extensions.csproj"/>
+      <ProjectReference Include="..\Billing.Contracts\Billing.Contracts.csproj"/>
+      <PackageReference Include="Dapper" />
+      <PackageReference Include="Npgsql" />
+  </ItemGroup>
 
 </Project>
