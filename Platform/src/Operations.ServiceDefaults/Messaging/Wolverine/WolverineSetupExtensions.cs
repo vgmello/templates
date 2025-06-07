@@ -1,7 +1,6 @@
 // Copyright (c) ABCDEG. All rights reserved.
 
 using JasperFx.Resources;
-using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -49,8 +48,6 @@ public static class WolverineSetupExtensions
             opts.Policies.Add<FluentValidationPolicy>();
 
             configure?.Invoke(opts);
-
-            opts.Discovery.DisableConventionalDiscovery();
 
             opts.Services.AddResourceSetupOnStartup();
         });

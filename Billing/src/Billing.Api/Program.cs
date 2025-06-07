@@ -8,7 +8,7 @@ using Operations.ServiceDefaults.Api;
 
 [assembly: DomainAssembly(typeof(IBillingAssembly))]
 
-var builder = WebApplication.CreateBuilder(args);
+var builder = WebApplication.CreateSlimBuilder(args);
 
 builder.AddServiceDefaults();
 builder.AddApiServiceDefaults();
