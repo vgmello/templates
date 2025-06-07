@@ -6,13 +6,22 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\..\..\Platform\src\Operations.ServiceDefaults.Api\Operations.ServiceDefaults.Api.csproj" />
-      <ProjectReference Include="..\..\..\Platform\src\Operations.ServiceDefaults\Operations.ServiceDefaults.csproj" />
-      <ProjectReference Include="..\Billing\Billing.csproj" />
+        <PackageReference Include="Grpc.AspNetCore"/>
+        <PackageReference Include="Grpc.Tools" PrivateAssets="All"/>
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="Internal\" />
+        <ProjectReference Include="..\..\..\Platform\src\Operations.ServiceDefaults.Api\Operations.ServiceDefaults.Api.csproj"/>
+        <ProjectReference Include="..\..\..\Platform\src\Operations.ServiceDefaults\Operations.ServiceDefaults.csproj"/>
+        <ProjectReference Include="..\Billing\Billing.csproj"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <Protobuf Include="Cashier/**/*.proto" GrpcServices="Both" ProtoRoot="Cashier/Protos"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <Folder Include="Internal\"/>
     </ItemGroup>
 
 </Project>

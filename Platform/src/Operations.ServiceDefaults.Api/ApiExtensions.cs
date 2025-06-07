@@ -18,6 +18,9 @@ public static class ApiExtensions
         builder.Services.AddOpenApi();
         builder.Services.AddHttpLogging();
 
+        builder.Services.AddGrpc();
+        builder.Services.AddGrpcReflection();
+
         // Authentication and authorization services
         builder.Services.AddAuthentication();
         builder.Services.AddAuthorization();
@@ -47,12 +50,15 @@ public static class ApiExtensions
         {
             app.MapOpenApi();
             app.MapScalarApiReference();
+            app.MapGrpcReflectionService();
         }
 
         var controllersEndpointBuilder = app.MapControllers();
 
         if (requireAuth)
             controllersEndpointBuilder.RequireAuthorization();
+
+        app.MapGrpcServices();
 
         return app;
     }
