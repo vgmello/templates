@@ -1,6 +1,7 @@
 // Copyright (c) ABCDEG. All rights reserved.
 
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Scalar.AspNetCore;
@@ -9,7 +10,7 @@ namespace Operations.ServiceDefaults.Api;
 
 public static class ApiExtensions
 {
-    public static IHostApplicationBuilder AddApiServiceDefaults(this IHostApplicationBuilder builder)
+    public static IHostApplicationBuilder AddApiServiceDefaults(this WebApplicationBuilder builder)
     {
         builder.Services.AddControllers();
         builder.Services.AddEndpointsApiExplorer();
@@ -20,6 +21,11 @@ public static class ApiExtensions
         // Authentication and authorization services
         builder.Services.AddAuthentication();
         builder.Services.AddAuthorization();
+
+        builder.WebHost.ConfigureKestrel(serverOptions =>
+        {
+            serverOptions.AddServerHeader = false;
+        });
 
         return builder;
     }
