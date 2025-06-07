@@ -9,6 +9,7 @@
     <PackageVersion Include="Aspire.Hosting.PostgreSQL" Version="9.3.0" />
     <PackageVersion Include="FluentValidation" Version="12.0.0" />
     <PackageVersion Include="FluentValidation.DependencyInjectionExtensions" Version="12.0.0" />
+    <PackageVersion Include="Grpc.AspNetCore.Web" Version="2.71.0" />
     <PackageVersion Include="Microsoft.AspNetCore.OpenApi" Version="9.0.5" />
     <PackageVersion Include="Microsoft.Extensions.Configuration" Version="9.0.3" />
     <PackageVersion Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="9.0.3" />

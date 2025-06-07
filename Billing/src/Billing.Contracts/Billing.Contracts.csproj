@@ -1,3 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
+    <ItemGroup>
+        <None Include="..\Billing.Api\**\Protos\**\*.proto" Link="%(RecursiveDir)%(Filename)%(Extension)"/>
+    </ItemGroup>
+
 </Project>

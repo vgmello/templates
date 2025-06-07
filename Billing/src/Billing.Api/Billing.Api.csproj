@@ -17,7 +17,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <Protobuf Include="Cashier/**/*.proto" GrpcServices="Both" ProtoRoot="Cashier/Protos"/>
+        <Protobuf Include="**/Protos/**/*.proto" GrpcServices="Server" ProtoRoot=""/>
     </ItemGroup>
 
     <ItemGroup>

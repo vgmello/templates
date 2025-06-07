@@ -40,6 +40,8 @@ public static class ApiExtensions
         app.UseAuthentication();
         app.UseAuthorization();
 
+        app.UseGrpcWeb(new GrpcWebOptions { DefaultEnabled = true });
+
         if (!app.Environment.IsDevelopment())
         {
             app.UseHsts();

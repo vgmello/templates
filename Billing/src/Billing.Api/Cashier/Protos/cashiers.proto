@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-import "Models/cashier.proto";
+import "Cashier/Protos/Models/cashier.proto";
 
 option csharp_namespace = "Billing.Cashier.Grpc";
 

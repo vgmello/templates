@@ -1,6 +1,7 @@
 // Copyright (c) ABCDEG. All rights reserved.
 
 using JasperFx.Resources;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -30,7 +31,7 @@ public static class WolverineSetupExtensions
         var serviceBusOptions = builder.Configuration
             .GetSection(ServiceBusOptions.SectionName).Get<ServiceBusOptions>() ?? new ServiceBusOptions();
 
-        return builder.UseWolverine(opts =>
+        builder.Services.AddWolverine(ExtensionDiscovery.ManualOnly, opts =>
         {
             opts.ApplicationAssembly = Extensions.EntryAssembly;
             opts.ServiceName = serviceBusOptions.ServiceName;
@@ -49,8 +50,12 @@ public static class WolverineSetupExtensions
 
             configure?.Invoke(opts);
 
+            opts.Discovery.DisableConventionalDiscovery();
+
             opts.Services.AddResourceSetupOnStartup();
         });
+
+        return builder;
     }
 
     public static WolverineOptions ConfigureAppHandlers(this WolverineOptions options)
@@ -69,8 +74,8 @@ public static class WolverineSetupExtensions
     {
         var persistenceSchema = options.ServiceName.ToLowerInvariant();
 
-#pragma warning disable CS0618 // Remove when EnableMessageTransport is implemented
-#pragma warning disable S125 // Remove when EnableMessageTransport is implemented
+#pragma warning disable CS0618 // Remove when EnableMessageTransport is implemented by Wolverine
+#pragma warning disable S125 // Remove when EnableMessageTransport is implemented by Wolverine
 
         options
             .UsePostgresqlPersistenceAndTransport(connectionString, schema: persistenceSchema, transportSchema: "queues")
