@@ -1,10 +1,13 @@
+// Copyright (c) ABCDEG. All rights reserved.
+
 using Orleans;
 using Orleans.Runtime;
 
 namespace Accounting.BackOffice.Orleans.Grains;
 
 public sealed class InvoiceGrain(
-    [PersistentState("invoice", "Default")] IPersistentState<InvoiceState> state)
+    [PersistentState("invoice", "Default")]
+    IPersistentState<InvoiceState> state)
     : Grain, IInvoiceGrain
 {
     public Task<InvoiceState> GetState() => Task.FromResult(state.State);

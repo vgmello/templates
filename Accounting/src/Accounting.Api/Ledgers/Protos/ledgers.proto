@@ -4,12 +4,12 @@ import "Ledgers/Protos/Models/ledger.proto";
 
 option csharp_namespace = "Accounting.Ledgers.Grpc";
 
-package billing.ledgers;
+package accounting.ledgers;
 
 service LedgersService {
-  rpc GetLedger (GetLedgerRequest) returns (billing.ledgers.Ledger);
+  rpc GetLedger (GetLedgerRequest) returns (accounting.ledgers.Ledger);
   rpc GetLedgers (GetLedgersRequest) returns (GetLedgersResponse);
-  rpc CreateLedger (CreateLedgerRequest) returns (billing.ledgers.Ledger);
+  rpc CreateLedger (CreateLedgerRequest) returns (accounting.ledgers.Ledger);
 }
 
 message GetLedgerRequest {
@@ -22,7 +22,7 @@ message GetLedgersRequest {
 }
 
 message GetLedgersResponse {
-  repeated billing.ledgers.Ledger ledgers = 1;
+  repeated accounting.ledgers.Ledger ledgers = 1;
 }
 
 message CreateLedgerRequest {

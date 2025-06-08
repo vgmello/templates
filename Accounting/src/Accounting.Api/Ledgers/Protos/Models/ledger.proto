@@ -2,7 +2,7 @@ syntax = "proto3";
 
 option csharp_namespace = "Accounting.Ledgers.Grpc.Models";
 
-package billing.ledgers;
+package accounting.ledgers;
 
 message Ledger {
   string ledgerId = 1;

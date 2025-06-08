@@ -1,3 +1,5 @@
+// Copyright (c) ABCDEG. All rights reserved.
+
 using System.Reflection;
 using System.Diagnostics.CodeAnalysis;
 using Grpc.Core;
@@ -14,7 +16,8 @@ public static class GrpcRegistrationExtensions
     private static readonly MethodInfo GrpcMapServiceMethod = typeof(GrpcEndpointRouteBuilderExtensions)
         .GetMethod(nameof(GrpcEndpointRouteBuilderExtensions.MapGrpcService), STATIC_METHODS)!;
 
-    public static void MapGrpcServices(this IEndpointRouteBuilder routeBuilder) => routeBuilder.MapGrpcServices(Assembly.GetEntryAssembly()!);
+    public static void MapGrpcServices(this IEndpointRouteBuilder routeBuilder) =>
+        routeBuilder.MapGrpcServices(Assembly.GetEntryAssembly()!);
 
     public static void MapGrpcServices(this IEndpointRouteBuilder routeBuilder, Type assemblyMarker) =>
         routeBuilder.MapGrpcServices(assemblyMarker.Assembly);
@@ -39,6 +42,7 @@ public static class GrpcRegistrationExtensions
     private static bool IsGrpcService(Type type)
     {
         var grpcServiceAttribute = type.BaseType?.GetCustomAttribute<BindServiceMethodAttribute>();
+
         return grpcServiceAttribute is not null;
     }
 }

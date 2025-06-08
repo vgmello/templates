@@ -6,8 +6,7 @@ public record GetLedgerQuery(Guid Id);
 
 public static class GetLedgerQueryHandler
 {
-    public static async Task<Contracts.Ledgers.Models.Ledger> Handle(GetLedgerQuery query,
-        CancellationToken cancellationToken)
+    public static async Task<Contracts.Ledgers.Models.Ledger> Handle(GetLedgerQuery query, CancellationToken cancellationToken)
     {
         return new Contracts.Ledgers.Models.Ledger
         {

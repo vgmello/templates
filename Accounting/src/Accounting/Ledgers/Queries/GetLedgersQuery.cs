@@ -18,8 +18,7 @@ public record GetLedgersQuery
 
 public static class GetLedgersQueryHandler
 {
-    public static async Task<IEnumerable<GetLedgersQuery.Result>> Handle(GetLedgersQuery query,
-        CancellationToken cancellationToken)
+    public static async Task<IEnumerable<GetLedgersQuery.Result>> Handle(GetLedgersQuery query, CancellationToken cancellationToken)
     {
         return new[]
         {

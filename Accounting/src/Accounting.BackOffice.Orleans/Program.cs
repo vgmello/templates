@@ -1,3 +1,5 @@
+// Copyright (c) ABCDEG. All rights reserved.
+
 using Microsoft.Extensions.Hosting;
 using Operations.ServiceDefaults;
 using Operations.ServiceDefaults.HealthChecks;
@@ -10,15 +12,12 @@ builder.AddKeyedAzureTableClient("grain-state");
 builder.Host.UseOrleans((context, siloBuilder) =>
 {
     siloBuilder.UseAzureStorageClustering(options =>
-        options.ConfigureTableServiceClient(
-            context.Configuration.GetConnectionString("Clustering")));
+        options.ConfigureTableServiceClient(context.Configuration.GetConnectionString("Clustering")));
 
     siloBuilder.AddAzureTableGrainStorageAsDefault(options =>
-        options.ConfigureTableServiceClient(
-            context.Configuration.GetConnectionString("GrainState")));
+        options.ConfigureTableServiceClient(context.Configuration.GetConnectionString("GrainState")));
 
-    siloBuilder.Configure<Orleans.Configuration.ClusterOptions>(
-        context.Configuration.GetSection("Orleans"));
+    siloBuilder.Configure<Orleans.Configuration.ClusterOptions>(context.Configuration.GetSection("Orleans"));
 });
 
 var app = builder.Build();
@@ -29,12 +28,14 @@ app.MapPost("/invoices/{id:guid}/pay", async (Guid id, decimal amount, IGrainFac
 {
     var grain = grains.GetGrain<Accounting.BackOffice.Orleans.Grains.IInvoiceGrain>(id);
     await grain.Pay(amount);
+
     return Results.Accepted();
 });
 
 app.MapGet("/invoices/{id:guid}", async (Guid id, IGrainFactory grains) =>
 {
     var grain = grains.GetGrain<Accounting.BackOffice.Orleans.Grains.IInvoiceGrain>(id);
+
     return Results.Ok(await grain.GetState());
 });
 

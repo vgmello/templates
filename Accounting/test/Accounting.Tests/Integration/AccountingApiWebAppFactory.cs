@@ -2,6 +2,7 @@
 
 using Microsoft.AspNetCore.Mvc.Testing;
 using Operations.ServiceDefaults.Api;
+using Operations.ServiceDefaults.Messaging.Wolverine;
 
 namespace Accounting.Tests.Integration;
 
@@ -19,7 +20,14 @@ public class AccountingApiWebAppFactory : WebApplicationFactory<Program>
             });
         });
 
-        builder.ConfigureServices(RemoveHostedServices);
+        WolverineSetupExtensions.SkipServiceRegistration = true;
+
+        builder.ConfigureServices((ctx, services) =>
+        {
+            RemoveHostedServices(services);
+
+            services.AddWolverineWithDefaults(ctx.Configuration, opt => opt.ApplicationAssembly = typeof(Program).Assembly);
+        });
 
         builder.Configure(app =>
         {

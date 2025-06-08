@@ -1,3 +1,5 @@
+// Copyright (c) ABCDEG. All rights reserved.
+
 using Accounting.Core.Data;
 using Accounting.Contracts.Ledgers.Models;
 using System.ComponentModel.DataAnnotations;

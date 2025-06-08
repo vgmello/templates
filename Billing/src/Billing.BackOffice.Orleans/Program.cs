@@ -1,3 +1,5 @@
+// Copyright (c) ABCDEG. All rights reserved.
+
 using Operations.ServiceDefaults;
 using Operations.ServiceDefaults.HealthChecks;
 
@@ -28,12 +30,14 @@ app.MapPost("/invoices/{id:guid}/pay", async (Guid id, decimal amount, IGrainFac
 {
     var grain = grains.GetGrain<Billing.BackOffice.Orleans.Grains.IInvoiceGrain>(id);
     await grain.Pay(amount);
+
     return Results.Accepted();
 });
 
 app.MapGet("/invoices/{id:guid}", async (Guid id, IGrainFactory grains) =>
 {
     var grain = grains.GetGrain<Billing.BackOffice.Orleans.Grains.IInvoiceGrain>(id);
+
     return Results.Ok(await grain.GetState());
 });
 

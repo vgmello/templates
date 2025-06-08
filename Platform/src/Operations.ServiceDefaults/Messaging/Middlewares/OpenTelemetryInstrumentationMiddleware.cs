@@ -14,18 +14,18 @@ public static class OpenTelemetryInstrumentationMiddleware
     {
         var messageType = GetMessageType(envelope);
         var operationName = GetOperationName(envelope, messageType);
-        
+
         var activity = ActivitySource.StartActivity(operationName);
-        
+
         if (activity != null)
         {
             activity.SetTag("message.type", messageType);
             activity.SetTag("message.id", envelope.Id.ToString());
-            
+
             if (envelope.Message != null)
             {
                 activity.SetTag("message.name", envelope.Message.GetType().Name);
-                
+
                 // Add specific tags for commands and queries
                 if (IsCommand(envelope.Message))
                 {
@@ -36,13 +36,13 @@ public static class OpenTelemetryInstrumentationMiddleware
                     activity.SetTag("operation.type", "query");
                 }
             }
-            
+
             if (!string.IsNullOrEmpty(envelope.Source))
             {
                 activity.SetTag("message.source", envelope.Source);
             }
         }
-        
+
         return activity;
     }
 
@@ -60,7 +60,7 @@ public static class OpenTelemetryInstrumentationMiddleware
             {
                 activity.SetStatus(ActivityStatusCode.Ok);
             }
-            
+
             activity.Stop();
         }
     }
@@ -76,19 +76,20 @@ public static class OpenTelemetryInstrumentationMiddleware
             {
                 return $"command {messageType}";
             }
-            
+
             if (IsQuery(envelope.Message))
             {
                 return $"query {messageType}";
             }
         }
-        
+
         return $"message {messageType}";
     }
 
     private static bool IsCommand(object message)
     {
         var messageType = message.GetType();
+
         return messageType.GetInterfaces()
             .Any(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(ICommand<>));
     }
@@ -96,6 +97,7 @@ public static class OpenTelemetryInstrumentationMiddleware
     private static bool IsQuery(object message)
     {
         var messageType = message.GetType();
+
         return messageType.GetInterfaces()
             .Any(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IQuery<>));
     }

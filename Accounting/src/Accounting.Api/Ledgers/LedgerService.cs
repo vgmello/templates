@@ -13,8 +13,7 @@ public class LedgerService(IMessageBus bus) : LedgersService.LedgersServiceBase
 {
     public override async Task<LedgerModel> GetLedger(GetLedgerRequest request, ServerCallContext context)
     {
-        var result = await bus.InvokeAsync<Accounting.Contracts.Ledgers.Models.Ledger>(
-            new GetLedgerQuery(Guid.Parse(request.Id)), context.CancellationToken);
+        var result = await bus.InvokeAsync<Ledger>(new GetLedgerQuery(Guid.Parse(request.Id)), context.CancellationToken);
 
         return new LedgerModel
         {
