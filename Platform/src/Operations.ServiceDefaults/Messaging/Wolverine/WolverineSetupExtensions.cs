@@ -45,6 +45,7 @@ public static class WolverineSetupExtensions
             }
 
             opts.Policies.AddMiddleware(typeof(RequestPerformanceMiddleware));
+            opts.Policies.AddMiddleware(typeof(OpenTelemetryInstrumentationMiddleware));
             opts.Policies.Add<FluentValidationPolicy>();
 
             configure?.Invoke(opts);
