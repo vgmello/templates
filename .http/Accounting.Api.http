@@ -1,6 +1,15 @@
-@Accounting.Api_HostAddress = http://localhost:5237
+@Accounting_Api = http://localhost:5237
 
-GET {{Accounting.Api_HostAddress}}/weatherforecast/
+### Create Ledger Balance
+POST {{Accounting_Api}}/Ledgers/
 Accept: application/json
+Content-Type: application/json
 
-###
+{
+    "clientId": "00000000-0000-0000-0000-000000000001",
+    "ledgerType": 1
+}
+
+### Get Ledgers
+GET {{Accounting_Api}}/Ledgers/
+Accept: application/json
