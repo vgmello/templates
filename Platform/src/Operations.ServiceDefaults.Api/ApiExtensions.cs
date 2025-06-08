@@ -12,8 +12,6 @@ public static class ApiExtensions
 {
     public static IHostApplicationBuilder AddApiServiceDefaults(this WebApplicationBuilder builder)
     {
-        builder.WebHost.UseKestrelHttpsConfiguration();
-
         builder.Services.AddControllers();
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddProblemDetails();

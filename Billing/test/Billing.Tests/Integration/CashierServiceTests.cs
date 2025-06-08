@@ -11,41 +11,13 @@ using Shouldly;
 
 namespace Billing.Tests.Integration;
 
-public class CashierServiceTests
+public class CashierServiceTests(BillingApiWebAppFactory factory) : IClassFixture<BillingApiWebAppFactory>
 {
     [Fact]
     public async Task GetCashier_ReturnsCashier()
     {
         // Arrange
-        var bus = Substitute.For<IMessageBus>();
         var expectedId = Guid.NewGuid();
-
-        bus.InvokeAsync<DomainCashier>(Arg.Any<GetCashierQuery>(), Arg.Any<CancellationToken>())
-            .Returns(new DomainCashier { CashierId = expectedId });
-
-        bus.InvokeAsync<IEnumerable<GetCashiersQuery.Result>>(Arg.Any<GetCashiersQuery>(), Arg.Any<CancellationToken>())
-            .Returns([]);
-
-        await using var factory = new WebApplicationFactory<Program>()
-            .WithWebHostBuilder(builder =>
-            {
-                builder.UseEnvironment("Development");
-                builder.ConfigureAppConfiguration((_, cfg) =>
-                {
-                    cfg.AddInMemoryCollection(new Dictionary<string, string?>
-                    {
-                        ["ServiceBus:ConnectionString"] = string.Empty
-                    });
-                });
-                builder.ConfigureServices(services =>
-                {
-                    services.AddSingleton(bus);
-                    var hostedServices = services.Where(d => d.ServiceType == typeof(IHostedService)).ToList();
-                    foreach (var hostedService in hostedServices)
-                        services.Remove(hostedService);
-                });
-            });
-
         var client = CreateClient(factory);
 
         // Act
@@ -56,13 +28,13 @@ public class CashierServiceTests
         response.CashierId.ShouldBe(expectedId.ToString());
     }
 
-    private static Cashiers.CashiersClient CreateClient(WebApplicationFactory<Program> factory)
+    private static CashiersService.CashiersServiceClient CreateClient(WebApplicationFactory<Program> factory)
     {
         var channel = GrpcChannel.ForAddress(factory.Server.BaseAddress, new GrpcChannelOptions
         {
-            HttpClient = factory.CreateDefaultClient()
+            HttpHandler = factory.Server.CreateHandler()
         });
 
-        return new Cashiers.CashiersClient(channel);
+        return new CashiersService.CashiersServiceClient(channel);
     }
 }

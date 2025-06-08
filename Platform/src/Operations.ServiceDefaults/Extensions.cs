@@ -1,6 +1,8 @@
 // Copyright (c) ABCDEG. All rights reserved.
 
 using FluentValidation;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Operations.ServiceDefaults.Logging;
@@ -20,8 +22,10 @@ public static class Extensions
         set => _entryAssembly = value;
     }
 
-    public static IHostApplicationBuilder AddServiceDefaults(this IHostApplicationBuilder builder)
+    public static IHostApplicationBuilder AddServiceDefaults(this WebApplicationBuilder builder)
     {
+        builder.WebHost.UseKestrelHttpsConfiguration();
+
         builder.AddLogging();
         builder.AddOpenTelemetry();
         builder.AddWolverine();

@@ -6,7 +6,7 @@ option csharp_namespace = "Billing.Cashier.Grpc";
 
 package billing.cashiers;
 
-service Cashiers {
+service CashiersService {
   rpc GetCashier (GetCashierRequest) returns (billing.cashiers.Cashier);
   rpc GetCashiers (GetCashiersRequest) returns (GetCashiersResponse);
   rpc CreateCashier (CreateCashierRequest) returns (billing.cashiers.Cashier);
