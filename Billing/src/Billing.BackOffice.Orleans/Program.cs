@@ -1,7 +1,9 @@
 // Copyright (c) ABCDEG. All rights reserved.
 
+using Azure.Data.Tables;
 using Operations.ServiceDefaults;
 using Operations.ServiceDefaults.HealthChecks;
+using OrleansDashboard;
 
 var builder = WebApplication.CreateSlimBuilder(args);
 
@@ -10,19 +12,31 @@ builder.AddKeyedAzureTableClient("clustering");
 builder.AddKeyedAzureTableClient("grain-state");
 builder.Host.UseOrleans((context, siloBuilder) =>
 {
-    siloBuilder.UseAzureStorageClustering(options =>
-        options.ConfigureTableServiceClient(
-            context.Configuration.GetConnectionString("Clustering")));
+    if (context.Configuration.GetValue<bool>("Orleans:UseLocalhostClustering"))
+    {
+        siloBuilder.UseLocalhostClustering();
+    }
+    else
+    {
+        siloBuilder.UseAzureStorageClustering(options =>
+            options.TableServiceClient = new TableServiceClient(context.Configuration.GetConnectionString("OrleansClustering")));
+    }
 
     siloBuilder.AddAzureTableGrainStorageAsDefault(options =>
-        options.ConfigureTableServiceClient(
-            context.Configuration.GetConnectionString("GrainState")));
+        options.TableServiceClient = new TableServiceClient(context.Configuration.GetConnectionString("OrleansGrainState")));
 
-    siloBuilder.Configure<Orleans.Configuration.ClusterOptions>(
-        context.Configuration.GetSection("Orleans"));
+    siloBuilder.Configure<Orleans.Configuration.ClusterOptions>(context.Configuration.GetSection("Orleans"));
+
+    siloBuilder.UseDashboard(options =>
+    {
+        options.HostSelf = false;
+        options.Host = "*";
+    });
 });
 
 var app = builder.Build();
+
+app.Map("/dashboard", x => x.UseOrleansDashboard());
 
 app.MapDefaultHealthCheckEndpoints();
 

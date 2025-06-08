@@ -44,6 +44,7 @@ builder
 builder
     .AddProject<Projects.Billing_BackOffice_Orleans>("billing-backoffice-orleans")
     .WithEnvironment("ServiceBus__ConnectionString", serviceBusDb)
+    .WithEnvironment("Orleans__UseLocalhostClustering", "false")
     .WithReference(orleans)
     .WithReference(database)
     .WithReference(serviceBusDb)

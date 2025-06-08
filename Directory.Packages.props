@@ -61,5 +61,10 @@
     <PackageVersion Include="Microsoft.Orleans.Server" Version="9.1.2" />
     <PackageVersion Include="Microsoft.Orleans.Clustering.AzureStorage" Version="9.1.2" />
     <PackageVersion Include="Microsoft.Orleans.Persistence.AzureStorage" Version="9.1.2" />
+    <PackageVersion Include="Microsoft.Orleans.Analyzers" Version="9.1.2">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageVersion>
+    <PackageVersion Include="OrleansDashboard" Version="8.2.0" />
   </ItemGroup>
 </Project>
