@@ -38,7 +38,8 @@ public static class CreateCashierCommandHandler
         {
             CashierId = entity.CashierId,
             CashierNumber = number,
-            Name = entity.Name
+            Name = entity.Name,
+            Email = entity.Email
         };
 
         return (result, new CashierCreatedEvent(result));

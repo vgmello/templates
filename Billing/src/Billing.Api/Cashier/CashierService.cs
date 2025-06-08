@@ -8,7 +8,7 @@ using Grpc.Core;
 
 namespace Billing.Api.Cashier;
 
-public class CashierService(IMessageBus bus) : Cashiers.CashiersBase
+public class CashierService(IMessageBus bus) : CashiersService.CashiersServiceBase
 {
     public override async Task<CashierModel> GetCashier(GetCashierRequest request, ServerCallContext context)
     {

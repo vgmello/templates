@@ -15,22 +15,38 @@ public static class WolverineSetupExtensions
 {
     public static IHostApplicationBuilder AddWolverine(this IHostApplicationBuilder builder, Action<WolverineOptions>? configure = null)
     {
-        var wolverineRegistered = builder.Services.Any(s => s.ServiceType == typeof(IWolverineRuntime));
+        ConfigureWolverine(builder.Services, builder.Configuration, configure);
+        return builder;
+    }
+
+    public static IHostBuilder AddWolverine(this IHostBuilder builder, Action<WolverineOptions>? configure = null)
+    {
+        builder.ConfigureServices((context, services) =>
+        {
+            ConfigureWolverine(services, context.Configuration, configure);
+        });
+
+        return builder;
+    }
+
+    private static void ConfigureWolverine(IServiceCollection services, IConfiguration configuration, Action<WolverineOptions>? configure)
+    {
+        var wolverineRegistered = services.Any(s => s.ServiceType == typeof(IWolverineRuntime));
 
         if (wolverineRegistered)
-            return builder;
+            return;
 
-        builder.Services
+        services
             .AddOptions<ServiceBusOptions>()
             .BindConfiguration(ServiceBusOptions.SectionName)
             .ValidateOnStart();
 
-        builder.Services.ConfigureOptions<ServiceBusOptions.Configurator>();
+        services.ConfigureOptions<ServiceBusOptions.Configurator>();
 
-        var serviceBusOptions = builder.Configuration
+        var serviceBusOptions = configuration
             .GetSection(ServiceBusOptions.SectionName).Get<ServiceBusOptions>() ?? new ServiceBusOptions();
 
-        builder.Services.AddWolverine(ExtensionDiscovery.ManualOnly, opts =>
+        services.AddWolverine(ExtensionDiscovery.ManualOnly, opts =>
         {
             opts.ApplicationAssembly = Extensions.EntryAssembly;
             opts.ServiceName = serviceBusOptions.ServiceName;
@@ -51,8 +67,6 @@ public static class WolverineSetupExtensions
 
             opts.Services.AddResourceSetupOnStartup();
         });
-
-        return builder;
     }
 
     public static WolverineOptions ConfigureAppHandlers(this WolverineOptions options)

@@ -60,7 +60,8 @@ public static class ApiExtensions
         if (requireAuth)
             controllersEndpointBuilder.RequireAuthorization();
 
-        app.MapGrpcServices();
+        // gRPC services are mapped explicitly by the calling application to
+        // allow specifying the assembly that contains service implementations.
 
         return app;
     }

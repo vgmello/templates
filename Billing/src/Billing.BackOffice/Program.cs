@@ -2,7 +2,6 @@
 
 using Operations.ServiceDefaults;
 using Operations.ServiceDefaults.HealthChecks;
-using Wolverine.Runtime;
 
 var builder = WebApplication.CreateSlimBuilder(args);
 
