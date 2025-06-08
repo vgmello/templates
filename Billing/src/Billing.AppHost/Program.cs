@@ -33,4 +33,12 @@ builder
     .WithReference(serviceBusDb)
     .WaitForCompletion(liquibase);
 
+builder
+    .AddProject<Projects.Billing_BackOffice_Orleans>("billing-backoffice-orleans")
+    .WithEnvironment("ServiceBus__ConnectionString", serviceBusDb)
+    .WithEnvironment("ConnectionStrings__OrleansStorage", "UseDevelopmentStorage=true")
+    .WithReference(database)
+    .WithReference(serviceBusDb)
+    .WaitForCompletion(liquibase);
+
 await builder.Build().RunAsync();

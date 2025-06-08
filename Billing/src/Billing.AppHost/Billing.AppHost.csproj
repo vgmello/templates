@@ -16,6 +16,7 @@
     <ItemGroup>
         <ProjectReference Include="..\Billing.Api\Billing.Api.csproj" />
         <ProjectReference Include="..\Billing.BackOffice\Billing.BackOffice.csproj" />
+        <ProjectReference Include="..\Billing.BackOffice.Orleans\Billing.BackOffice.Orleans.csproj" />
     </ItemGroup>
 
 </Project>
