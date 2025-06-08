@@ -18,6 +18,7 @@
 
   <ItemGroup>
     <PackageReference Include="WolverineFx" />
-  </ItemGroup>
+    <ProjectReference Include="..\Accounting\Accounting.csproj" />
+</ItemGroup>
 
 </Project>

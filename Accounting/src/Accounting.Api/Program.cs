@@ -1,6 +1,6 @@
-// Copyright (c) ABCDEG. All rights reserved.
-
 using Accounting;
+using Accounting.Api;
+using JasperFx;
 using Operations.ServiceDefaults;
 using Operations.ServiceDefaults.Api;
 
@@ -8,11 +8,16 @@ using Operations.ServiceDefaults.Api;
 
 var builder = WebApplication.CreateSlimBuilder(args);
 
-builder.AddApiServiceDefaults();
 builder.AddServiceDefaults();
+builder.AddApiServiceDefaults();
+
+builder.AddApplicationServices();
 
 var app = builder.Build();
 
-app.ConfigureApiUsingDefaults();
+app.ConfigureApiUsingDefaults(requireAuth: false);
 
-await app.RunAsync();
+return await app.RunJasperFxCommands(args);
+
+#pragma warning disable S1118 // Utility classes should be static
+public partial class Program; // Note: Remove this after .NET 10 migration

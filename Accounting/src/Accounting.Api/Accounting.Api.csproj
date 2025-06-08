@@ -5,10 +5,22 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\..\..\Platform\src\Operations.ServiceDefaults.Api\Operations.ServiceDefaults.Api.csproj" />
-      <ProjectReference Include="..\..\..\Platform\src\Operations.ServiceDefaults\Operations.ServiceDefaults.csproj" />
-      <ProjectReference Include="..\Accounting.Contracts\Accounting.Contracts.csproj" />
-      <ProjectReference Include="..\Accounting\Accounting.csproj" />
+        <PackageReference Include="Grpc.AspNetCore" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\..\..\Platform\src\Operations.ServiceDefaults.Api\Operations.ServiceDefaults.Api.csproj" />
+        <ProjectReference Include="..\..\..\Platform\src\Operations.ServiceDefaults\Operations.ServiceDefaults.csproj" />
+        <ProjectReference Include="..\Accounting\Accounting.csproj" />
+        <ProjectReference Include="..\Accounting.Contracts\Accounting.Contracts.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <None Include="**/Protos/**/*.proto" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <InternalsVisibleTo Include="Accounting.Tests" />
     </ItemGroup>
 
 </Project>
