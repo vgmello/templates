@@ -5,6 +5,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Operations.ServiceDefaults.Messaging.Middlewares;
+using System.Reflection;
 using Wolverine;
 using Wolverine.Postgresql;
 using Wolverine.Runtime;
@@ -13,30 +14,41 @@ namespace Operations.ServiceDefaults.Messaging.Wolverine;
 
 public static class WolverineSetupExtensions
 {
+    public static bool SkipServiceRegistration { get; set; }
+
     public static IHostApplicationBuilder AddWolverine(this IHostApplicationBuilder builder, Action<WolverineOptions>? configure = null)
     {
-        var wolverineRegistered = builder.Services.Any(s => s.ServiceType == typeof(IWolverineRuntime));
+        if (!SkipServiceRegistration)
+        {
+            AddWolverineWithDefaults(builder.Services, builder.Configuration, configure);
+        }
+
+        return builder;
+    }
+
+    public static void AddWolverineWithDefaults(
+        this IServiceCollection services, IConfiguration configuration, Action<WolverineOptions>? configure)
+    {
+        var wolverineRegistered = services.Any(s => s.ServiceType == typeof(IWolverineRuntime));
 
         if (wolverineRegistered)
-            return builder;
+            return;
 
-        builder.Services
+        services
             .AddOptions<ServiceBusOptions>()
             .BindConfiguration(ServiceBusOptions.SectionName)
             .ValidateOnStart();
 
-        builder.Services.ConfigureOptions<ServiceBusOptions.Configurator>();
+        services.ConfigureOptions<ServiceBusOptions.Configurator>();
 
-        var serviceBusOptions = builder.Configuration
-            .GetSection(ServiceBusOptions.SectionName).Get<ServiceBusOptions>() ?? new ServiceBusOptions();
+        var serviceBusOptions = configuration.GetSection(ServiceBusOptions.SectionName).Get<ServiceBusOptions>() ?? new ServiceBusOptions();
 
-        return builder.UseWolverine(opts =>
+        services.AddWolverine(ExtensionDiscovery.ManualOnly, opts =>
         {
             opts.ApplicationAssembly = Extensions.EntryAssembly;
             opts.ServiceName = serviceBusOptions.ServiceName;
 
             opts.UseSystemTextJsonForSerialization();
-            opts.ConfigureAppHandlers();
 
             if (!string.IsNullOrWhiteSpace(serviceBusOptions.ConnectionString))
             {
@@ -45,17 +57,20 @@ public static class WolverineSetupExtensions
             }
 
             opts.Policies.AddMiddleware(typeof(RequestPerformanceMiddleware));
+            opts.Policies.AddMiddleware(typeof(OpenTelemetryInstrumentationMiddleware));
             opts.Policies.Add<FluentValidationPolicy>();
 
             configure?.Invoke(opts);
+
+            opts.ConfigureAppHandlers(opts.ApplicationAssembly);
 
             opts.Services.AddResourceSetupOnStartup();
         });
     }
 
-    public static WolverineOptions ConfigureAppHandlers(this WolverineOptions options)
+    public static WolverineOptions ConfigureAppHandlers(this WolverineOptions options, Assembly? applicationAssembly = null)
     {
-        var handlerAssemblies = DomainAssemblyAttribute.GetDomainAssemblies();
+        var handlerAssemblies = DomainAssemblyAttribute.GetDomainAssemblies(applicationAssembly);
 
         foreach (var handlerAssembly in handlerAssemblies)
         {
@@ -69,8 +84,8 @@ public static class WolverineSetupExtensions
     {
         var persistenceSchema = options.ServiceName.ToLowerInvariant();
 
-#pragma warning disable CS0618 // Remove when EnableMessageTransport is implemented
-#pragma warning disable S125 // Remove when EnableMessageTransport is implemented
+#pragma warning disable CS0618 // Remove when EnableMessageTransport is implemented by Wolverine
+#pragma warning disable S125 // Remove when EnableMessageTransport is implemented by Wolverine
 
         options
             .UsePostgresqlPersistenceAndTransport(connectionString, schema: persistenceSchema, transportSchema: "queues")

@@ -18,8 +18,7 @@ public class CashiersController(ILogger<CashiersController> logger, IMessageBus 
     }
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<GetCashiersQuery.Result>>> GetCashiers(
-        [FromQuery] GetCashiersQuery query)
+    public async Task<ActionResult<IEnumerable<GetCashiersQuery.Result>>> GetCashiers([FromQuery] GetCashiersQuery query)
     {
         var cashiers = await bus.InvokeAsync<IEnumerable<GetCashiersQuery.Result>>(query);
 
@@ -37,8 +36,7 @@ public class CashiersController(ILogger<CashiersController> logger, IMessageBus 
     }
 
     [HttpGet("fake-error")]
-    public Task<ActionResult<Contracts.Cashier.Models.Cashier>> FakeError() =>
-        throw new DivideByZeroException("Fake error");
+    public Task<ActionResult<Contracts.Cashier.Models.Cashier>> FakeError() => throw new DivideByZeroException("Fake error");
 
     [HttpGet("id/{id}")]
     public async Task<ActionResult<Contracts.Cashier.Models.Cashier>> GetCashierById([FromRoute] int id)

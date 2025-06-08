@@ -1,28 +1,50 @@
 // Copyright (c) ABCDEG. All rights reserved.
 
-using Accounting.Contracts.Ledgers.Models;
-using Microsoft.AspNetCore.Mvc;
+using Operations.Extensions.Messaging;
+using Wolverine;
 
 namespace Accounting.Api.Ledgers;
 
 [ApiController]
 [Route("[controller]")]
-public class LedgersController : ControllerBase
+public class LedgersController(ILogger<LedgersController> logger, IMessageBus bus) : ControllerBase
 {
-    private static readonly string[] Summaries =
-    [
-        "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-    ];
-
-    [HttpGet(Name = "GetWeatherForecast")]
-    public IEnumerable<WeatherForecast> Get()
+    [HttpGet("{id:guid}")]
+    public async Task<ActionResult<Contracts.Ledgers.Models.Ledger>> GetLedger([FromRoute] Guid id)
     {
-        return Enumerable.Range(1, 5).Select(index => new WeatherForecast
-            {
-                Date = DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-                TemperatureC = Random.Shared.Next(-20, 55),
-                Summary = Summaries[Random.Shared.Next(Summaries.Length)]
-            })
-            .ToArray();
+        var ledger = await bus.InvokeAsync<Contracts.Ledgers.Models.Ledger>(new GetLedgerQuery(id));
+
+        return ledger;
+    }
+
+    [HttpGet]
+    public async Task<ActionResult<IEnumerable<GetLedgersQuery.Result>>> GetLedgers([FromQuery] GetLedgersQuery query)
+    {
+        var ledgers = await bus.InvokeAsync<IEnumerable<GetLedgersQuery.Result>>(query);
+
+        return Ok(ledgers);
+    }
+
+    [HttpPost]
+    public async Task<ActionResult<Contracts.Ledgers.Models.Ledger>> CreateLedger(CreateLedgerCommand command)
+    {
+        var commandResult = await bus.InvokeCommandAsync(command);
+
+        return commandResult.Match(
+            ledger => StatusCode(StatusCodes.Status201Created, ledger),
+            errors => BadRequest(new { Errors = errors }));
+    }
+
+    [HttpGet("fake-error")]
+    public Task<ActionResult<Contracts.Ledgers.Models.Ledger>> FakeError() => throw new DivideByZeroException("Fake error");
+
+    [HttpGet("id/{id}")]
+    public async Task<ActionResult<Contracts.Ledgers.Models.Ledger>> GetLedgerById([FromRoute] int id)
+    {
+        using var loggerScope = logger.BeginScope(new Dictionary<string, object?> { ["Id"] = id });
+
+        var ledger = await bus.InvokeAsync<Contracts.Ledgers.Models.Ledger>(new GetLedgerQuery(Guid.NewGuid()));
+
+        return ledger;
     }
 }

@@ -7,17 +7,17 @@ EXPOSE 8081
 FROM mcr.microsoft.com/dotnet/sdk:9.0-alpine AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
-COPY ["Accounting.Backend/Accounting.Backend.csproj", "Accounting.Backend/"]
-RUN dotnet restore "Accounting.Backend/Accounting.Backend.csproj"
+COPY ["Accounting.BackOffice/Accounting.BackOffice.csproj", "Accounting.BackOffice/"]
+RUN dotnet restore "Accounting.BackOffice/Accounting.BackOffice.csproj"
 COPY . .
-WORKDIR "/src/Accounting.Backend"
-RUN dotnet build "Accounting.Backend.csproj" -c $BUILD_CONFIGURATION -o /app/build
+WORKDIR "/src/Accounting.BackOffice"
+RUN dotnet build "Accounting.BackOffice.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
 FROM build AS publish
 ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "Accounting.Backend.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+RUN dotnet publish "Accounting.BackOffice.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
 
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "Accounting.Backend.dll"]
+ENTRYPOINT ["dotnet", "Accounting.BackOffice.dll"]

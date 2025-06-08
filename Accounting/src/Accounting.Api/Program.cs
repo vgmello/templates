@@ -1,21 +1,25 @@
 // Copyright (c) ABCDEG. All rights reserved.
 
 using Accounting;
+using Accounting.Api;
+using JasperFx;
 using Operations.ServiceDefaults;
 using Operations.ServiceDefaults.Api;
-using Wolverine.Runtime;
 
 [assembly: DomainAssembly(typeof(IAccountingAssembly))]
 
 var builder = WebApplication.CreateSlimBuilder(args);
 
-builder.AddApiServiceDefaults();
 builder.AddServiceDefaults();
+builder.AddApiServiceDefaults();
+
+builder.AddApplicationServices();
 
 var app = builder.Build();
 
-app.ConfigureApiUsingDefaults();
+app.ConfigureApiUsingDefaults(requireAuth: false);
 
-var x = app.Services.GetService<IWolverineRuntime>();
+return await app.RunJasperFxCommands(args);
 
-await app.RunAsync();
+#pragma warning disable S1118 // Utility classes should be static
+public partial class Program; // Note: Remove this after .NET 10 migration

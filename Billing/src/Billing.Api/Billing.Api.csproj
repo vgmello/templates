@@ -5,15 +5,26 @@
         <UserSecretsId>4d1e9d4f-ee8a-4d91-8c2b-11e09987ac0b</UserSecretsId>
     </PropertyGroup>
 
-  <ItemGroup>
-      <ProjectReference Include="..\..\..\Platform\src\Operations.ServiceDefaults.Api\Operations.ServiceDefaults.Api.csproj" />
-      <ProjectReference Include="..\..\..\Platform\src\Operations.ServiceDefaults\Operations.ServiceDefaults.csproj" />
-      <ProjectReference Include="..\Billing\Billing.csproj" />
-      <PackageReference Include="Aspire.Npgsql" />
-  </ItemGroup>
+    <ItemGroup>
+        <PackageReference Include="Grpc.AspNetCore"/>
+    </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="Internal\" />
+        <ProjectReference Include="..\..\..\Platform\src\Operations.ServiceDefaults.Api\Operations.ServiceDefaults.Api.csproj"/>
+        <ProjectReference Include="..\..\..\Platform\src\Operations.ServiceDefaults\Operations.ServiceDefaults.csproj"/>
+        <ProjectReference Include="..\Billing\Billing.csproj"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <None Include="**/Protos/**/*.proto"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <Folder Include="Internal\"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <InternalsVisibleTo Include="Billing.Tests"/>
     </ItemGroup>
 
 </Project>

@@ -1,6 +1,7 @@
 // Copyright (c) ABCDEG. All rights reserved.
 
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Scalar.AspNetCore;
@@ -9,7 +10,7 @@ namespace Operations.ServiceDefaults.Api;
 
 public static class ApiExtensions
 {
-    public static IHostApplicationBuilder AddApiServiceDefaults(this IHostApplicationBuilder builder)
+    public static IHostApplicationBuilder AddApiServiceDefaults(this WebApplicationBuilder builder)
     {
         builder.Services.AddControllers();
         builder.Services.AddEndpointsApiExplorer();
@@ -17,9 +18,17 @@ public static class ApiExtensions
         builder.Services.AddOpenApi();
         builder.Services.AddHttpLogging();
 
+        builder.Services.AddGrpc();
+        builder.Services.AddGrpcReflection();
+
         // Authentication and authorization services
         builder.Services.AddAuthentication();
         builder.Services.AddAuthorization();
+
+        builder.WebHost.ConfigureKestrel(serverOptions =>
+        {
+            serverOptions.AddServerHeader = false;
+        });
 
         return builder;
     }
@@ -31,6 +40,8 @@ public static class ApiExtensions
         app.UseAuthentication();
         app.UseAuthorization();
 
+        app.UseGrpcWeb(new GrpcWebOptions { DefaultEnabled = true });
+
         if (!app.Environment.IsDevelopment())
         {
             app.UseHsts();
@@ -41,12 +52,15 @@ public static class ApiExtensions
         {
             app.MapOpenApi();
             app.MapScalarApiReference();
+            app.MapGrpcReflectionService();
         }
 
         var controllersEndpointBuilder = app.MapControllers();
 
         if (requireAuth)
             controllersEndpointBuilder.RequireAuthorization();
+
+        app.MapGrpcServices();
 
         return app;
     }

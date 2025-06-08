@@ -1,9 +1,7 @@
 // Copyright (c) ABCDEG. All rights reserved.
 
 using Billing.Contracts.Cashier.IntegrationEvents;
-using Dapper;
-using Npgsql;
-using System.Data;
+using CashierEntity = Billing.Cashier.Data.Entities.Cashier;
 using CashierModel = Billing.Contracts.Cashier.Models.Cashier;
 
 namespace Billing.Cashier.Commands;
@@ -22,39 +20,33 @@ public class CreateCustomerValidator : AbstractValidator<CreateCashierCommand>
 
 public static class CreateCashierCommandHandler
 {
-    public record InsertCashierCommand(Guid CashierId, string Name, string Email) : ICommand<int>;
+    public record InsertCashierCommand(CashierEntity Cashier) : ICommand<int>;
 
     public static async Task<(Result<CashierModel>, CashierCreatedEvent)> Handle(
         CreateCashierCommand command, IMessageContext messaging, CancellationToken cancellationToken)
     {
-        var insert = new InsertCashierCommand(Guid.NewGuid(), command.Name, command.Email);
+        var entity = new CashierEntity
+        {
+            CashierId = Guid.NewGuid(),
+            Name = command.Name,
+            Email = command.Email
+        };
 
-        var number = await messaging.InvokeCommandAsync(insert, cancellationToken);
+        var number = await messaging.InvokeCommandAsync(new InsertCashierCommand(entity), cancellationToken);
 
         var result = new CashierModel
         {
-            CashierId = insert.CashierId,
+            CashierId = entity.CashierId,
             CashierNumber = number,
-            Name = insert.Name
+            Name = entity.Name,
+            Email = entity.Email
         };
 
         return (result, new CashierCreatedEvent(result));
     }
 
-    public static async Task<int> Handle(
-        InsertCashierCommand command,
-        NpgsqlDataSource dataSource,
-        CancellationToken cancellationToken)
+    public static Task<int> Handle(InsertCashierCommand command, CancellationToken cancellationToken)
     {
-        using var connection = await dataSource.OpenConnectionAsync(cancellationToken);
-
-        var parameters = new { cashier_id = command.CashierId, name = command.Name, email = command.Email };
-
-        var number = await connection.ExecuteScalarAsync<int>(
-            "billing.create_cashier",
-            parameters,
-            commandType: CommandType.StoredProcedure);
-
-        return number;
+        return Task.FromResult(command.Cashier.CashierNumber + 1);
     }
 }
