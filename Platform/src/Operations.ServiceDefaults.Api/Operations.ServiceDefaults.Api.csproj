@@ -22,8 +22,9 @@
     <PackageReference Include="Scalar.AspNetCore" />
     <PackageReference Include="Grpc.AspNetCore" />
     <PackageReference Include="Grpc.AspNetCore.Server.Reflection" />
+    <ProjectReference Include="..\Operations.ServiceDefaults\Operations.ServiceDefaults.csproj" />
         <!--      <PackageReference Include="WolverineFx.Http" />-->
         <!--      <PackageReference Include="WolverineFx.Http.FluentValidation" />-->
-    </ItemGroup>
+  </ItemGroup>
 
 </Project>

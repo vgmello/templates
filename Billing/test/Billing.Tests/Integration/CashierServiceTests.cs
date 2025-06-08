@@ -2,12 +2,11 @@
 
 using Billing.Cashier.Grpc;
 using Billing.Cashier.Queries;
-using DomainCashier = Billing.Contracts.Cashier.Models.Cashier;
 using Microsoft.AspNetCore.Mvc.Testing;
-using NSubstitute;
 using Grpc.Net.Client;
 using Wolverine;
 using Shouldly;
+using Operations.ServiceDefaults;
 
 namespace Billing.Tests.Integration;
 
@@ -17,19 +16,14 @@ public class CashierServiceTests
     public async Task GetCashier_ReturnsCashier()
     {
         // Arrange
-        var bus = Substitute.For<IMessageBus>();
+        Environment.SetEnvironmentVariable("ServiceBus__ConnectionString", string.Empty);
         var expectedId = Guid.NewGuid();
-
-        bus.InvokeAsync<DomainCashier>(Arg.Any<GetCashierQuery>(), Arg.Any<CancellationToken>())
-            .Returns(new DomainCashier { CashierId = expectedId });
-
-        bus.InvokeAsync<IEnumerable<GetCashiersQuery.Result>>(Arg.Any<GetCashiersQuery>(), Arg.Any<CancellationToken>())
-            .Returns([]);
 
         await using var factory = new WebApplicationFactory<Program>()
             .WithWebHostBuilder(builder =>
             {
                 builder.UseEnvironment("Development");
+                builder.UseEntryAssembly<Program>();
                 builder.ConfigureAppConfiguration((_, cfg) =>
                 {
                     cfg.AddInMemoryCollection(new Dictionary<string, string?>
@@ -37,16 +31,13 @@ public class CashierServiceTests
                         ["ServiceBus:ConnectionString"] = string.Empty
                     });
                 });
-                builder.ConfigureServices(services =>
-                {
-                    services.AddSingleton(bus);
-                    var hostedServices = services.Where(d => d.ServiceType == typeof(IHostedService)).ToList();
-                    foreach (var hostedService in hostedServices)
-                        services.Remove(hostedService);
-                });
             });
 
-        var client = CreateClient(factory);
+        var channel = GrpcChannel.ForAddress(factory.Server.BaseAddress, new GrpcChannelOptions
+        {
+            HttpHandler = factory.Server.CreateHandler()
+        });
+        var client = new CashiersService.CashiersServiceClient(channel);
 
         // Act
         var response = await client.GetCashierAsync(new GetCashierRequest { Id = expectedId.ToString() },
@@ -54,15 +45,5 @@ public class CashierServiceTests
 
         // Assert
         response.CashierId.ShouldBe(expectedId.ToString());
-    }
-
-    private static Cashiers.CashiersClient CreateClient(WebApplicationFactory<Program> factory)
-    {
-        var channel = GrpcChannel.ForAddress(factory.Server.BaseAddress, new GrpcChannelOptions
-        {
-            HttpClient = factory.CreateDefaultClient()
-        });
-
-        return new Cashiers.CashiersClient(channel);
     }
 }

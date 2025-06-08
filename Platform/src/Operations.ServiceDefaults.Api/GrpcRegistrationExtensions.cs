@@ -15,7 +15,7 @@ public static class GrpcRegistrationExtensions
         .GetMethod(nameof(GrpcEndpointRouteBuilderExtensions.MapGrpcService), STATIC_METHODS)!;
 
     public static void MapGrpcServices(this IEndpointRouteBuilder routeBuilder) =>
-        routeBuilder.MapGrpcServices(Assembly.GetEntryAssembly()!);
+        routeBuilder.MapGrpcServices(Operations.ServiceDefaults.Extensions.EntryAssembly ?? Assembly.GetEntryAssembly()!);
 
     public static void MapGrpcServices(this IEndpointRouteBuilder routeBuilder, Type assemblyMarker) =>
         routeBuilder.MapGrpcServices(assemblyMarker.Assembly);

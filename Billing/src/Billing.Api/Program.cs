@@ -20,3 +20,6 @@ var app = builder.Build();
 app.ConfigureApiUsingDefaults(requireAuth: false);
 
 return await app.RunJasperFxCommands(args);
+
+#pragma warning disable S1118 // Utility classes should be static
+public partial class Program; // Note: Remove this after .NET 10 migration

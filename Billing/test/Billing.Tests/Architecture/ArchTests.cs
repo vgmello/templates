@@ -5,6 +5,8 @@ using Shouldly;
 
 namespace Billing.Tests.Architecture;
 
+#pragma warning disable CS8602
+
 public class ArchTests
 {
     [Fact]

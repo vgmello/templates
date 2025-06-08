@@ -11,7 +11,9 @@ public static class GetCashierQueryHandler
     {
         return new Contracts.Cashier.Models.Cashier
         {
-            CashierId = query.Id
+            CashierId = query.Id,
+            Name = "Test",
+            Email = "test@example.com"
         };
     }
 }
