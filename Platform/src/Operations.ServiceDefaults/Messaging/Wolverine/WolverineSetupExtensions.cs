@@ -4,8 +4,8 @@ using JasperFx.Resources;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.AspNetCore.Hosting;
 using Operations.ServiceDefaults.Messaging.Middlewares;
+using System.Reflection;
 using Wolverine;
 using Wolverine.Postgresql;
 using Wolverine.Runtime;
@@ -14,33 +14,20 @@ namespace Operations.ServiceDefaults.Messaging.Wolverine;
 
 public static class WolverineSetupExtensions
 {
+    public static bool SkipServiceRegistration { get; set; }
+
     public static IHostApplicationBuilder AddWolverine(this IHostApplicationBuilder builder, Action<WolverineOptions>? configure = null)
     {
-        ConfigureWolverine(builder.Services, builder.Configuration, configure);
-        return builder;
-    }
-
-    public static IHostBuilder AddWolverine(this IHostBuilder builder, Action<WolverineOptions>? configure = null)
-    {
-        builder.ConfigureServices((context, services) =>
+        if (!SkipServiceRegistration)
         {
-            ConfigureWolverine(services, context.Configuration, configure);
-        });
+            AddWolverineWithDefaults(builder.Services, builder.Configuration, configure);
+        }
 
         return builder;
     }
 
-    public static IWebHostBuilder AddWolverine(this IWebHostBuilder builder, Action<WolverineOptions>? configure = null)
-    {
-        builder.ConfigureServices((context, services) =>
-        {
-            ConfigureWolverine(services, context.Configuration, configure);
-        });
-
-        return builder;
-    }
-
-    private static void ConfigureWolverine(IServiceCollection services, IConfiguration configuration, Action<WolverineOptions>? configure)
+    public static void AddWolverineWithDefaults(
+        this IServiceCollection services, IConfiguration configuration, Action<WolverineOptions>? configure)
     {
         var wolverineRegistered = services.Any(s => s.ServiceType == typeof(IWolverineRuntime));
 
@@ -54,8 +41,7 @@ public static class WolverineSetupExtensions
 
         services.ConfigureOptions<ServiceBusOptions.Configurator>();
 
-        var serviceBusOptions = configuration
-            .GetSection(ServiceBusOptions.SectionName).Get<ServiceBusOptions>() ?? new ServiceBusOptions();
+        var serviceBusOptions = configuration.GetSection(ServiceBusOptions.SectionName).Get<ServiceBusOptions>() ?? new ServiceBusOptions();
 
         services.AddWolverine(ExtensionDiscovery.ManualOnly, opts =>
         {
@@ -63,7 +49,6 @@ public static class WolverineSetupExtensions
             opts.ServiceName = serviceBusOptions.ServiceName;
 
             opts.UseSystemTextJsonForSerialization();
-            opts.ConfigureAppHandlers();
 
             if (!string.IsNullOrWhiteSpace(serviceBusOptions.ConnectionString))
             {
@@ -77,13 +62,15 @@ public static class WolverineSetupExtensions
 
             configure?.Invoke(opts);
 
+            opts.ConfigureAppHandlers(opts.ApplicationAssembly);
+
             opts.Services.AddResourceSetupOnStartup();
         });
     }
 
-    public static WolverineOptions ConfigureAppHandlers(this WolverineOptions options)
+    public static WolverineOptions ConfigureAppHandlers(this WolverineOptions options, Assembly? applicationAssembly = null)
     {
-        var handlerAssemblies = DomainAssemblyAttribute.GetDomainAssemblies();
+        var handlerAssemblies = DomainAssemblyAttribute.GetDomainAssemblies(applicationAssembly);
 
         foreach (var handlerAssembly in handlerAssemblies)
         {

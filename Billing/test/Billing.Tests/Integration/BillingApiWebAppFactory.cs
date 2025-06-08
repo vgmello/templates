@@ -2,6 +2,7 @@
 
 using Microsoft.AspNetCore.Mvc.Testing;
 using Operations.ServiceDefaults.Api;
+using Operations.ServiceDefaults.Messaging.Wolverine;
 
 namespace Billing.Tests.Integration;
 
@@ -9,8 +10,6 @@ public class BillingApiWebAppFactory : WebApplicationFactory<Program>
 {
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
-        builder.UseEnvironment("Development");
-
         builder.ConfigureAppConfiguration((_, cfg) =>
         {
             cfg.AddInMemoryCollection(new Dictionary<string, string?>
@@ -19,7 +18,14 @@ public class BillingApiWebAppFactory : WebApplicationFactory<Program>
             });
         });
 
-        builder.ConfigureServices(RemoveHostedServices);
+        WolverineSetupExtensions.SkipServiceRegistration = true;
+
+        builder.ConfigureServices((ctx, services) =>
+        {
+            RemoveHostedServices(services);
+
+            services.AddWolverineWithDefaults(ctx.Configuration, opt => opt.ApplicationAssembly = typeof(Program).Assembly);
+        });
 
         builder.Configure(app =>
         {

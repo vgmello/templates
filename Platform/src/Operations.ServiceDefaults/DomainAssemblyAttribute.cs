@@ -12,20 +12,15 @@ namespace Operations.ServiceDefaults;
 [AttributeUsage(AttributeTargets.Assembly, AllowMultiple = true)]
 public class DomainAssemblyAttribute(params Type[] typeMarkers) : Attribute
 {
-    private static IReadOnlyList<Assembly>? _domainAssemblies;
-
     private Type[] DomainAssemblyTypeMarkers => typeMarkers;
 
-    internal static IReadOnlyList<Assembly> GetDomainAssemblies()
+    internal static IReadOnlyList<Assembly> GetDomainAssemblies(Assembly? applicationAssembly = null)
     {
-        if (_domainAssemblies is not null)
-            return _domainAssemblies;
+        var targetAssembly = applicationAssembly ?? Extensions.EntryAssembly;
 
-        _domainAssemblies = Extensions.EntryAssembly.GetCustomAttribute<DomainAssemblyAttribute>()?
+        return targetAssembly.GetCustomAttribute<DomainAssemblyAttribute>()?
             .DomainAssemblyTypeMarkers
             .Select(t => t.Assembly)
             .ToImmutableList() ?? [];
-
-        return _domainAssemblies;
     }
 }

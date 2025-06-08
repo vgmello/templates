@@ -1,12 +1,8 @@
 // Copyright (c) ABCDEG. All rights reserved.
 
 using Billing.Cashier.Grpc;
-using Billing.Cashier.Queries;
-using DomainCashier = Billing.Contracts.Cashier.Models.Cashier;
 using Microsoft.AspNetCore.Mvc.Testing;
-using NSubstitute;
 using Grpc.Net.Client;
-using Wolverine;
 using Shouldly;
 
 namespace Billing.Tests.Integration;
