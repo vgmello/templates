@@ -36,4 +36,10 @@
         <ProjectReference Include="..\..\src\Billing\Billing.csproj"/>
     </ItemGroup>
 
+    <ItemGroup>
+        <Compile Remove="Unit/**" />
+        <Compile Remove="Integration/CreateCashierProcedureTests.cs" />
+        <Compile Remove="Integration/BillingDatabaseFixture.cs" />
+    </ItemGroup>
+
 </Project>

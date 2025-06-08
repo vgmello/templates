@@ -7,10 +7,8 @@ using Shouldly;
 
 namespace Billing.Tests.Integration;
 
-public class CashierServiceTests(BillingApiWebAppFactory factory) : IClassFixture<BillingApiWebAppFactory>, IAsyncLifetime
+public class CashierServiceTests(BillingApiWebAppFactory factory) : IClassFixture<BillingApiWebAppFactory>
 {
-    public ValueTask InitializeAsync() => ValueTask.CompletedTask;
-    public ValueTask DisposeAsync() => ValueTask.CompletedTask;
     [Fact]
     public async Task CreateAndGetCashier_ReturnsCashier()
     {

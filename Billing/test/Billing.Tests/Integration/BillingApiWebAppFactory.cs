@@ -5,19 +5,34 @@ using Operations.ServiceDefaults.Api;
 using Operations.ServiceDefaults.Messaging.Wolverine;
 using Testcontainers.PostgreSql;
 using System.Diagnostics;
+using DotNet.Testcontainers.Networks;
+using DotNet.Testcontainers.Builders;
+using DotNet.Testcontainers.Containers;
 
 namespace Billing.Tests.Integration;
 
 public class BillingApiWebAppFactory : WebApplicationFactory<Program>, IAsyncLifetime
 {
-    private readonly PostgreSqlContainer _postgres = new PostgreSqlBuilder()
-        .WithDatabase("billing")
-        .WithUsername("postgres")
-        .WithPassword("postgres")
+    private readonly INetwork _network = new NetworkBuilder()
+        .WithName($"billing-test-{Guid.NewGuid():N}")
         .Build();
+        
+    private readonly PostgreSqlContainer _postgres;
+    
+    public BillingApiWebAppFactory()
+    {
+        _postgres = new PostgreSqlBuilder()
+            .WithDatabase("billing")
+            .WithUsername("postgres")
+            .WithPassword("postgres")
+            .WithNetwork(_network)
+            .WithNetworkAliases("postgres")
+            .Build();
+    }
 
     public async ValueTask InitializeAsync()
     {
+        await _network.CreateAsync();
         await _postgres.StartAsync();
         await RunLiquibaseMigrations();
     }
@@ -25,6 +40,7 @@ public class BillingApiWebAppFactory : WebApplicationFactory<Program>, IAsyncLif
     public new async ValueTask DisposeAsync()
     {
         await _postgres.DisposeAsync();
+        await _network.DisposeAsync();
         await base.DisposeAsync();
     }
 
@@ -57,39 +73,30 @@ public class BillingApiWebAppFactory : WebApplicationFactory<Program>, IAsyncLif
 
     private async Task RunLiquibaseMigrations()
     {
-        await using var connection = new Npgsql.NpgsqlConnection(_postgres.GetConnectionString());
-        await connection.OpenAsync();
-        
-        // Replicate the Liquibase structure for tests
-        var setupSql = @"
-            CREATE SCHEMA IF NOT EXISTS billing;
+        // Run Liquibase migrations using the same approach as Aspire
+        var liquibaseContainer = new ContainerBuilder()
+            .WithImage("liquibase/liquibase:latest")
+            .WithNetwork(_network)
+            .WithBindMount("/workspaces/templates/Billing/infra/Billing.Database/Liquibase", "/liquibase/changelog")
+            .WithEnvironment("LIQUIBASE_COMMAND_USERNAME", "postgres")
+            .WithEnvironment("LIQUIBASE_COMMAND_PASSWORD", "postgres")
+            .WithEnvironment("LIQUIBASE_COMMAND_CHANGELOG_FILE", "changelog.xml")
+            .WithEnvironment("LIQUIBASE_SEARCH_PATH", "/liquibase/changelog")
+            .WithEntrypoint("/bin/sh")
+            .WithCommand("-c", 
+                "liquibase --url=jdbc:postgresql://postgres:5432/billing update --changelog-file=billing/changelog.xml")
+            .WithWaitStrategy(Wait.ForUnixContainer().UntilCommandIsCompleted("echo", "ready"))
+            .Build();
             
-            CREATE TABLE IF NOT EXISTS billing.cashiers (
-                cashier_id UUID PRIMARY KEY,
-                name VARCHAR(100) NOT NULL,
-                email VARCHAR(100),
-                created_date_utc TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT timezone('utc', now()),
-                updated_date_utc TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT timezone('utc', now()),
-                version INTEGER NOT NULL DEFAULT 1
-            );
-            
-            CREATE OR REPLACE FUNCTION billing.create_cashier(
-                cashier_id uuid,
-                name varchar(100),
-                email varchar(100)
-            )
-            RETURNS void
-            LANGUAGE plpgsql
-            AS $$
-            BEGIN
-                INSERT INTO billing.cashiers(cashier_id, name, email)
-                VALUES (cashier_id, name, email);
-            END;
-            $$;
-        ";
+        await liquibaseContainer.StartAsync();
+        var result = await liquibaseContainer.GetExitCodeAsync();
+        var logs = await liquibaseContainer.GetLogsAsync();
+        await liquibaseContainer.DisposeAsync();
         
-        await using var command = new Npgsql.NpgsqlCommand(setupSql, connection);
-        await command.ExecuteNonQueryAsync();
+        if (result != 0)
+        {
+            throw new InvalidOperationException($"Liquibase migration failed with exit code {result}. Logs: {logs}");
+        }
     }
 
 
