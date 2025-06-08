@@ -9,8 +9,11 @@
     <PackageVersion Include="Aspire.Hosting.PostgreSQL" Version="9.3.0" />
     <PackageVersion Include="FluentValidation" Version="12.0.0" />
     <PackageVersion Include="FluentValidation.DependencyInjectionExtensions" Version="12.0.0" />
+    <PackageVersion Include="Google.Protobuf" Version="3.31.1" />
     <PackageVersion Include="Grpc.AspNetCore.Web" Version="2.71.0" />
+    <PackageVersion Include="Grpc.Net.Client" Version="2.71.0" />
     <PackageVersion Include="Microsoft.AspNetCore.OpenApi" Version="9.0.5" />
+    <PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="9.0.5" />
     <PackageVersion Include="Microsoft.Extensions.Configuration" Version="9.0.3" />
     <PackageVersion Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="9.0.3" />
     <PackageVersion Include="Microsoft.Extensions.Configuration.Json" Version="9.0.3" />
@@ -40,16 +43,16 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageVersion>
     <PackageVersion Include="Testcontainers" Version="4.5.0" />
-    <PackageVersion Include="WolverineFx" Version="4.0.1" />
+    <PackageVersion Include="WolverineFx" Version="4.1.0" />
     <PackageVersion Include="WolverineFx.Http" Version="3.10.4" />
     <PackageVersion Include="WolverineFx.Http.FluentValidation" Version="3.10.4" />
-    <PackageVersion Include="WolverineFx.Kafka" Version="4.0.1" />
-    <PackageVersion Include="WolverineFx.Postgresql" Version="4.0.1" />
+    <PackageVersion Include="WolverineFx.Kafka" Version="4.1.0" />
+    <PackageVersion Include="WolverineFx.Postgresql" Version="4.1.0" />
     <PackageVersion Include="coverlet.collector" Version="6.0.4" />
-    <PackageVersion Include="xunit.runner.visualstudio" Version="3.1.0">
+    <PackageVersion Include="xunit.runner.visualstudio" Version="3.1.1">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageVersion>
-    <PackageVersion Include="xunit.v3" Version="2.0.2" />
+    <PackageVersion Include="xunit.v3" Version="2.0.3" />
   </ItemGroup>
 </Project>

@@ -7,7 +7,6 @@
 
     <ItemGroup>
         <PackageReference Include="Grpc.AspNetCore"/>
-        <PackageReference Include="Grpc.Tools" PrivateAssets="All"/>
     </ItemGroup>
 
     <ItemGroup>
@@ -17,11 +16,15 @@
     </ItemGroup>
 
     <ItemGroup>
-        <Protobuf Include="**/Protos/**/*.proto" GrpcServices="Server" ProtoRoot=""/>
+        <None Include="**/Protos/**/*.proto"/>
     </ItemGroup>
 
     <ItemGroup>
         <Folder Include="Internal\"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <InternalsVisibleTo Include="Billing.Tests" />
     </ItemGroup>
 
 </Project>

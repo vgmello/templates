@@ -13,6 +13,4 @@ var app = builder.Build();
 
 app.MapDefaultHealthCheckEndpoints();
 
-var x = app.Services.GetService<IWolverineRuntime>();
-
 await app.RunAsync();
