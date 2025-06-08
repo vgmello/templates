@@ -22,9 +22,16 @@ public class CreateCashierProcedureTests
     [Fact]
     public async Task InsertCashier_ReturnsNumber()
     {
-        var command = new CreateCashierCommandHandler.InsertCashierCommand(Guid.NewGuid(), "Test", "test@example.com");
+        var cashier = new Billing.Cashier.Data.Entities.Cashier
+        {
+            CashierId = Guid.NewGuid(),
+            Name = "Test",
+            Email = "test@example.com"
+        };
 
-        var number = await CreateCashierCommandHandler.Handle(command, _fixture.DataSource, CancellationToken.None);
+        var command = new CreateCashierCommandHandler.InsertCashierCommand(cashier);
+
+        var number = await CreateCashierCommandHandler.Handle(command, CancellationToken.None);
 
         number.ShouldBe(1);
     }
