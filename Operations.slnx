@@ -12,6 +12,7 @@
     <Project Path="Billing\src\Billing.Api\Billing.Api.csproj" Type="Classic C#" />
     <Project Path="Billing\src\Billing.AppHost\Billing.AppHost.csproj" Type="Classic C#" />
     <Project Path="Billing\src\Billing.BackOffice\Billing.BackOffice.csproj" Type="Classic C#" />
+    <Project Path="Billing\src\Billing.BackOffice.Orleans\Billing.BackOffice.Orleans.csproj" Type="Classic C#" />
     <Project Path="Billing\src\Billing.Contracts\Billing.Contracts.csproj" Type="Classic C#" />
     <Project Path="Billing\src\Billing\Billing.csproj" Type="Classic C#" />
   </Folder>

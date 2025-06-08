@@ -2,42 +2,23 @@
 
 using Billing.Cashier.Grpc;
 using Billing.Cashier.Queries;
+using DomainCashier = Billing.Contracts.Cashier.Models.Cashier;
 using Microsoft.AspNetCore.Mvc.Testing;
+using NSubstitute;
 using Grpc.Net.Client;
 using Wolverine;
 using Shouldly;
-using Operations.ServiceDefaults;
 
 namespace Billing.Tests.Integration;
 
-public class CashierServiceTests
+public class CashierServiceTests(BillingApiWebAppFactory factory) : IClassFixture<BillingApiWebAppFactory>
 {
     [Fact]
     public async Task GetCashier_ReturnsCashier()
     {
         // Arrange
-        Environment.SetEnvironmentVariable("ServiceBus__ConnectionString", string.Empty);
         var expectedId = Guid.NewGuid();
-
-        await using var factory = new WebApplicationFactory<Program>()
-            .WithWebHostBuilder(builder =>
-            {
-                builder.UseEnvironment("Development");
-                builder.UseEntryAssembly<Program>();
-                builder.ConfigureAppConfiguration((_, cfg) =>
-                {
-                    cfg.AddInMemoryCollection(new Dictionary<string, string?>
-                    {
-                        ["ServiceBus:ConnectionString"] = string.Empty
-                    });
-                });
-            });
-
-        var channel = GrpcChannel.ForAddress(factory.Server.BaseAddress, new GrpcChannelOptions
-        {
-            HttpHandler = factory.Server.CreateHandler()
-        });
-        var client = new CashiersService.CashiersServiceClient(channel);
+        var client = CreateClient(factory);
 
         // Act
         var response = await client.GetCashierAsync(new GetCashierRequest { Id = expectedId.ToString() },
@@ -45,5 +26,15 @@ public class CashierServiceTests
 
         // Assert
         response.CashierId.ShouldBe(expectedId.ToString());
+    }
+
+    private static CashiersService.CashiersServiceClient CreateClient(WebApplicationFactory<Program> factory)
+    {
+        var channel = GrpcChannel.ForAddress(factory.Server.BaseAddress, new GrpcChannelOptions
+        {
+            HttpHandler = factory.Server.CreateHandler()
+        });
+
+        return new CashiersService.CashiersServiceClient(channel);
     }
 }

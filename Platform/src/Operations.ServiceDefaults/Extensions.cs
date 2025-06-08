@@ -22,10 +22,9 @@ public static class Extensions
         set => _entryAssembly = value;
     }
 
-    public static IHostApplicationBuilder AddServiceDefaults(this IHostApplicationBuilder builder)
+    public static IHostApplicationBuilder AddServiceDefaults(this WebApplicationBuilder builder)
     {
-        if (builder is WebApplicationBuilder webBuilder)
-            webBuilder.WebHost.UseKestrelHttpsConfiguration();
+        builder.WebHost.UseKestrelHttpsConfiguration();
 
         builder.AddLogging();
         builder.AddOpenTelemetry();
