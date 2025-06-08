@@ -7,21 +7,57 @@ using Shouldly;
 
 namespace Billing.Tests.Integration;
 
-public class CashierServiceTests(BillingApiWebAppFactory factory) : IClassFixture<BillingApiWebAppFactory>
+public class CashierServiceTests(BillingApiWebAppFactory factory) : IClassFixture<BillingApiWebAppFactory>, IAsyncLifetime
 {
+    public ValueTask InitializeAsync() => ValueTask.CompletedTask;
+    public ValueTask DisposeAsync() => ValueTask.CompletedTask;
     [Fact]
-    public async Task GetCashier_ReturnsCashier()
+    public async Task CreateAndGetCashier_ReturnsCashier()
     {
         // Arrange
-        var expectedId = Guid.NewGuid();
+        var client = CreateClient(factory);
+        var name = "Test Cashier";
+        var email = "test@example.com";
+
+        // Act - Create cashier
+        var createResponse = await client.CreateCashierAsync(new CreateCashierRequest 
+        {
+            Name = name,
+            Email = email
+        }, cancellationToken: TestContext.Current.CancellationToken);
+
+        // Act - Get cashier
+        var getResponse = await client.GetCashierAsync(new GetCashierRequest 
+        {
+            Id = createResponse.CashierId
+        }, cancellationToken: TestContext.Current.CancellationToken);
+
+        // Assert
+        createResponse.Name.ShouldBe(name);
+        createResponse.Email.ShouldBe(email);
+        createResponse.CashierNumber.ShouldBeGreaterThan(0);
+        
+        getResponse.CashierId.ShouldBe(createResponse.CashierId);
+        getResponse.Name.ShouldBe(name);
+        getResponse.Email.ShouldBe(email);
+        getResponse.CashierNumber.ShouldBe(createResponse.CashierNumber);
+    }
+
+    [Fact]
+    public async Task GetCashiers_ReturnsEmptyList_WhenNoCashiers()
+    {
+        // Arrange
         var client = CreateClient(factory);
 
         // Act
-        var response = await client.GetCashierAsync(new GetCashierRequest { Id = expectedId.ToString() },
-            cancellationToken: TestContext.Current.CancellationToken);
+        var response = await client.GetCashiersAsync(new GetCashiersRequest 
+        {
+            Limit = 10,
+            Offset = 0
+        }, cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
-        response.CashierId.ShouldBe(expectedId.ToString());
+        response.Cashiers.Count.ShouldBe(0);
     }
 
     private static CashiersService.CashiersServiceClient CreateClient(WebApplicationFactory<Program> factory)

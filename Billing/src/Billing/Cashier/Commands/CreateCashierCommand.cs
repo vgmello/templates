@@ -3,6 +3,12 @@
 using Billing.Contracts.Cashier.IntegrationEvents;
 using CashierEntity = Billing.Cashier.Data.Entities.Cashier;
 using CashierModel = Billing.Contracts.Cashier.Models.Cashier;
+using Dapper;
+using Npgsql;
+using Operations.Extensions;
+using Operations.Extensions.Messaging;
+using FluentValidation;
+using Wolverine;
 
 namespace Billing.Cashier.Commands;
 
@@ -20,33 +26,40 @@ public class CreateCustomerValidator : AbstractValidator<CreateCashierCommand>
 
 public static class CreateCashierCommandHandler
 {
-    public record InsertCashierCommand(CashierEntity Cashier) : ICommand<int>;
+    public record InsertCashierCommand(Guid CashierId, string Name, string? Email) : ICommand<int>;
 
     public static async Task<(Result<CashierModel>, CashierCreatedEvent)> Handle(
-        CreateCashierCommand command, IMessageContext messaging, CancellationToken cancellationToken)
+        CreateCashierCommand command, IMessageBus messaging, CancellationToken cancellationToken)
     {
-        var entity = new CashierEntity
-        {
-            CashierId = Guid.NewGuid(),
-            Name = command.Name,
-            Email = command.Email
-        };
-
-        var number = await messaging.InvokeCommandAsync(new InsertCashierCommand(entity), cancellationToken);
+        var cashierId = Guid.NewGuid();
+        var insertCommand = new InsertCashierCommand(cashierId, command.Name, command.Email);
+        
+        var number = await messaging.InvokeCommandAsync(insertCommand, cancellationToken);
 
         var result = new CashierModel
         {
-            CashierId = entity.CashierId,
+            CashierId = cashierId,
             CashierNumber = number,
-            Name = entity.Name,
-            Email = entity.Email
+            Name = command.Name,
+            Email = command.Email ?? string.Empty
         };
 
         return (result, new CashierCreatedEvent(result));
     }
 
-    public static Task<int> Handle(InsertCashierCommand command, CancellationToken cancellationToken)
+    public static async Task<int> Handle(InsertCashierCommand command, NpgsqlDataSource dataSource, CancellationToken cancellationToken)
     {
-        return Task.FromResult(command.Cashier.CashierNumber + 1);
+        await using var connection = await dataSource.OpenConnectionAsync(cancellationToken);
+        
+        // Call the stored function to create cashier
+        await connection.ExecuteAsync(
+            "SELECT billing.create_cashier(@cashier_id, @name, @email)",
+            command);
+        
+        // Return the current count of cashiers as the cashier number
+        var cashierNumber = await connection.QuerySingleAsync<int>(
+            "SELECT COUNT(*) FROM billing.cashiers");
+        
+        return cashierNumber;
     }
 }

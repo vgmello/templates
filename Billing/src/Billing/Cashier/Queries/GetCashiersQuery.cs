@@ -1,6 +1,8 @@
 // Copyright (c) ABCDEG. All rights reserved.
 
 using System.ComponentModel.DataAnnotations;
+using Dapper;
+using Npgsql;
 
 namespace Billing.Cashier.Queries;
 
@@ -18,8 +20,19 @@ public record GetCashiersQuery
 public static class GetCashiersQueryHandler
 {
     public static async Task<IEnumerable<GetCashiersQuery.Result>> Handle(GetCashiersQuery query,
-        CancellationToken cancellationToken)
+        NpgsqlDataSource dataSource, CancellationToken cancellationToken)
     {
-        return [];
+        await using var connection = await dataSource.OpenConnectionAsync(cancellationToken);
+        
+        var sql = @"
+            SELECT cashier_id, name
+            FROM billing.cashiers 
+            ORDER BY created_date_utc DESC
+            LIMIT @Limit OFFSET @Offset";
+
+        var cashiers = await connection.QueryAsync<GetCashiersQuery.Result>(
+            sql, new { query.Limit, query.Offset });
+
+        return cashiers;
     }
 }
