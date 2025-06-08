@@ -1,4 +1,3 @@
-using Microsoft.Extensions.Hosting;
 using Operations.ServiceDefaults;
 using Operations.ServiceDefaults.HealthChecks;
 

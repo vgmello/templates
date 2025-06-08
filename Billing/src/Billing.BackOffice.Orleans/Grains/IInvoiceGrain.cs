@@ -1,5 +1,3 @@
-using Orleans;
-
 namespace Billing.BackOffice.Orleans.Grains;
 
 public interface IInvoiceGrain : IGrainWithGuidKey
