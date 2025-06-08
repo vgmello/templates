@@ -11,6 +11,8 @@
         <PackageReference Include="Aspire.Hosting.AppHost" />
         <PackageReference Include="Aspire.Hosting.Kafka" />
         <PackageReference Include="Aspire.Hosting.PostgreSQL" />
+        <PackageReference Include="Aspire.Hosting.Azure.Storage" />
+        <PackageReference Include="Aspire.Hosting.Orleans" />
     </ItemGroup>
 
     <ItemGroup>

@@ -19,6 +19,14 @@ var database = pgsql.AddDatabase(name: "BillingDb", databaseName: "billing");
 var serviceBusDb = pgsql.AddDatabase(name: "ServiceBusDb", databaseName: "service_bus");
 var liquibase = builder.AddLiquibaseMigrations(pgsql, dbPassword);
 
+var storage = builder.AddAzureStorage("storage").RunAsEmulator();
+var clustering = storage.AddTables("clustering");
+var grainTables = storage.AddTables("grain-state");
+
+var orleans = builder.AddOrleans("default")
+    .WithClustering(clustering)
+    .WithGrainStorage("Default", grainTables);
+
 builder
     .AddProject<Projects.Billing_Api>("billing-api")
     .WithEnvironment("ServiceBus__ConnectionString", serviceBusDb)
@@ -36,7 +44,7 @@ builder
 builder
     .AddProject<Projects.Billing_BackOffice_Orleans>("billing-backoffice-orleans")
     .WithEnvironment("ServiceBus__ConnectionString", serviceBusDb)
-    .WithEnvironment("ConnectionStrings__OrleansStorage", "UseDevelopmentStorage=true")
+    .WithReference(orleans)
     .WithReference(database)
     .WithReference(serviceBusDb)
     .WaitForCompletion(liquibase);

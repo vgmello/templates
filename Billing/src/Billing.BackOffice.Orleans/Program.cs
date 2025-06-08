@@ -1,19 +1,13 @@
 using Microsoft.Extensions.Hosting;
-using Orleans.Hosting;
 using Operations.ServiceDefaults;
 using Operations.ServiceDefaults.HealthChecks;
 
 var builder = WebApplication.CreateSlimBuilder(args);
 
 builder.AddServiceDefaults();
-
-builder.Host.UseOrleans((ctx, siloBuilder) =>
-{
-    var connectionString = ctx.Configuration.GetConnectionString("OrleansStorage") ?? "UseDevelopmentStorage=true";
-    siloBuilder
-        .UseAzureStorageClustering(options => options.ConfigureTableServiceClient(connectionString))
-        .AddAzureTableGrainStorageAsDefault(options => options.ConfigureTableServiceClient(connectionString));
-});
+builder.AddKeyedAzureTableClient("clustering");
+builder.AddKeyedAzureTableClient("grain-state");
+builder.UseOrleans();
 
 var app = builder.Build();
 
