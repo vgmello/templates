@@ -5,9 +5,7 @@ using Billing.Contracts.Cashier.IntegrationEvents;
 using NSubstitute;
 using Operations.Extensions.Messaging;
 using Wolverine;
-using Operations.Extensions;
 using Shouldly;
-using CashierModel = Billing.Contracts.Cashier.Models.Cashier;
 
 namespace Billing.Tests.Unit;
 

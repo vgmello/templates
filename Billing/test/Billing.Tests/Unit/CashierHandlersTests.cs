@@ -6,16 +6,8 @@ using Shouldly;
 
 namespace Billing.Tests.Unit;
 
-[Collection("db")]
 public class CashierQueryHandlersTests
 {
-    private readonly BillingDatabaseFixture _fixture;
-
-    public CashierQueryHandlersTests(BillingDatabaseFixture fixture)
-    {
-        _fixture = fixture;
-    }
-
     [Fact]
     public async Task GetCashiers_ReturnsEmptyList_WhenNoCashiers()
     {

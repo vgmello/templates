@@ -2,7 +2,7 @@
 
 using Dapper;
 
-namespace Billing.Api;
+namespace Billing.BackOffice.Orleans;
 
 public static class DependencyInjection
 {
@@ -11,6 +11,9 @@ public static class DependencyInjection
         DefaultTypeMap.MatchNamesWithUnderscores = true;
 
         builder.AddNpgsqlDataSource("BillingDb");
+
+        builder.AddKeyedAzureTableClient("clustering");
+        builder.AddKeyedAzureTableClient("grain-state");
 
         return builder;
     }

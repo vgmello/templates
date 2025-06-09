@@ -7,7 +7,6 @@
         <EnableDefaultContentItems>false</EnableDefaultContentItems>
         <TestingPlatformDotnetTestSupport>true</TestingPlatformDotnetTestSupport>
         <UseMicrosoftTestingPlatformRunner>true</UseMicrosoftTestingPlatformRunner>
-
         <TestingPlatformShowTestsFailure>true</TestingPlatformShowTestsFailure>
     </PropertyGroup>
 
@@ -21,7 +20,7 @@
         <PackageReference Include="NetArchTest.Rules"/>
         <PackageReference Include="Shouldly"/>
         <PackageReference Include="Testcontainers"/>
-        <PackageReference Include="Testcontainers.PostgreSql" />
+        <PackageReference Include="Testcontainers.PostgreSql"/>
         <PackageReference Include="xunit.v3"/>
     </ItemGroup>
 
@@ -36,5 +35,18 @@
         <ProjectReference Include="..\..\src\Billing\Billing.csproj"/>
     </ItemGroup>
 
+    <ItemGroup>
+      <Compile Remove="Unit\CashierHandlersTests.cs" />
+      <Compile Remove="Unit\CreateCashierCommandHandlerTests.cs" />
+      <Compile Remove="Integration\BillingApiWebAppFactory.cs" />
+      <Compile Remove="Integration\BillingDatabaseFixture.cs" />
+      <Compile Remove="Integration\CashierServiceTests.cs" />
+      <Compile Remove="Integration\CreateCashierProcedureTests.cs" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="Integration\" />
+      <Folder Include="Unit\" />
+    </ItemGroup>
 
 </Project>

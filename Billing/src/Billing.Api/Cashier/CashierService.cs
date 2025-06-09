@@ -2,8 +2,6 @@
 
 using Billing.Cashier.Grpc;
 using CashierModel = Billing.Cashier.Grpc.Models.Cashier;
-using Operations.Extensions.Messaging;
-using Wolverine;
 using Grpc.Core;
 
 namespace Billing.Api.Cashier;
@@ -12,8 +10,7 @@ public class CashierService(IMessageBus bus) : CashiersService.CashiersServiceBa
 {
     public override async Task<CashierModel> GetCashier(GetCashierRequest request, ServerCallContext context)
     {
-        var result = await bus.InvokeAsync<Billing.Contracts.Cashier.Models.Cashier>(
-            new GetCashierQuery(Guid.Parse(request.Id)), context.CancellationToken);
+        var result = await bus.InvokeQueryAsync(new GetCashierQuery(Guid.Parse(request.Id)), context.CancellationToken);
 
         return new CashierModel
         {
@@ -26,16 +23,18 @@ public class CashierService(IMessageBus bus) : CashiersService.CashiersServiceBa
     public override async Task<GetCashiersResponse> GetCashiers(GetCashiersRequest request, ServerCallContext context)
     {
         var query = new GetCashiersQuery { Limit = request.Limit, Offset = request.Offset };
-        var cashiers = await bus.InvokeAsync<IEnumerable<GetCashiersQuery.Result>>(query, context.CancellationToken);
+        var cashiers = await bus.InvokeQueryAsync(query, context.CancellationToken);
 
-        var response = new GetCashiersResponse();
-        response.Cashiers.AddRange(cashiers.Select(c => new CashierModel
+        var cashiersGrpc = cashiers.Select(c => new CashierModel
         {
             CashierId = c.CashierId.ToString(),
             Name = c.Name
-        }));
+        });
 
-        return response;
+        return new GetCashiersResponse
+        {
+            Cashiers = { cashiersGrpc }
+        };
     }
 
     public override async Task<CashierModel> CreateCashier(CreateCashierRequest request, ServerCallContext context)

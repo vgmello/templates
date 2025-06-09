@@ -1,6 +1,5 @@
 // Copyright (c) ABCDEG. All rights reserved.
 
-using Microsoft.Extensions.Hosting;
 using Operations.ServiceDefaults;
 using Operations.ServiceDefaults.HealthChecks;
 
@@ -9,18 +8,18 @@ var builder = WebApplication.CreateSlimBuilder(args);
 builder.AddServiceDefaults();
 builder.AddKeyedAzureTableClient("clustering");
 builder.AddKeyedAzureTableClient("grain-state");
-builder.Host.UseOrleans((context, siloBuilder) =>
+
+builder.UseOrleans(siloBuilder =>
 {
-    siloBuilder.UseAzureStorageClustering(options =>
-        options.ConfigureTableServiceClient(context.Configuration.GetConnectionString("Clustering")));
-
-    siloBuilder.AddAzureTableGrainStorageAsDefault(options =>
-        options.ConfigureTableServiceClient(context.Configuration.GetConnectionString("GrainState")));
-
-    siloBuilder.Configure<Orleans.Configuration.ClusterOptions>(context.Configuration.GetSection("Orleans"));
+    if (builder.Configuration.GetValue<bool>("Orleans:UseLocalhostClustering"))
+    {
+        siloBuilder.UseLocalhostClustering();
+    }
 });
 
 var app = builder.Build();
+
+app.Map("/dashboard", x => x.UseOrleansDashboard());
 
 app.MapDefaultHealthCheckEndpoints();
 

@@ -33,7 +33,7 @@ builder
     .WithReference(database)
     .WithReference(serviceBusDb)
     .WaitForCompletion(liquibase)
-    .WithHealthCheckEndpoint("/health/internal");
+    .WithHttpHealthCheck("/health/internal");
 
 builder
     .AddProject<Projects.Billing_BackOffice>("billing-backoffice")
@@ -41,15 +41,16 @@ builder
     .WithReference(database)
     .WithReference(serviceBusDb)
     .WaitForCompletion(liquibase)
-    .WithHealthCheckEndpoint("/health/internal");
+    .WithHttpHealthCheck("/health/internal");
 
 builder
     .AddProject<Projects.Billing_BackOffice_Orleans>("billing-backoffice-orleans")
     .WithEnvironment("ServiceBus__ConnectionString", serviceBusDb)
+    .WithEnvironment("Orleans__UseLocalhostClustering", "false")
     .WithReference(orleans)
     .WithReference(database)
     .WithReference(serviceBusDb)
     .WaitForCompletion(liquibase)
-    .WithHealthCheckEndpoint("/health/internal");
+    .WithHttpHealthCheck("/health/internal");
 
 await builder.Build().RunAsync();

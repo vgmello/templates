@@ -1,13 +1,10 @@
 // Copyright (c) ABCDEG. All rights reserved.
 
 using Billing.Cashier.Commands;
-using Billing.Tests.Integration;
-using System;
 using Shouldly;
 using NSubstitute;
 using Operations.Extensions.Messaging;
 using Wolverine;
-using Operations.Extensions;
 using CashierModel = Billing.Contracts.Cashier.Models.Cashier;
 
 namespace Billing.Tests.Integration;
@@ -18,15 +15,8 @@ public class DatabaseCollection : ICollectionFixture<BillingDatabaseFixture>
 }
 
 [Collection("db")]
-public class CreateCashierIntegrationTests
+public class CreateCashierIntegrationTests(BillingDatabaseFixture fixture)
 {
-    private readonly BillingDatabaseFixture _fixture;
-
-    public CreateCashierIntegrationTests(BillingDatabaseFixture fixture)
-    {
-        _fixture = fixture;
-    }
-
     [Fact]
     public async Task CreateCashier_ShouldCreateCashierInDatabase()
     {
@@ -43,8 +33,9 @@ public class CreateCashierIntegrationTests
         var integrationEvent = handlerResult.Item2;
 
         // Assert
-        result.IsSuccess.ShouldBeTrue();
-        var cashier = result.Value;
+        result.IsT0.ShouldBeTrue();
+
+        var cashier = result.Value.ShouldBeOfType<CashierModel>();
         cashier.Name.ShouldBe("Integration Test Cashier");
         cashier.Email.ShouldBe("integration@test.com");
         cashier.CashierId.ShouldNotBe(Guid.Empty);

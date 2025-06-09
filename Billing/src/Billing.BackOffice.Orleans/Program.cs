@@ -1,55 +1,43 @@
 // Copyright (c) ABCDEG. All rights reserved.
 
+using Azure.Data.Tables;
+using Billing.BackOffice.Orleans;
 using Operations.ServiceDefaults;
 using Operations.ServiceDefaults.HealthChecks;
 
 var builder = WebApplication.CreateSlimBuilder(args);
 
 builder.AddServiceDefaults();
-builder.AddKeyedAzureTableClient("clustering");
-builder.AddKeyedAzureTableClient("grain-state");
 
-// Add database connection for health checks
-builder.AddNpgsqlDataSource("BillingDb");
+// Application Services
+builder.AddApplicationServices();
 
-// Add health checks for databases and Orleans dependencies
-builder.Services.AddHealthChecks()
-    .AddNpgSql(
-        builder.Configuration.GetConnectionString("BillingDb")!,
-        name: "billing-db",
-        tags: ["ready"])
-    .AddNpgSql(
-        builder.Configuration.GetConnectionString("ServiceBusDb") ??
-        builder.Configuration.GetConnectionString("ServiceBus__ConnectionString")!,
-        name: "servicebus-db",
-        tags: ["ready"])
-    .AddAzureTable(
-        options => options.ConnectionString = builder.Configuration.GetConnectionString("Clustering")!,
-        name: "azure-table-clustering",
-        tags: ["ready"])
-    .AddAzureTable(
-        options => options.ConnectionString = builder.Configuration.GetConnectionString("GrainState")!,
-        name: "azure-table-grainstate",
-        tags: ["ready"])
-    .AddOrleansCluster(name: "orleans-cluster", tags: ["ready"]);
-
-builder.Host.UseOrleans((context, siloBuilder) =>
+builder.UseOrleans(siloBuilder =>
 {
-    siloBuilder.UseAzureStorageClustering(options =>
-        options.ConfigureTableServiceClient(
-            context.Configuration.GetConnectionString("Clustering")));
+    if (builder.Configuration.GetValue<bool>("Orleans:UseLocalhostClustering"))
+    {
+        siloBuilder.UseLocalhostClustering();
+    }
+    // else
+    // {
+    //     siloBuilder.AddAzureTableGrainStorage()
+    // }
+    //
+    // siloBuilder.AddAzureTableGrainStorageAsDefault(options =>
+    //     options.TableServiceClient = new TableServiceClient(context.Configuration.GetConnectionString("OrleansGrainState")));
 
-    siloBuilder.AddAzureTableGrainStorageAsDefault(options =>
-        options.ConfigureTableServiceClient(
-            context.Configuration.GetConnectionString("GrainState")));
-
-    siloBuilder.Configure<Orleans.Configuration.ClusterOptions>(
-        context.Configuration.GetSection("Orleans"));
+    siloBuilder.UseDashboard(options =>
+    {
+        options.HostSelf = false;
+        options.Host = "*";
+    });
 });
 
 var app = builder.Build();
 
 app.MapDefaultHealthCheckEndpoints();
+
+app.Map("/dashboard", x => x.UseOrleansDashboard());
 
 app.MapPost("/invoices/{id:guid}/pay", async (Guid id, decimal amount, IGrainFactory grains) =>
 {

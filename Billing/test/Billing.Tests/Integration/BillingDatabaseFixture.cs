@@ -1,12 +1,7 @@
 // Copyright (c) ABCDEG. All rights reserved.
 
-using DotNet.Testcontainers.Builders;
-using DotNet.Testcontainers.Containers;
-using DotNet.Testcontainers.Configurations;
 using Testcontainers.PostgreSql;
 using Npgsql;
-using System.IO;
-using System.Threading.Tasks;
 
 namespace Billing.Tests.Integration;
 

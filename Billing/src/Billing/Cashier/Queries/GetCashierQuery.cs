@@ -5,7 +5,7 @@ using Npgsql;
 
 namespace Billing.Cashier.Queries;
 
-public record GetCashierQuery(Guid Id);
+public record GetCashierQuery(Guid Id) : IQuery<Contracts.Cashier.Models.Cashier>;
 
 public static class GetCashierQueryHandler
 {
@@ -16,7 +16,7 @@ public static class GetCashierQueryHandler
 
         var sql = @"
             SELECT cashier_id, name, email, created_date_utc, updated_date_utc, version
-            FROM billing.cashiers 
+            FROM billing.cashiers
             WHERE cashier_id = @CashierId";
 
         var cashier = await connection.QuerySingleOrDefaultAsync<Data.Entities.Cashier>(

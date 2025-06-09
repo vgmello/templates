@@ -56,7 +56,7 @@ public class CashierServiceTests(BillingApiWebAppFactory factory) : IClassFixtur
         response.Cashiers.Count.ShouldBe(0);
     }
 
-    private static CashiersService.CashiersServiceClient CreateClient(WebApplicationFactory<Api.Program> factory)
+    private static CashiersService.CashiersServiceClient CreateClient(WebApplicationFactory<Program> factory)
     {
         var channel = GrpcChannel.ForAddress(factory.Server.BaseAddress, new GrpcChannelOptions
         {

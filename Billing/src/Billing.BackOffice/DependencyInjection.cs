@@ -2,7 +2,7 @@
 
 using Dapper;
 
-namespace Billing.Api;
+namespace Billing.BackOffice;
 
 public static class DependencyInjection
 {

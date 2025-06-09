@@ -1,18 +1,15 @@
 // Copyright (c) ABCDEG. All rights reserved.
 
-using Operations.Extensions.Messaging;
-using Wolverine;
-
 namespace Billing.Api.Cashier;
 
 [ApiController]
 [Route("[controller]")]
-public class CashiersController(ILogger<CashiersController> logger, IMessageBus bus) : ControllerBase
+public class CashiersController(IMessageBus bus) : ControllerBase
 {
     [HttpGet("{id:guid}")]
     public async Task<ActionResult<Contracts.Cashier.Models.Cashier>> GetCashier([FromRoute] Guid id)
     {
-        var cashier = await bus.InvokeAsync<Contracts.Cashier.Models.Cashier>(new GetCashierQuery(id));
+        var cashier = await bus.InvokeQueryAsync(new GetCashierQuery(id));
 
         return cashier;
     }
@@ -20,7 +17,7 @@ public class CashiersController(ILogger<CashiersController> logger, IMessageBus 
     [HttpGet]
     public async Task<ActionResult<IEnumerable<GetCashiersQuery.Result>>> GetCashiers([FromQuery] GetCashiersQuery query)
     {
-        var cashiers = await bus.InvokeAsync<IEnumerable<GetCashiersQuery.Result>>(query);
+        var cashiers = await bus.InvokeQueryAsync(query);
 
         return Ok(cashiers);
     }
@@ -37,14 +34,4 @@ public class CashiersController(ILogger<CashiersController> logger, IMessageBus 
 
     [HttpGet("fake-error")]
     public Task<ActionResult<Contracts.Cashier.Models.Cashier>> FakeError() => throw new DivideByZeroException("Fake error");
-
-    [HttpGet("id/{id}")]
-    public async Task<ActionResult<Contracts.Cashier.Models.Cashier>> GetCashierById([FromRoute] int id)
-    {
-        using var loggerScope = logger.BeginScope(new Dictionary<string, object?> { ["Id"] = id });
-
-        var cashier = await bus.InvokeAsync<Contracts.Cashier.Models.Cashier>(new GetCashierQuery(Guid.NewGuid()));
-
-        return cashier;
-    }
 }

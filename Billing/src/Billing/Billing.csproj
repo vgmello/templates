@@ -1,15 +1,10 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
     <ItemGroup>
-        <Folder Include="Invoices\Commands\"/>
-        <Folder Include="Invoices\Queries\"/>
+        <ProjectReference Include="..\..\..\Platform\src\Operations.Extensions\Operations.Extensions.csproj"/>
+        <ProjectReference Include="..\Billing.Contracts\Billing.Contracts.csproj"/>
+        <PackageReference Include="Dapper"/>
+        <PackageReference Include="Npgsql"/>
     </ItemGroup>
-
-  <ItemGroup>
-      <ProjectReference Include="..\..\..\Platform\src\Operations.Extensions\Operations.Extensions.csproj"/>
-      <ProjectReference Include="..\Billing.Contracts\Billing.Contracts.csproj"/>
-      <PackageReference Include="Dapper" />
-      <PackageReference Include="Npgsql" />
-  </ItemGroup>
 
 </Project>

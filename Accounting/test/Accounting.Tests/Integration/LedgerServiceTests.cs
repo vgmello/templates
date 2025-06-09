@@ -1,12 +1,8 @@
 // Copyright (c) ABCDEG. All rights reserved.
 
 using Accounting.Ledgers.Grpc;
-using Accounting.Ledgers.Queries;
-using DomainLedger = Accounting.Contracts.Ledgers.Models.Ledger;
 using Microsoft.AspNetCore.Mvc.Testing;
-using NSubstitute;
 using Grpc.Net.Client;
-using Wolverine;
 using Shouldly;
 
 namespace Accounting.Tests.Integration;
@@ -28,7 +24,7 @@ public class LedgerServiceTests(AccountingApiWebAppFactory factory) : IClassFixt
         response.LedgerId.ShouldBe(expectedId.ToString());
     }
 
-    private static LedgersService.LedgersServiceClient CreateClient(WebApplicationFactory<Api.Program> factory)
+    private static LedgersService.LedgersServiceClient CreateClient(WebApplicationFactory<Program> factory)
     {
         var channel = GrpcChannel.ForAddress(factory.Server.BaseAddress, new GrpcChannelOptions
         {

@@ -7,7 +7,6 @@
         <EnableDefaultContentItems>false</EnableDefaultContentItems>
         <TestingPlatformDotnetTestSupport>true</TestingPlatformDotnetTestSupport>
         <UseMicrosoftTestingPlatformRunner>true</UseMicrosoftTestingPlatformRunner>
-
         <TestingPlatformShowTestsFailure>true</TestingPlatformShowTestsFailure>
     </PropertyGroup>
 
@@ -21,15 +20,12 @@
         <PackageReference Include="NetArchTest.Rules"/>
         <PackageReference Include="Shouldly"/>
         <PackageReference Include="Testcontainers"/>
+        <PackageReference Include="Testcontainers.PostgreSql" />
         <PackageReference Include="xunit.v3"/>
     </ItemGroup>
 
     <ItemGroup>
         <Content Include="xunit.runner.json" CopyToOutputDirectory="PreserveNewest"/>
-    </ItemGroup>
-
-    <ItemGroup>
-        <Folder Include="Unit\"/>
     </ItemGroup>
 
     <ItemGroup>

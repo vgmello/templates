@@ -1,7 +1,5 @@
 // Copyright (c) ABCDEG. All rights reserved.
 
-using Orleans.Serialization;
-
 namespace Accounting.BackOffice.Orleans.Grains;
 
 [GenerateSerializer]

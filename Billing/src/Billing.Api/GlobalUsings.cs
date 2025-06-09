@@ -3,3 +3,5 @@
 global using Billing.Cashier.Commands;
 global using Billing.Cashier.Queries;
 global using Microsoft.AspNetCore.Mvc;
+global using Operations.Extensions.Messaging;
+global using Wolverine;

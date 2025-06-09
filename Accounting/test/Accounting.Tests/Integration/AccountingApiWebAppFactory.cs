@@ -3,14 +3,13 @@
 using Microsoft.AspNetCore.Mvc.Testing;
 using Operations.ServiceDefaults.Api;
 using Operations.ServiceDefaults.Messaging.Wolverine;
-using Testcontainers.PostgreSql;
 using DotNet.Testcontainers.Networks;
 using DotNet.Testcontainers.Builders;
-using DotNet.Testcontainers.Containers;
+using Testcontainers.PostgreSql;
 
 namespace Accounting.Tests.Integration;
 
-public class AccountingApiWebAppFactory : WebApplicationFactory<Api.Program>, IAsyncLifetime
+public class AccountingApiWebAppFactory : WebApplicationFactory<Program>, IAsyncLifetime
 {
     private readonly INetwork _network = new NetworkBuilder()
         .WithName($"accounting-test-{Guid.NewGuid():N}")
@@ -62,13 +61,13 @@ public class AccountingApiWebAppFactory : WebApplicationFactory<Api.Program>, IA
         {
             RemoveHostedServices(services);
 
-            services.AddWolverineWithDefaults(ctx.Configuration, opt => opt.ApplicationAssembly = typeof(Api.Program).Assembly);
+            services.AddWolverineWithDefaults(ctx.Configuration, opt => opt.ApplicationAssembly = typeof(Program).Assembly);
         });
 
         builder.Configure(app =>
         {
             app.UseRouting();
-            app.UseEndpoints(endpoints => endpoints.MapGrpcServices(typeof(Api.Program)));
+            app.UseEndpoints(endpoints => endpoints.MapGrpcServices(typeof(Program)));
         });
     }
 

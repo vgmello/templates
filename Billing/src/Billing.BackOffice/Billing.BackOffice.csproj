@@ -7,12 +7,11 @@
 
     <ItemGroup>
       <PackageReference Include="Aspire.Npgsql" />
-      <PackageReference Include="AspNetCore.HealthChecks.NpgSql" />
     </ItemGroup>
 
     <ItemGroup>
       <ProjectReference Include="..\..\..\Platform\src\Operations.ServiceDefaults\Operations.ServiceDefaults.csproj" />
       <ProjectReference Include="..\Billing\Billing.csproj" />
     </ItemGroup>
-    
+
 </Project>

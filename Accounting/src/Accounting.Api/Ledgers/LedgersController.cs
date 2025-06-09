@@ -37,14 +37,4 @@ public class LedgersController(ILogger<LedgersController> logger, IMessageBus bu
 
     [HttpGet("fake-error")]
     public Task<ActionResult<Contracts.Ledgers.Models.Ledger>> FakeError() => throw new DivideByZeroException("Fake error");
-
-    [HttpGet("id/{id}")]
-    public async Task<ActionResult<Contracts.Ledgers.Models.Ledger>> GetLedgerById([FromRoute] int id)
-    {
-        using var loggerScope = logger.BeginScope(new Dictionary<string, object?> { ["Id"] = id });
-
-        var ledger = await bus.InvokeAsync<Contracts.Ledgers.Models.Ledger>(new GetLedgerQuery(Guid.NewGuid()));
-
-        return ledger;
-    }
 }

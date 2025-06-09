@@ -6,7 +6,7 @@ using Npgsql;
 
 namespace Billing.Cashier.Queries;
 
-public record GetCashiersQuery
+public record GetCashiersQuery : IQuery<IEnumerable<GetCashiersQuery.Result>>
 {
     [Range(1, 1000)]
     public int Limit { get; set; } = 1000;
@@ -26,7 +26,7 @@ public static class GetCashiersQueryHandler
 
         var sql = @"
             SELECT cashier_id, name
-            FROM billing.cashiers 
+            FROM billing.cashiers
             ORDER BY created_date_utc DESC
             LIMIT @Limit OFFSET @Offset";
 

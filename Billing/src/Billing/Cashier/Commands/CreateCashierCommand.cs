@@ -1,15 +1,9 @@
 // Copyright (c) ABCDEG. All rights reserved.
 
 using Billing.Contracts.Cashier.IntegrationEvents;
-using CashierEntity = Billing.Cashier.Data.Entities.Cashier;
 using CashierModel = Billing.Contracts.Cashier.Models.Cashier;
 using Dapper;
 using Npgsql;
-using Operations.Extensions;
-using Operations.Extensions.Messaging;
-using FluentValidation;
-using Wolverine;
-using System.Data;
 
 namespace Billing.Cashier.Commands;
 
@@ -33,6 +27,7 @@ public static class CreateCashierCommandHandler
         CreateCashierCommand command, IMessageBus messaging, CancellationToken cancellationToken)
     {
         var cashierId = Guid.NewGuid();
+
         var insertCommand = new InsertCashierCommand(cashierId, command.Name, command.Email);
 
         await messaging.InvokeCommandAsync(insertCommand, cancellationToken);
@@ -41,7 +36,7 @@ public static class CreateCashierCommandHandler
         {
             CashierId = cashierId,
             Name = command.Name,
-            Email = command.Email ?? string.Empty
+            Email = command.Email
         };
 
         return (result, new CashierCreatedEvent(result));
@@ -51,16 +46,7 @@ public static class CreateCashierCommandHandler
     {
         await using var connection = await dataSource.OpenConnectionAsync(cancellationToken);
 
-        // Call the stored procedure using Dapper with CommandType.StoredProcedure
-        var affectedRecords = await connection.ExecuteAsync(
-            "billing.create_cashier",
-            new
-            {
-                cashier_id = command.CashierId,
-                name = command.Name,
-                email = command.Email
-            },
-            commandType: CommandType.StoredProcedure);
+        var affectedRecords = await connection.ExecuteAsync("billing.create_cashier", command, commandType: CommandType.StoredProcedure);
 
         return affectedRecords;
     }
