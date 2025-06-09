@@ -34,7 +34,7 @@ public static class CreateCashierCommandHandler
     {
         var cashierId = Guid.NewGuid();
         var insertCommand = new InsertCashierCommand(cashierId, command.Name, command.Email);
-        
+
         await messaging.InvokeCommandAsync(insertCommand, cancellationToken);
 
         var result = new CashierModel
@@ -50,7 +50,7 @@ public static class CreateCashierCommandHandler
     public static async Task<int> Handle(InsertCashierCommand command, NpgsqlDataSource dataSource, CancellationToken cancellationToken)
     {
         await using var connection = await dataSource.OpenConnectionAsync(cancellationToken);
-        
+
         // Call the stored procedure using Dapper with CommandType.StoredProcedure
         var affectedRecords = await connection.ExecuteAsync(
             "billing.create_cashier",
@@ -61,7 +61,7 @@ public static class CreateCashierCommandHandler
                 email = command.Email
             },
             commandType: CommandType.StoredProcedure);
-            
+
         return affectedRecords;
     }
 }

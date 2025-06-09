@@ -17,9 +17,9 @@ builder.Services.AddHealthChecks()
         name: "billing-db",
         tags: ["ready"])
     .AddNpgSql(
-        builder.Configuration.GetConnectionString("ServiceBusDb") ?? 
+        builder.Configuration.GetConnectionString("ServiceBusDb") ??
         builder.Configuration.GetConnectionString("ServiceBus__ConnectionString")!,
-        name: "servicebus-db", 
+        name: "servicebus-db",
         tags: ["ready"]);
 
 // Add services to the container.

@@ -11,7 +11,7 @@ public static class DependencyInjection
     {
         builder.AddNpgsqlDataSource("BillingDb");
 
-        Dapper.DefaultTypeMap.MatchNamesWithUnderscores = true;
+        DefaultTypeMap.MatchNamesWithUnderscores = true;
 
         // Add health checks for the billing database
         builder.Services.AddHealthChecks()
@@ -20,9 +20,9 @@ public static class DependencyInjection
                 name: "billing-db",
                 tags: ["ready"])
             .AddNpgSql(
-                builder.Configuration.GetConnectionString("ServiceBusDb") ?? 
+                builder.Configuration.GetConnectionString("ServiceBusDb") ??
                 builder.Configuration.GetConnectionString("ServiceBus__ConnectionString")!,
-                name: "servicebus-db", 
+                name: "servicebus-db",
                 tags: ["ready"]);
 
         return builder;

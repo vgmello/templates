@@ -10,14 +10,14 @@ using DotNet.Testcontainers.Containers;
 
 namespace Accounting.Tests.Integration;
 
-public class AccountingApiWebAppFactory : WebApplicationFactory<Program>, IAsyncLifetime
+public class AccountingApiWebAppFactory : WebApplicationFactory<Api.Program>, IAsyncLifetime
 {
     private readonly INetwork _network = new NetworkBuilder()
         .WithName($"accounting-test-{Guid.NewGuid():N}")
         .Build();
-        
+
     private readonly PostgreSqlContainer _postgres;
-    
+
     public AccountingApiWebAppFactory()
     {
         _postgres = new PostgreSqlBuilder()
@@ -28,7 +28,7 @@ public class AccountingApiWebAppFactory : WebApplicationFactory<Program>, IAsync
             .WithNetworkAliases("postgres")
             .Build();
     }
-    
+
     public async ValueTask InitializeAsync()
     {
         await _network.CreateAsync();
@@ -62,13 +62,13 @@ public class AccountingApiWebAppFactory : WebApplicationFactory<Program>, IAsync
         {
             RemoveHostedServices(services);
 
-            services.AddWolverineWithDefaults(ctx.Configuration, opt => opt.ApplicationAssembly = typeof(Program).Assembly);
+            services.AddWolverineWithDefaults(ctx.Configuration, opt => opt.ApplicationAssembly = typeof(Api.Program).Assembly);
         });
 
         builder.Configure(app =>
         {
             app.UseRouting();
-            app.UseEndpoints(endpoints => endpoints.MapGrpcServices(typeof(Program)));
+            app.UseEndpoints(endpoints => endpoints.MapGrpcServices(typeof(Api.Program)));
         });
     }
 
@@ -84,15 +84,15 @@ public class AccountingApiWebAppFactory : WebApplicationFactory<Program>, IAsync
             .WithEnvironment("LIQUIBASE_COMMAND_CHANGELOG_FILE", "changelog.xml")
             .WithEnvironment("LIQUIBASE_SEARCH_PATH", "/liquibase/changelog")
             .WithEntrypoint("/bin/sh")
-            .WithCommand("-c", 
+            .WithCommand("-c",
                 "liquibase --url=jdbc:postgresql://postgres:5432/accounting update --changelog-file=accounting/changelog.xml")
             .WithWaitStrategy(Wait.ForUnixContainer().UntilCommandIsCompleted("echo", "ready"))
             .Build();
-            
+
         await liquibaseContainer.StartAsync();
         var result = await liquibaseContainer.GetExitCodeAsync();
         await liquibaseContainer.DisposeAsync();
-        
+
         if (result != 0)
         {
             throw new InvalidOperationException("Liquibase migration failed");

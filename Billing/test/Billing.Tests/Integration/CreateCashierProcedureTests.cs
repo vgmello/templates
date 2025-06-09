@@ -1,3 +1,5 @@
+// Copyright (c) ABCDEG. All rights reserved.
+
 using Billing.Cashier.Commands;
 using Billing.Tests.Integration;
 using System;
@@ -12,7 +14,8 @@ namespace Billing.Tests.Integration;
 
 [CollectionDefinition("db", DisableParallelization = true)]
 public class DatabaseCollection : ICollectionFixture<BillingDatabaseFixture>
-{ }
+{
+}
 
 [Collection("db")]
 public class CreateCashierIntegrationTests
@@ -45,7 +48,7 @@ public class CreateCashierIntegrationTests
         cashier.Name.ShouldBe("Integration Test Cashier");
         cashier.Email.ShouldBe("integration@test.com");
         cashier.CashierId.ShouldNotBe(Guid.Empty);
-        
+
         integrationEvent.ShouldNotBeNull();
         integrationEvent.Cashier.CashierId.ShouldBe(cashier.CashierId);
     }

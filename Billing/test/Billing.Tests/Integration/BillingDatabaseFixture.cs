@@ -1,3 +1,5 @@
+// Copyright (c) ABCDEG. All rights reserved.
+
 using DotNet.Testcontainers.Builders;
 using DotNet.Testcontainers.Containers;
 using DotNet.Testcontainers.Configurations;
@@ -38,7 +40,7 @@ public class BillingDatabaseFixture : IAsyncLifetime
     {
         await using var connection = new NpgsqlConnection(_dbContainer.GetConnectionString());
         await connection.OpenAsync();
-        
+
         // Replicate the Liquibase structure for tests
         var setupSql = @"
             CREATE SCHEMA IF NOT EXISTS billing;
@@ -66,7 +68,7 @@ public class BillingDatabaseFixture : IAsyncLifetime
             END;
             $$;
         ";
-        
+
         await using var command = new NpgsqlCommand(setupSql, connection);
         await command.ExecuteNonQueryAsync();
     }

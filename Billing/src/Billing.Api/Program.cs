@@ -24,4 +24,7 @@ app.MapDefaultHealthCheckEndpoints();
 return await app.RunJasperFxCommands(args);
 
 #pragma warning disable S1118 // Utility classes should be static
-public partial class Program; // Note: Remove this after .NET 10 migration
+namespace Billing.Api
+{
+    public partial class Program; // Note: Remove this after .NET 10 migration
+}

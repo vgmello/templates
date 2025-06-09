@@ -13,7 +13,7 @@ public static class GetCashierQueryHandler
         NpgsqlDataSource dataSource, CancellationToken cancellationToken)
     {
         await using var connection = await dataSource.OpenConnectionAsync(cancellationToken);
-        
+
         var sql = @"
             SELECT cashier_id, name, email, created_date_utc, updated_date_utc, version
             FROM billing.cashiers 

@@ -19,7 +19,7 @@ public class CreateCashierCommandHandlerTests
         // Arrange
         var messagingMock = Substitute.For<IMessageBus>();
         var expectedAffectedRecords = 1;
-        
+
         messagingMock.InvokeCommandAsync(Arg.Any<CreateCashierCommandHandler.InsertCashierCommand>(), Arg.Any<CancellationToken>())
             .Returns(expectedAffectedRecords);
 
@@ -33,7 +33,7 @@ public class CreateCashierCommandHandlerTests
         // Assert
         result.IsSuccess.ShouldBeTrue();
         var cashier = result.Value;
-        
+
         cashier.Name.ShouldBe("John Doe");
         cashier.Email.ShouldBe("john.doe@example.com");
         cashier.CashierId.ShouldNotBe(Guid.Empty);
@@ -47,7 +47,7 @@ public class CreateCashierCommandHandlerTests
 
         // Verify that messaging was called with correct parameters
         await messagingMock.Received(1).InvokeCommandAsync(
-            Arg.Is<CreateCashierCommandHandler.InsertCashierCommand>(cmd => 
+            Arg.Is<CreateCashierCommandHandler.InsertCashierCommand>(cmd =>
                 cmd.CashierId == cashier.CashierId &&
                 cmd.Name == "John Doe" &&
                 cmd.Email == "john.doe@example.com"),
@@ -72,10 +72,10 @@ public class CreateCashierCommandHandlerTests
         // Assert
         result.IsSuccess.ShouldBeTrue();
         var cashier = result.Value;
-        
+
         cashier.Name.ShouldBe("Jane Doe");
         cashier.Email.ShouldBe(string.Empty);
-        
+
         integrationEvent.Cashier.Email.ShouldBe(string.Empty);
     }
 

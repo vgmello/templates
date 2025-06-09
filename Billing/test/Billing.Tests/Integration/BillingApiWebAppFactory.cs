@@ -11,14 +11,14 @@ using DotNet.Testcontainers.Containers;
 
 namespace Billing.Tests.Integration;
 
-public class BillingApiWebAppFactory : WebApplicationFactory<Program>, IAsyncLifetime
+public class BillingApiWebAppFactory : WebApplicationFactory<Api.Program>, IAsyncLifetime
 {
     private readonly INetwork _network = new NetworkBuilder()
         .WithName($"billing-test-{Guid.NewGuid():N}")
         .Build();
-        
+
     private readonly PostgreSqlContainer _postgres;
-    
+
     public BillingApiWebAppFactory()
     {
         _postgres = new PostgreSqlBuilder()
@@ -61,13 +61,13 @@ public class BillingApiWebAppFactory : WebApplicationFactory<Program>, IAsyncLif
         {
             RemoveHostedServices(services);
 
-            services.AddWolverineWithDefaults(ctx.Configuration, opt => opt.ApplicationAssembly = typeof(Program).Assembly);
+            services.AddWolverineWithDefaults(ctx.Configuration, opt => opt.ApplicationAssembly = typeof(Api.Program).Assembly);
         });
 
         builder.Configure(app =>
         {
             app.UseRouting();
-            app.UseEndpoints(endpoints => endpoints.MapGrpcServices(typeof(Program)));
+            app.UseEndpoints(endpoints => endpoints.MapGrpcServices(typeof(Api.Program)));
         });
     }
 
@@ -83,16 +83,16 @@ public class BillingApiWebAppFactory : WebApplicationFactory<Program>, IAsyncLif
             .WithEnvironment("LIQUIBASE_COMMAND_CHANGELOG_FILE", "changelog.xml")
             .WithEnvironment("LIQUIBASE_SEARCH_PATH", "/liquibase/changelog")
             .WithEntrypoint("/bin/sh")
-            .WithCommand("-c", 
+            .WithCommand("-c",
                 "liquibase --url=jdbc:postgresql://postgres:5432/billing update --changelog-file=billing/changelog.xml")
             .WithWaitStrategy(Wait.ForUnixContainer().UntilCommandIsCompleted("echo", "ready"))
             .Build();
-            
+
         await liquibaseContainer.StartAsync();
         var result = await liquibaseContainer.GetExitCodeAsync();
         var logs = await liquibaseContainer.GetLogsAsync();
         await liquibaseContainer.DisposeAsync();
-        
+
         if (result != 0)
         {
             throw new InvalidOperationException($"Liquibase migration failed with exit code {result}. Logs: {logs}");

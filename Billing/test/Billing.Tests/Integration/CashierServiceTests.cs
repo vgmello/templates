@@ -18,14 +18,14 @@ public class CashierServiceTests(BillingApiWebAppFactory factory) : IClassFixtur
         var email = "test@example.com";
 
         // Act - Create cashier
-        var createResponse = await client.CreateCashierAsync(new CreateCashierRequest 
+        var createResponse = await client.CreateCashierAsync(new CreateCashierRequest
         {
             Name = name,
             Email = email
         }, cancellationToken: TestContext.Current.CancellationToken);
 
         // Act - Get cashier
-        var getResponse = await client.GetCashierAsync(new GetCashierRequest 
+        var getResponse = await client.GetCashierAsync(new GetCashierRequest
         {
             Id = createResponse.CashierId
         }, cancellationToken: TestContext.Current.CancellationToken);
@@ -33,7 +33,7 @@ public class CashierServiceTests(BillingApiWebAppFactory factory) : IClassFixtur
         // Assert
         createResponse.Name.ShouldBe(name);
         createResponse.Email.ShouldBe(email);
-        
+
         getResponse.CashierId.ShouldBe(createResponse.CashierId);
         getResponse.Name.ShouldBe(name);
         getResponse.Email.ShouldBe(email);
@@ -46,7 +46,7 @@ public class CashierServiceTests(BillingApiWebAppFactory factory) : IClassFixtur
         var client = CreateClient(factory);
 
         // Act
-        var response = await client.GetCashiersAsync(new GetCashiersRequest 
+        var response = await client.GetCashiersAsync(new GetCashiersRequest
         {
             Limit = 10,
             Offset = 0
@@ -56,7 +56,7 @@ public class CashierServiceTests(BillingApiWebAppFactory factory) : IClassFixtur
         response.Cashiers.Count.ShouldBe(0);
     }
 
-    private static CashiersService.CashiersServiceClient CreateClient(WebApplicationFactory<Program> factory)
+    private static CashiersService.CashiersServiceClient CreateClient(WebApplicationFactory<Api.Program> factory)
     {
         var channel = GrpcChannel.ForAddress(factory.Server.BaseAddress, new GrpcChannelOptions
         {

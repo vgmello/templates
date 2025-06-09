@@ -28,7 +28,7 @@ public class LedgerServiceTests(AccountingApiWebAppFactory factory) : IClassFixt
         response.LedgerId.ShouldBe(expectedId.ToString());
     }
 
-    private static LedgersService.LedgersServiceClient CreateClient(WebApplicationFactory<Program> factory)
+    private static LedgersService.LedgersServiceClient CreateClient(WebApplicationFactory<Api.Program> factory)
     {
         var channel = GrpcChannel.ForAddress(factory.Server.BaseAddress, new GrpcChannelOptions
         {
