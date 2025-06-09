@@ -6,7 +6,6 @@ package billing.cashiers;
 
 message Cashier {
   string cashierId = 1;
-  int32 cashierNumber = 2;
-  string name = 3;
-  string email = 4;
+  string name = 2;
+  string email = 3;
 }

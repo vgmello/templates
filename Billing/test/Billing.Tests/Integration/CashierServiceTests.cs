@@ -33,12 +33,10 @@ public class CashierServiceTests(BillingApiWebAppFactory factory) : IClassFixtur
         // Assert
         createResponse.Name.ShouldBe(name);
         createResponse.Email.ShouldBe(email);
-        createResponse.CashierNumber.ShouldBeGreaterThan(0);
         
         getResponse.CashierId.ShouldBe(createResponse.CashierId);
         getResponse.Name.ShouldBe(name);
         getResponse.Email.ShouldBe(email);
-        getResponse.CashierNumber.ShouldBe(createResponse.CashierNumber);
     }
 
     [Fact]

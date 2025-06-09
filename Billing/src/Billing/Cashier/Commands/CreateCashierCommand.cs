@@ -9,6 +9,7 @@ using Operations.Extensions;
 using Operations.Extensions.Messaging;
 using FluentValidation;
 using Wolverine;
+using System.Data;
 
 namespace Billing.Cashier.Commands;
 
@@ -34,12 +35,11 @@ public static class CreateCashierCommandHandler
         var cashierId = Guid.NewGuid();
         var insertCommand = new InsertCashierCommand(cashierId, command.Name, command.Email);
         
-        var number = await messaging.InvokeCommandAsync(insertCommand, cancellationToken);
+        await messaging.InvokeCommandAsync(insertCommand, cancellationToken);
 
         var result = new CashierModel
         {
             CashierId = cashierId,
-            CashierNumber = number,
             Name = command.Name,
             Email = command.Email ?? string.Empty
         };
@@ -51,15 +51,17 @@ public static class CreateCashierCommandHandler
     {
         await using var connection = await dataSource.OpenConnectionAsync(cancellationToken);
         
-        // Call the stored function to create cashier
-        await connection.ExecuteAsync(
-            "SELECT billing.create_cashier(@cashier_id, @name, @email)",
-            command);
-        
-        // Return the current count of cashiers as the cashier number
-        var cashierNumber = await connection.QuerySingleAsync<int>(
-            "SELECT COUNT(*) FROM billing.cashiers");
-        
-        return cashierNumber;
+        // Call the stored procedure using Dapper with CommandType.StoredProcedure
+        var affectedRecords = await connection.ExecuteAsync(
+            "billing.create_cashier",
+            new
+            {
+                cashier_id = command.CashierId,
+                name = command.Name,
+                email = command.Email
+            },
+            commandType: CommandType.StoredProcedure);
+            
+        return affectedRecords;
     }
 }

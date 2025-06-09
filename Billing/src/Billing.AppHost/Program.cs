@@ -32,14 +32,16 @@ builder
     .WithEnvironment("ServiceBus__ConnectionString", serviceBusDb)
     .WithReference(database)
     .WithReference(serviceBusDb)
-    .WaitForCompletion(liquibase);
+    .WaitForCompletion(liquibase)
+    .WithHealthCheckEndpoint("/health/internal");
 
 builder
     .AddProject<Projects.Billing_BackOffice>("billing-backoffice")
     .WithEnvironment("ServiceBus__ConnectionString", serviceBusDb)
     .WithReference(database)
     .WithReference(serviceBusDb)
-    .WaitForCompletion(liquibase);
+    .WaitForCompletion(liquibase)
+    .WithHealthCheckEndpoint("/health/internal");
 
 builder
     .AddProject<Projects.Billing_BackOffice_Orleans>("billing-backoffice-orleans")
@@ -47,6 +49,7 @@ builder
     .WithReference(orleans)
     .WithReference(database)
     .WithReference(serviceBusDb)
-    .WaitForCompletion(liquibase);
+    .WaitForCompletion(liquibase)
+    .WithHealthCheckEndpoint("/health/internal");
 
 await builder.Build().RunAsync();

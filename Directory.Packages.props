@@ -65,5 +65,8 @@
     <PackageVersion Include="Microsoft.Orleans.Server" Version="9.1.2" />
     <PackageVersion Include="Microsoft.Orleans.Clustering.AzureStorage" Version="9.1.2" />
     <PackageVersion Include="Microsoft.Orleans.Persistence.AzureStorage" Version="9.1.2" />
+    <PackageVersion Include="AspNetCore.HealthChecks.NpgSql" Version="9.0.0" />
+    <PackageVersion Include="AspNetCore.HealthChecks.AzureStorage.Tables" Version="9.0.0" />
+    <PackageVersion Include="AspNetCore.HealthChecks.Orleans" Version="9.0.0" />
   </ItemGroup>
 </Project>

@@ -5,6 +5,7 @@ using Billing.Api;
 using JasperFx;
 using Operations.ServiceDefaults;
 using Operations.ServiceDefaults.Api;
+using Operations.ServiceDefaults.HealthChecks;
 
 [assembly: DomainAssembly(typeof(IBillingAssembly))]
 
@@ -18,6 +19,7 @@ builder.AddApplicationServices();
 var app = builder.Build();
 
 app.ConfigureApiUsingDefaults(requireAuth: false);
+app.MapDefaultHealthCheckEndpoints();
 
 return await app.RunJasperFxCommands(args);
 

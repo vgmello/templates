@@ -18,7 +18,6 @@ public class CashierService(IMessageBus bus) : CashiersService.CashiersServiceBa
         return new CashierModel
         {
             CashierId = result.CashierId.ToString(),
-            CashierNumber = result.CashierNumber,
             Name = result.Name,
             Email = result.Email
         };
@@ -48,7 +47,6 @@ public class CashierService(IMessageBus bus) : CashiersService.CashiersServiceBa
             cashier => new CashierModel
             {
                 CashierId = cashier.CashierId.ToString(),
-                CashierNumber = cashier.CashierNumber,
                 Name = cashier.Name,
                 Email = cashier.Email
             },

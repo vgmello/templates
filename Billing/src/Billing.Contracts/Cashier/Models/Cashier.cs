@@ -6,9 +6,7 @@ public record Cashier
 {
     public Guid CashierId { get; set; }
 
-    public int CashierNumber { get; set; }
-
-    public required  string Name { get; set; }
+    public required string Name { get; set; }
 
     public required string Email { get; set; }
 

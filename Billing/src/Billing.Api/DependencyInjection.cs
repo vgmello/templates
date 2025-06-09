@@ -13,6 +13,18 @@ public static class DependencyInjection
 
         Dapper.DefaultTypeMap.MatchNamesWithUnderscores = true;
 
+        // Add health checks for the billing database
+        builder.Services.AddHealthChecks()
+            .AddNpgSql(
+                builder.Configuration.GetConnectionString("BillingDb")!,
+                name: "billing-db",
+                tags: ["ready"])
+            .AddNpgSql(
+                builder.Configuration.GetConnectionString("ServiceBusDb") ?? 
+                builder.Configuration.GetConnectionString("ServiceBus__ConnectionString")!,
+                name: "servicebus-db", 
+                tags: ["ready"]);
+
         return builder;
     }
 }

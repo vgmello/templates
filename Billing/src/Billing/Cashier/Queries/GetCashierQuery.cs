@@ -30,7 +30,6 @@ public static class GetCashierQueryHandler
         return new Contracts.Cashier.Models.Cashier
         {
             CashierId = cashier.CashierId,
-            CashierNumber = 0, // Will be populated from the count if needed
             Name = cashier.Name,
             Email = cashier.Email ?? string.Empty
         };

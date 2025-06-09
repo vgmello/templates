@@ -44,7 +44,6 @@ public class CreateCashierIntegrationTests
         var cashier = result.Value;
         cashier.Name.ShouldBe("Integration Test Cashier");
         cashier.Email.ShouldBe("integration@test.com");
-        cashier.CashierNumber.ShouldBe(1);
         cashier.CashierId.ShouldNotBe(Guid.Empty);
         
         integrationEvent.ShouldNotBeNull();

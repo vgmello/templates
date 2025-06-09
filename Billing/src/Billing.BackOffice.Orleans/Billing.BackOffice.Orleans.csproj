@@ -15,6 +15,10 @@
     <PackageReference Include="Microsoft.Orleans.Clustering.AzureStorage" />
     <PackageReference Include="Microsoft.Orleans.Persistence.AzureStorage" />
     <PackageReference Include="Aspire.Azure.Data.Tables" />
+    <PackageReference Include="Aspire.Npgsql" />
+    <PackageReference Include="AspNetCore.HealthChecks.NpgSql" />
+    <PackageReference Include="AspNetCore.HealthChecks.AzureStorage.Tables" />
+    <PackageReference Include="AspNetCore.HealthChecks.Orleans" />
   </ItemGroup>
 
 </Project>
