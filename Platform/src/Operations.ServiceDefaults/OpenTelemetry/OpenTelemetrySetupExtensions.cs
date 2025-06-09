@@ -1,8 +1,10 @@
 // Copyright (c) ABCDEG. All rights reserved.
 
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using System.Diagnostics;
 using OpenTelemetry;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
@@ -13,6 +15,13 @@ public static class OpenTelemetrySetupExtensions
 {
     public static IHostApplicationBuilder AddOpenTelemetry(this IHostApplicationBuilder builder)
     {
+        var activitySourceName =
+            builder.Configuration.GetValue<string>("OpenTelemetry:ActivitySourceName")
+            ?? builder.Environment.ApplicationName;
+
+        var activitySource = new ActivitySource(activitySourceName);
+        builder.Services.AddSingleton(activitySource);
+
         builder.Logging.AddOpenTelemetry(logging =>
         {
             logging.IncludeFormattedMessage = true;
@@ -36,6 +45,7 @@ public static class OpenTelemetrySetupExtensions
                     .AddHttpClientInstrumentation();
 
                 tracing.AddSource("Wolverine");
+                tracing.AddSource(activitySourceName);
             });
 
         return builder;

@@ -8,14 +8,13 @@ namespace Operations.ServiceDefaults.Messaging.Middlewares;
 
 public static class OpenTelemetryInstrumentationMiddleware
 {
-    private static readonly ActivitySource ActivitySource = new("Operations.Messaging");
 
-    public static Activity? Before(Envelope envelope)
+    public static Activity? Before(ActivitySource activitySource, Envelope envelope)
     {
         var messageType = GetMessageType(envelope);
         var operationName = GetOperationName(envelope, messageType);
 
-        var activity = ActivitySource.StartActivity(operationName);
+        var activity = activitySource.StartActivity(operationName);
 
         if (activity != null)
         {

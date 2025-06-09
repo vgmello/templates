@@ -1,6 +1,5 @@
 // Copyright (c) ABCDEG. All rights reserved.
 
-using Azure.Data.Tables;
 using Billing.BackOffice.Orleans;
 using Operations.ServiceDefaults;
 using Operations.ServiceDefaults.HealthChecks;
@@ -18,13 +17,6 @@ builder.UseOrleans(siloBuilder =>
     {
         siloBuilder.UseLocalhostClustering();
     }
-    // else
-    // {
-    //     siloBuilder.AddAzureTableGrainStorage()
-    // }
-    //
-    // siloBuilder.AddAzureTableGrainStorageAsDefault(options =>
-    //     options.TableServiceClient = new TableServiceClient(context.Configuration.GetConnectionString("OrleansGrainState")));
 
     siloBuilder.UseDashboard(options =>
     {

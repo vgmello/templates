@@ -19,11 +19,12 @@ var database = pgsql.AddDatabase(name: "BillingDb", databaseName: "billing");
 var serviceBusDb = pgsql.AddDatabase(name: "ServiceBusDb", databaseName: "service_bus");
 var liquibase = builder.AddLiquibaseMigrations(pgsql, dbPassword);
 
-var storage = builder.AddAzureStorage("storage").RunAsEmulator();
+var storage = builder.AddAzureStorage("billing-azure-storage").RunAsEmulator();
 var clustering = storage.AddTables("clustering");
 var grainTables = storage.AddTables("grain-state");
 
-var orleans = builder.AddOrleans("default")
+var orleans = builder
+    .AddOrleans("billing-orleans")
     .WithClustering(clustering)
     .WithGrainStorage("Default", grainTables);
 
