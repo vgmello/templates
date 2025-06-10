@@ -12,9 +12,6 @@ public static class DependencyInjection
 
         builder.AddNpgsqlDataSource("BillingDb");
 
-        builder.AddKeyedAzureTableClient("clustering");
-        builder.AddKeyedAzureTableClient("grain-state");
-
         return builder;
     }
 }

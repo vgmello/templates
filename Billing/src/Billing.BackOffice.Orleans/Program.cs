@@ -1,39 +1,27 @@
 // Copyright (c) ABCDEG. All rights reserved.
 
 using Billing.BackOffice.Orleans;
+using Billing.BackOffice.Orleans.Infrastructure.Extensions;
+using Billing.BackOffice.Orleans.Invoices.Grains;
 using Operations.ServiceDefaults;
 using Operations.ServiceDefaults.HealthChecks;
 
 var builder = WebApplication.CreateSlimBuilder(args);
 
 builder.AddServiceDefaults();
+builder.AddOrleans();
 
 // Application Services
 builder.AddApplicationServices();
 
-builder.UseOrleans(siloBuilder =>
-{
-    if (builder.Configuration.GetValue<bool>("Orleans:UseLocalhostClustering"))
-    {
-        siloBuilder.UseLocalhostClustering();
-    }
-
-    siloBuilder.UseDashboard(options =>
-    {
-        options.HostSelf = false;
-        options.Host = "*";
-    });
-});
-
 var app = builder.Build();
 
+app.MapOrleansDashboard();
 app.MapDefaultHealthCheckEndpoints();
-
-app.Map("/dashboard", x => x.UseOrleansDashboard());
 
 app.MapPost("/invoices/{id:guid}/pay", async (Guid id, decimal amount, IGrainFactory grains) =>
 {
-    var grain = grains.GetGrain<Billing.BackOffice.Orleans.Grains.IInvoiceGrain>(id);
+    var grain = grains.GetGrain<IInvoiceGrain>(id);
     await grain.Pay(amount);
 
     return Results.Accepted();
@@ -41,7 +29,7 @@ app.MapPost("/invoices/{id:guid}/pay", async (Guid id, decimal amount, IGrainFac
 
 app.MapGet("/invoices/{id:guid}", async (Guid id, IGrainFactory grains) =>
 {
-    var grain = grains.GetGrain<Billing.BackOffice.Orleans.Grains.IInvoiceGrain>(id);
+    var grain = grains.GetGrain<IInvoiceGrain>(id);
 
     return Results.Ok(await grain.GetState());
 });

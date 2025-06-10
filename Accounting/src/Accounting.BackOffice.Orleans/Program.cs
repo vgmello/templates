@@ -1,39 +1,32 @@
 // Copyright (c) ABCDEG. All rights reserved.
 
+using Accounting.BackOffice.Orleans.Grains;
+using Accounting.BackOffice.Orleans.Infrastructure.Extensions;
 using Operations.ServiceDefaults;
 using Operations.ServiceDefaults.HealthChecks;
 
 var builder = WebApplication.CreateSlimBuilder(args);
 
 builder.AddServiceDefaults();
-builder.AddKeyedAzureTableClient("clustering");
-builder.AddKeyedAzureTableClient("grain-state");
-
-builder.UseOrleans(siloBuilder =>
-{
-    if (builder.Configuration.GetValue<bool>("Orleans:UseLocalhostClustering"))
-    {
-        siloBuilder.UseLocalhostClustering();
-    }
-});
+builder.AddOrleans();
 
 var app = builder.Build();
 
-app.Map("/dashboard", x => x.UseOrleansDashboard());
+app.MapOrleansDashboard();
 
 app.MapDefaultHealthCheckEndpoints();
 
-app.MapPost("/invoices/{id:guid}/pay", async (Guid id, decimal amount, IGrainFactory grains) =>
+app.MapPost("/ledgers/{id:guid}/balance", async (Guid id, decimal amount, IGrainFactory grains) =>
 {
-    var grain = grains.GetGrain<Accounting.BackOffice.Orleans.Grains.IInvoiceGrain>(id);
+    var grain = grains.GetGrain<ILedgerGrain>(id);
     await grain.Pay(amount);
 
     return Results.Accepted();
 });
 
-app.MapGet("/invoices/{id:guid}", async (Guid id, IGrainFactory grains) =>
+app.MapGet("/ledgers/{id:guid}", async (Guid id, IGrainFactory grains) =>
 {
-    var grain = grains.GetGrain<Accounting.BackOffice.Orleans.Grains.IInvoiceGrain>(id);
+    var grain = grains.GetGrain<ILedgerGrain>(id);
 
     return Results.Ok(await grain.GetState());
 });

@@ -2,8 +2,8 @@
 
 namespace Accounting.BackOffice.Orleans.Grains;
 
-public interface IInvoiceGrain : IGrainWithGuidKey
+public interface ILedgerGrain : IGrainWithGuidKey
 {
-    Task<InvoiceState> GetState();
+    Task<LedgerState> GetState();
     Task Pay(decimal amount);
 }

@@ -2,12 +2,9 @@
 
 namespace Accounting.BackOffice.Orleans.Grains;
 
-public sealed class InvoiceGrain(
-    [PersistentState("invoice", "Default")]
-    IPersistentState<InvoiceState> state)
-    : Grain, IInvoiceGrain
+public sealed class LedgerGrain([PersistentState("ledger")] IPersistentState<LedgerState> state) : Grain, ILedgerGrain
 {
-    public Task<InvoiceState> GetState() => Task.FromResult(state.State);
+    public Task<LedgerState> GetState() => Task.FromResult(state.State);
 
     public async Task Pay(decimal amount)
     {

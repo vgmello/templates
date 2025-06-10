@@ -20,8 +20,8 @@ var serviceBusDb = pgsql.AddDatabase(name: "ServiceBusDb", databaseName: "servic
 var liquibase = builder.AddLiquibaseMigrations(pgsql, dbPassword);
 
 var storage = builder.AddAzureStorage("billing-azure-storage").RunAsEmulator();
-var clustering = storage.AddTables("clustering");
-var grainTables = storage.AddTables("grain-state");
+var clustering = storage.AddTables("OrleansClustering");
+var grainTables = storage.AddTables("OrleansGrainState");
 
 var orleans = builder
     .AddOrleans("billing-orleans")
@@ -48,10 +48,12 @@ builder
     .AddProject<Projects.Billing_BackOffice_Orleans>("billing-backoffice-orleans")
     .WithEnvironment("ServiceBus__ConnectionString", serviceBusDb)
     .WithEnvironment("Orleans__UseLocalhostClustering", "false")
+    .WithEnvironment("Aspire__Azure__Data__Tables__DisableHealthChecks", "true")
     .WithReference(orleans)
     .WithReference(database)
     .WithReference(serviceBusDb)
     .WaitForCompletion(liquibase)
+    .WithReplicas(3)
     .WithHttpHealthCheck("/health/internal");
 
 await builder.Build().RunAsync();

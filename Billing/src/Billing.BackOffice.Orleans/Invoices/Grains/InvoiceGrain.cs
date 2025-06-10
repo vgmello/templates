@@ -1,11 +1,8 @@
 // Copyright (c) ABCDEG. All rights reserved.
 
-namespace Billing.BackOffice.Orleans.Grains;
+namespace Billing.BackOffice.Orleans.Invoices.Grains;
 
-public sealed class InvoiceGrain(
-    [PersistentState("invoice", "Default")]
-    IPersistentState<InvoiceState> state)
-    : Grain, IInvoiceGrain
+public sealed class InvoiceGrain([PersistentState("invoice")] IPersistentState<InvoiceState> state) : Grain, IInvoiceGrain
 {
     public Task<InvoiceState> GetState() => Task.FromResult(state.State);
 
@@ -14,5 +11,10 @@ public sealed class InvoiceGrain(
         state.State.Amount += amount;
         state.State.Paid = true;
         await state.WriteStateAsync();
+    }
+
+    public Task Notify(bool important)
+    {
+        return Task.CompletedTask;
     }
 }
