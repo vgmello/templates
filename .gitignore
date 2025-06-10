@@ -405,3 +405,6 @@ output-*/*
 
 # Wolverine Generated Code
 **/Internal/Generated/
+
+# Source Generator Generated Code
+**/Generated/

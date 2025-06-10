@@ -19,7 +19,7 @@ public class CreateCustomerValidator : AbstractValidator<CreateCashierCommand>
     }
 }
 
-public static class CreateCashierCommandHandler
+public static partial class CreateCashierCommandHandler
 {
     [DbParams]
     public partial record InsertCashierCommand(Guid CashierId, string Name, string? Email) : ICommand<int>;
@@ -45,6 +45,6 @@ public static class CreateCashierCommandHandler
 
     public static async Task<int> Handle(InsertCashierCommand command, NpgsqlDataSource dataSource, CancellationToken cancellationToken)
     {
-        return await dataSource.CallSp("billing.create_cashier", command.ToDbParams(), cancellationToken);
+        return await dataSource.CallSp("billing.create_cashier", command, cancellationToken);
     }
 }
