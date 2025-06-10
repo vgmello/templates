@@ -1,13 +1,10 @@
 // Copyright (c) ABCDEG. All rights reserved.
 
-using Operations.Extensions.Messaging;
-using Wolverine;
-
 namespace Accounting.Api.Ledgers;
 
 [ApiController]
 [Route("[controller]")]
-public class LedgersController(ILogger<LedgersController> logger, IMessageBus bus) : ControllerBase
+public class LedgersController(IMessageBus bus) : ControllerBase
 {
     [HttpGet("{id:guid}")]
     public async Task<ActionResult<Contracts.Ledgers.Models.Ledger>> GetLedger([FromRoute] Guid id)

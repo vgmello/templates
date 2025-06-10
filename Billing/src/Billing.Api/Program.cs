@@ -1,7 +1,5 @@
 // Copyright (c) ABCDEG. All rights reserved.
 
-using Billing;
-using Billing.Api;
 using JasperFx;
 using Operations.ServiceDefaults;
 using Operations.ServiceDefaults.Api;

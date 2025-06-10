@@ -2,8 +2,6 @@
 
 using Billing.Cashier.Grpc;
 using CashierModel = Billing.Cashier.Grpc.Models.Cashier;
-using Billing.Cashier.Grpc.Models;
-using Grpc.Core;
 
 namespace Billing.Api.Cashier;
 

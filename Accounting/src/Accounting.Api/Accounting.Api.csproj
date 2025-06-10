@@ -24,4 +24,10 @@
         <InternalsVisibleTo Include="Accounting.Tests"/>
     </ItemGroup>
 
+    <ItemGroup>
+      <Compile Update="Program.Public.cs">
+        <DependentUpon>Program.cs</DependentUpon>
+      </Compile>
+    </ItemGroup>
+
 </Project>

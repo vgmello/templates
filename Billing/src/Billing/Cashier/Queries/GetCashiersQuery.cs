@@ -14,7 +14,7 @@ public record GetCashiersQuery : IQuery<IEnumerable<GetCashiersQuery.Result>>
     [Range(0, int.MaxValue)]
     public int Offset { get; set; } = 0;
 
-    public record Result(Guid CashierId, string Name);
+    public record Result(Guid CashierId, string Name, string Email);
 }
 
 public static class GetCashiersQueryHandler

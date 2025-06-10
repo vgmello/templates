@@ -1,11 +1,10 @@
-using Billing.Contracts.Cashier.Models;
-using Billing.Cashier.Queries;
+namespace Billing.Api.Cashier.Mappers;
 
-namespace Billing.Cashier.Grpc.Models;
-
-[Riok.Mapperly.Abstractions.Mapper]
+[Mapper]
 public static partial class CashierMapper
 {
-    public static partial Cashier ToGrpc(this Billing.Contracts.Cashier.Models.Cashier source);
-    public static partial Cashier ToGrpc(this GetCashiersQuery.Result source);
+    [MapperIgnoreSource(nameof(Contracts.Cashier.Models.Cashier.CashierPayments))]
+    public static partial Billing.Cashier.Grpc.Models.Cashier ToGrpc(this Billing.Contracts.Cashier.Models.Cashier source);
+
+    public static partial Billing.Cashier.Grpc.Models.Cashier ToGrpc(this GetCashiersQuery.Result source);
 }
