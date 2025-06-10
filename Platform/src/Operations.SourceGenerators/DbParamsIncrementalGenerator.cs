@@ -97,10 +97,10 @@ public class DbParamsIncrementalGenerator : IIncrementalGenerator
             sb.AppendLine();
         }
 
-        // Add containing types
+        // Add containing types with their original accessibility
         foreach (var containingType in typeInfo.ContainingTypes)
         {
-            sb.AppendLine($"public {containingType}");
+            sb.AppendLine(containingType);
             sb.AppendLine("{");
         }
 
@@ -151,7 +151,8 @@ public class DbParamsIncrementalGenerator : IIncrementalGenerator
 
         // For containing types, we need "static partial" ordering, not "partial static"
         var modifiers = symbol.IsStatic ? "static partial" : "partial";
-        return $"{modifiers} {keyword} {symbol.Name}";
+        var accessibility = GetAccessibility(symbol);
+        return $"{accessibility} {modifiers} {keyword} {symbol.Name}";
     }
 
     private static string GetTargetTypeDeclaration(INamedTypeSymbol symbol)
@@ -213,6 +214,20 @@ public class DbParamsIncrementalGenerator : IIncrementalGenerator
         }
 
         return sb.ToString();
+    }
+
+    private static string GetAccessibility(INamedTypeSymbol symbol)
+    {
+        return symbol.DeclaredAccessibility switch
+        {
+            Accessibility.Public => "public",
+            Accessibility.Internal => "internal",
+            Accessibility.Protected => "protected",
+            Accessibility.Private => "private",
+            Accessibility.ProtectedAndInternal => "private protected",
+            Accessibility.ProtectedOrInternal => "protected internal",
+            _ => "private"
+        };
     }
 
     // Value-equatable record that contains only primitive/equatable data
