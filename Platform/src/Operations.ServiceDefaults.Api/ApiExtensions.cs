@@ -51,7 +51,7 @@ public static class ApiExtensions
         if (app.Environment.IsDevelopment())
         {
             app.MapOpenApi();
-            app.MapScalarApiReference();
+            app.MapScalarApiReference(options => options.WithTitle($"{app.Environment.ApplicationName} OpenAPI"));
             app.MapGrpcReflectionService();
         }
 

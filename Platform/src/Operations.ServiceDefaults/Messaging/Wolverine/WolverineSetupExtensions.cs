@@ -20,6 +20,8 @@ public static class WolverineSetupExtensions
     {
         if (!SkipServiceRegistration)
         {
+            builder.AddKeyedNpgsqlDataSource("ServiceBus");
+
             AddWolverineWithDefaults(builder.Services, builder.Configuration, configure);
         }
 

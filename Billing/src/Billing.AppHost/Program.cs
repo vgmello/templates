@@ -30,7 +30,6 @@ var orleans = builder
 
 builder
     .AddProject<Projects.Billing_Api>("billing-api")
-    .WithEnvironment("ServiceBus__ConnectionString", serviceBusDb)
     .WithReference(database)
     .WithReference(serviceBusDb)
     .WaitForCompletion(liquibase)
@@ -38,7 +37,6 @@ builder
 
 builder
     .AddProject<Projects.Billing_BackOffice>("billing-backoffice")
-    .WithEnvironment("ServiceBus__ConnectionString", serviceBusDb)
     .WithReference(database)
     .WithReference(serviceBusDb)
     .WaitForCompletion(liquibase)
@@ -46,7 +44,6 @@ builder
 
 builder
     .AddProject<Projects.Billing_BackOffice_Orleans>("billing-backoffice-orleans")
-    .WithEnvironment("ServiceBus__ConnectionString", serviceBusDb)
     .WithEnvironment("Orleans__UseLocalhostClustering", "false")
     .WithEnvironment("Aspire__Azure__Data__Tables__DisableHealthChecks", "true")
     .WithReference(orleans)
@@ -54,6 +51,11 @@ builder
     .WithReference(serviceBusDb)
     .WaitForCompletion(liquibase)
     .WithReplicas(3)
+    .WithUrlForEndpoint("https", url =>
+    {
+        url.DisplayText = "Dashboard";
+        url.Url = "/dashboard";
+    })
     .WithHttpHealthCheck("/health/internal");
 
 await builder.Build().RunAsync();

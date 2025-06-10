@@ -16,6 +16,10 @@ public static class OrleansExtensions
             builder.AddKeyedAzureTableClient("OrleansGrainState");
         }
 
+        builder.Services
+            .AddOpenTelemetry()
+            .WithMetrics(opt => opt.AddMeter("Microsoft.Orleans"));
+
         builder.UseOrleans(siloBuilder =>
         {
             if (useLocalCluster)

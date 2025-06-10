@@ -33,14 +33,13 @@ public static class OpenTelemetrySetupExtensions
                 .AddMeter(activitySourceName)
                 .AddAspNetCoreInstrumentation()
                 .AddHttpClientInstrumentation()
-                .AddRuntimeInstrumentation())
+                .AddRuntimeInstrumentation()
+                .AddMeter(nameof(Wolverine)))
             .WithTracing(tracing => tracing
                 .AddSource(activitySourceName)
                 .AddAspNetCoreInstrumentation()
                 .AddHttpClientInstrumentation()
-                // Uncomment the following line to enable gRPC instrumentation (requires the OpenTelemetry.Instrumentation.GrpcNetClient package)
-                //.AddGrpcClientInstrumentation()
-                .AddSource("Wolverine"));
+                .AddSource(nameof(Wolverine)));
 
         return builder;
     }
