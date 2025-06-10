@@ -2,6 +2,7 @@
 
 using Billing.Cashier.Grpc;
 using CashierModel = Billing.Cashier.Grpc.Models.Cashier;
+using Billing.Cashier.Grpc.Models;
 using Grpc.Core;
 
 namespace Billing.Api.Cashier;
@@ -12,12 +13,7 @@ public class CashierService(IMessageBus bus) : CashiersService.CashiersServiceBa
     {
         var result = await bus.InvokeQueryAsync(new GetCashierQuery(Guid.Parse(request.Id)), context.CancellationToken);
 
-        return new CashierModel
-        {
-            CashierId = result.CashierId.ToString(),
-            Name = result.Name,
-            Email = result.Email
-        };
+        return result.ToGrpc();
     }
 
     public override async Task<GetCashiersResponse> GetCashiers(GetCashiersRequest request, ServerCallContext context)
@@ -25,11 +21,7 @@ public class CashierService(IMessageBus bus) : CashiersService.CashiersServiceBa
         var query = new GetCashiersQuery { Limit = request.Limit, Offset = request.Offset };
         var cashiers = await bus.InvokeQueryAsync(query, context.CancellationToken);
 
-        var cashiersGrpc = cashiers.Select(c => new CashierModel
-        {
-            CashierId = c.CashierId.ToString(),
-            Name = c.Name
-        });
+        var cashiersGrpc = cashiers.Select(c => c.ToGrpc());
 
         return new GetCashiersResponse
         {
@@ -43,12 +35,7 @@ public class CashierService(IMessageBus bus) : CashiersService.CashiersServiceBa
         var result = await bus.InvokeCommandAsync(command, context.CancellationToken);
 
         return result.Match(
-            cashier => new CashierModel
-            {
-                CashierId = cashier.CashierId.ToString(),
-                Name = cashier.Name,
-                Email = cashier.Email
-            },
+            cashier => cashier.ToGrpc(),
             errors => throw new RpcException(new Status(StatusCode.InvalidArgument, string.Join("; ", errors))));
     }
 }

@@ -2,6 +2,7 @@
 
 using Accounting.Ledgers.Grpc;
 using LedgerModel = Accounting.Ledgers.Grpc.Models.Ledger;
+using Accounting.Ledgers.Grpc.Models;
 using Accounting.Contracts.Ledgers.Models;
 using Operations.Extensions.Messaging;
 using Wolverine;
@@ -13,14 +14,9 @@ public class LedgerService(IMessageBus bus) : LedgersService.LedgersServiceBase
 {
     public override async Task<LedgerModel> GetLedger(GetLedgerRequest request, ServerCallContext context)
     {
-        var result = await bus.InvokeAsync<Ledger>(new GetLedgerQuery(Guid.Parse(request.Id)), context.CancellationToken);
+        var result = await bus.InvokeAsync<Accounting.Contracts.Ledgers.Models.Ledger>(new GetLedgerQuery(Guid.Parse(request.Id)), context.CancellationToken);
 
-        return new LedgerModel
-        {
-            LedgerId = result.LedgerId.ToString(),
-            ClientId = result.ClientId.ToString(),
-            LedgerType = (int)result.LedgerType
-        };
+        return result.ToGrpc();
     }
 
     public override async Task<GetLedgersResponse> GetLedgers(GetLedgersRequest request, ServerCallContext context)
@@ -29,12 +25,7 @@ public class LedgerService(IMessageBus bus) : LedgersService.LedgersServiceBase
         var ledgers = await bus.InvokeAsync<IEnumerable<GetLedgersQuery.Result>>(query, context.CancellationToken);
 
         var response = new GetLedgersResponse();
-        response.Ledgers.AddRange(ledgers.Select(c => new LedgerModel
-        {
-            LedgerId = c.LedgerId.ToString(),
-            ClientId = c.ClientId.ToString(),
-            LedgerType = (int)c.LedgerType
-        }));
+        response.Ledgers.AddRange(ledgers.Select(c => c.ToGrpc()));
 
         return response;
     }
@@ -45,12 +36,7 @@ public class LedgerService(IMessageBus bus) : LedgersService.LedgersServiceBase
         var result = await bus.InvokeCommandAsync(command, context.CancellationToken);
 
         return result.Match(
-            ledger => new LedgerModel
-            {
-                LedgerId = ledger.LedgerId.ToString(),
-                ClientId = ledger.ClientId.ToString(),
-                LedgerType = (int)ledger.LedgerType
-            },
+            ledger => ledger.ToGrpc(),
             errors => throw new RpcException(new Status(StatusCode.InvalidArgument, string.Join("; ", errors))));
     }
 }

@@ -8,6 +8,8 @@
         <PackageReference Include="FluentValidation" />
         <PackageReference Include="OneOf" />
         <PackageReference Include="OneOf.SourceGenerator" />
+        <PackageReference Include="Dapper" />
+        <PackageReference Include="Npgsql" />
         <PackageReference Include="WolverineFx" />
     </ItemGroup>
 

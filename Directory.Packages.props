@@ -65,6 +65,7 @@
     <PackageVersion Include="WolverineFx.Http.FluentValidation" Version="3.10.4" />
     <PackageVersion Include="WolverineFx.Kafka" Version="4.2.0" />
     <PackageVersion Include="WolverineFx.Postgresql" Version="4.2.0" />
+    <PackageVersion Include="Riok.Mapperly" Version="4.2.1" />
     <PackageVersion Include="xunit.runner.visualstudio" Version="3.1.1">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
