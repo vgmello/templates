@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
     <ItemGroup>
         <None Include="Operations.Extensions.props" Pack="true" PackagePath="build/" />
@@ -11,6 +11,10 @@
         <PackageReference Include="Dapper" />
         <PackageReference Include="Npgsql" />
         <PackageReference Include="WolverineFx" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\Operations.SourceGenerators\Operations.SourceGenerators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
     </ItemGroup>
 
 </Project>

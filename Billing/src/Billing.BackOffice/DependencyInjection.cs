@@ -1,6 +1,6 @@
 // Copyright (c) ABCDEG. All rights reserved.
 
-using Dapper;
+using Operations.Extensions.Dapper;
 
 namespace Billing.BackOffice;
 
@@ -8,7 +8,7 @@ public static class DependencyInjection
 {
     public static IHostApplicationBuilder AddApplicationServices(this IHostApplicationBuilder builder)
     {
-        DefaultTypeMap.MatchNamesWithUnderscores = true;
+        SnakeCaseMappingExtensions.UseSnakeCaseMapping();
 
         builder.AddNpgsqlDataSource("BillingDb");
 

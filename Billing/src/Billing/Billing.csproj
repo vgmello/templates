@@ -2,6 +2,7 @@
 
     <ItemGroup>
         <ProjectReference Include="..\..\..\Platform\src\Operations.Extensions\Operations.Extensions.csproj"/>
+        <ProjectReference Include="..\..\..\Platform\src\Operations.SourceGenerators\Operations.SourceGenerators.csproj" />
         <ProjectReference Include="..\Billing.Contracts\Billing.Contracts.csproj"/>
         <PackageReference Include="Dapper"/>
         <PackageReference Include="Npgsql"/>

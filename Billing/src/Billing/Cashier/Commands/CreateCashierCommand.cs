@@ -2,7 +2,7 @@
 
 using Billing.Contracts.Cashier.IntegrationEvents;
 using CashierModel = Billing.Contracts.Cashier.Models.Cashier;
-using Dapper;
+using Operations.Extensions.Dapper;
 using Npgsql;
 
 namespace Billing.Cashier.Commands;
@@ -21,7 +21,8 @@ public class CreateCustomerValidator : AbstractValidator<CreateCashierCommand>
 
 public static class CreateCashierCommandHandler
 {
-    public record InsertCashierCommand(Guid CashierId, string Name, string? Email) : ICommand<int>;
+    [DbParams]
+    public partial record InsertCashierCommand(Guid CashierId, string Name, string? Email) : ICommand<int>;
 
     public static async Task<(Result<CashierModel>, CashierCreatedEvent)> Handle(
         CreateCashierCommand command, IMessageBus messaging, CancellationToken cancellationToken)
@@ -44,10 +45,6 @@ public static class CreateCashierCommandHandler
 
     public static async Task<int> Handle(InsertCashierCommand command, NpgsqlDataSource dataSource, CancellationToken cancellationToken)
     {
-        await using var connection = await dataSource.OpenConnectionAsync(cancellationToken);
-
-        var affectedRecords = await connection.ExecuteAsync("billing.create_cashier", command, commandType: CommandType.StoredProcedure);
-
-        return affectedRecords;
+        return await dataSource.CallSp("billing.create_cashier", command.ToDbParams(), cancellationToken);
     }
 }
