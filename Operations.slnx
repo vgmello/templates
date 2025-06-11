@@ -31,7 +31,7 @@
     <Project Path="Platform\src\Operations.Extensions\Operations.Extensions.csproj" Type="Classic C#" />
     <Project Path="Platform\src\Operations.ServiceDefaults.Api\Operations.ServiceDefaults.Api.csproj" Type="Classic C#" />
     <Project Path="Platform\src\Operations.ServiceDefaults\Operations.ServiceDefaults.csproj" Type="Classic C#" />
-    <Project Path="Platform\src\Operations.SourceGenerators\Operations.SourceGenerators.csproj" Type="Classic C#" />
+    <Project Path="Platform\src\Operations.Extensions.SourceGenerators\Operations.Extensions.SourceGenerators.csproj" Type="Classic C#" />
   </Folder>
   <Folder Name="/Solution Items/">
     <File Path="compose.yaml" />
