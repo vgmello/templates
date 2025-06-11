@@ -2,9 +2,9 @@
 
 namespace Operations.Extensions.Messaging;
 
-// Rule: Unused type parameters should be removed
-// Reason: This is a marker interface
-// ReSharper disable UnusedTypeParameter
-#pragma warning disable S2326
-
-public interface ICommand<TResult>;
+/// <summary>
+/// Represents a command that does not produce a result.
+/// </summary>
+public interface ICommand
+{
+}
