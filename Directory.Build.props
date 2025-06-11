@@ -8,6 +8,8 @@
         <CodeAnalysisRuleSet>..\..\..\Operations.ruleset</CodeAnalysisRuleSet>
         <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
         <NoWarn>$(NoWarn);CS1591</NoWarn>
+        <OperationsDbUseStoredProcedures>true</OperationsDbUseStoredProcedures>
+        <DefineConstants Condition="'$(OperationsDbUseStoredProcedures)' == 'false'">$(DefineConstants);OPERATIONS_DB_USE_TEXT</DefineConstants>
     </PropertyGroup>
 
     <ItemGroup>

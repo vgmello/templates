@@ -133,3 +133,30 @@ This design allows the source generator to be:
 - Packaged as a NuGet package if needed
 - Developed and tested independently
 - Used without adding runtime dependencies to consuming projects
+
+## DbCommand Attribute
+
+`DbCommandAttribute` complements `[DbParams]` by embedding database call details directly on a command type. Apply it to the same record or class used for parameters.
+
+```csharp
+[DbParams]
+[DbCommand("billing.create_cashier")]
+public partial record InsertCashierCommand(Guid CashierId, string Name, string? Email);
+```
+
+By default the attribute assumes a stored procedure call. Pass `false` to execute the command text directly:
+
+```csharp
+[DbCommand("INSERT INTO cashiers ...", useStoredProcedure: false)]
+```
+
+The default behaviour can be changed for a project by setting the
+`OperationsDbUseStoredProcedures` property in the `.csproj` or
+`Directory.Build.props` file.
+
+When the attribute is present, the source generator emits a `Handle`
+method in the containing static partial class. The generated method takes
+the command instance, an `NpgsqlDataSource` and an optional
+`CancellationToken`, then executes the stored procedure or SQL text using
+Dapper. This removes the need for boilerplate database handler methods.
+
