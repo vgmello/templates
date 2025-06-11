@@ -13,7 +13,7 @@ using Operations.ServiceDefaults.Api.EndpointFilters;
 
 namespace Operations.ServiceDefaults.HealthChecks;
 
-public static class HealthCheckSetupExtensions
+public static partial class HealthCheckSetupExtensions
 {
     private const string HealthCheckLogName = "HealthChecks";
 
@@ -114,7 +114,7 @@ public static class HealthCheckSetupExtensions
     {
         if (report.Status is HealthStatus.Healthy)
         {
-            logger.LogDebug("Health check response: {@HealthReport}", report);
+            LogSuccessfulHealthCheck(logger, report);
 
             return;
         }
@@ -124,7 +124,7 @@ public static class HealthCheckSetupExtensions
         var failedHealthReport = report.Entries.Select(e =>
             new { e.Key, e.Value.Status, e.Value.Duration, Error = e.Value.Exception?.Message });
 
-        logger.Log(logLevel, "Health check failed: {FailedHealthReport}", failedHealthReport);
+        LogFailedHealthCheck(logger, logLevel, failedHealthReport);
     }
 
     private static Task WriteReportObject(HttpContext context, HealthReport report)
@@ -156,4 +156,10 @@ public static class HealthCheckSetupExtensions
 
         return loggerFactory.CreateLogger(HealthCheckLogName);
     }
+
+    [LoggerMessage(EventId = 1, Level = LogLevel.Debug, Message = "Health check response: {@HealthReport}")]
+    private static partial void LogSuccessfulHealthCheck(ILogger logger, HealthReport healthReport);
+
+    [LoggerMessage(EventId = 2, Message = "Health check failed: {FailedHealthReport}")]
+    private static partial void LogFailedHealthCheck(ILogger logger, LogLevel level, object failedHealthReport);
 }
