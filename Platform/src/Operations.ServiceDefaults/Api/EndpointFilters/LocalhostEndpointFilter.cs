@@ -14,7 +14,7 @@ public partial class LocalhostEndpointFilter(ILogger logger) : IEndpointFilter
 
         if (remoteIp is null || !IPAddress.IsLoopback(remoteIp))
         {
-            logger.LogRemoteRequestForLocalEndpoint(LogLevel.Debug, remoteIp);
+            LogRemoteRequestForLocalEndpoint(logger, remoteIp);
 
             return Results.Unauthorized();
         }
@@ -22,4 +22,9 @@ public partial class LocalhostEndpointFilter(ILogger logger) : IEndpointFilter
         return await next(context);
     }
 
+    [LoggerMessage(
+        EventId = 1,
+        Level = LogLevel.Debug,
+        Message = "Remote request received for a local-only endpoint, returning unauthorized. IP address: {RemoteIpAddress}")]
+    private static partial void LogRemoteRequestForLocalEndpoint(ILogger logger, IPAddress? remoteIpAddress);
 }
