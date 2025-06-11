@@ -114,17 +114,22 @@ public static class HealthCheckSetupExtensions
     {
         if (report.Status is HealthStatus.Healthy)
         {
-            logger.LogDebug("Health check response: {@HealthReport}", report);
+            logger.LogHealthCheckResponseHealthy(LogLevel.Debug, report);
 
             return;
         }
 
-        var logLevel = report.Status == HealthStatus.Unhealthy ? LogLevel.Error : LogLevel.Warning;
-
         var failedHealthReport = report.Entries.Select(e =>
             new { e.Key, e.Value.Status, e.Value.Duration, Error = e.Value.Exception?.Message });
 
-        logger.Log(logLevel, "Health check failed: {FailedHealthReport}", failedHealthReport);
+        if (report.Status == HealthStatus.Unhealthy)
+        {
+            logger.LogHealthCheckFailedError(LogLevel.Error, failedHealthReport);
+        }
+        else
+        {
+            logger.LogHealthCheckFailedWarning(LogLevel.Warning, failedHealthReport);
+        }
     }
 
     private static Task WriteReportObject(HttpContext context, HealthReport report)
