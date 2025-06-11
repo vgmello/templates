@@ -1,8 +1,8 @@
+using Microsoft.CodeAnalysis;
 using System.Collections.Immutable;
 using System.Text;
-using Microsoft.CodeAnalysis;
 
-namespace Operations.SourceGenerators;
+namespace Operations.Extensions.SourceGenerators;
 
 [Generator]
 public class DbParamsIncrementalGenerator : IIncrementalGenerator
@@ -60,7 +60,7 @@ public class DbParamsIncrementalGenerator : IIncrementalGenerator
         return new TypeInfo(
             Namespace: typeSymbol.ContainingNamespace.IsGlobalNamespace ? null : typeSymbol.ContainingNamespace.ToDisplayString(),
             TypeName: typeSymbol.Name,
-            TypeDeclaration: GetTargetTypeDeclaration(typeSymbol),
+            TypeDeclaration: GetTypeDeclaration(typeSymbol),
             ContainingTypes: containingTypes,
             Properties: properties
         );
@@ -97,13 +97,13 @@ public class DbParamsIncrementalGenerator : IIncrementalGenerator
         }
 
         // Add the main type declaration
-        sb.AppendLine($"partial {typeInfo.TypeDeclaration} : Operations.Extensions.Dapper.IDbParamsProvider");
+        sb.AppendLine($"{typeInfo.TypeDeclaration} : global::Operations.Extensions.Dapper.IDbParamsProvider");
         sb.AppendLine("{");
 
         // Add ToDbParams method
-        sb.AppendLine("    public Dapper.DynamicParameters ToDbParams()");
+        sb.AppendLine("    public global::Dapper.DynamicParameters ToDbParams()");
         sb.AppendLine("    {");
-        sb.AppendLine("        var p = new Dapper.DynamicParameters();");
+        sb.AppendLine("        var p = new global::Dapper.DynamicParameters();");
 
         foreach (var propertyName in typeInfo.Properties)
         {
@@ -126,30 +126,6 @@ public class DbParamsIncrementalGenerator : IIncrementalGenerator
 
     private static string GetTypeDeclaration(INamedTypeSymbol symbol)
     {
-        string keyword;
-
-        if (symbol.IsRecord)
-        {
-            keyword = symbol.IsValueType ? "record struct" : "record";
-        }
-        else
-        {
-            keyword = symbol.TypeKind switch
-            {
-                TypeKind.Struct => "struct",
-                TypeKind.Interface => "interface",
-                _ => "class"
-            };
-        }
-
-        var modifiers = symbol.IsStatic ? "static partial" : "partial";
-        var accessibility = GetAccessibility(symbol);
-
-        return $"{accessibility} {modifiers} {keyword} {symbol.Name}";
-    }
-
-    private static string GetTargetTypeDeclaration(INamedTypeSymbol symbol)
-    {
         var keyword = symbol.IsRecord switch
         {
             true => symbol.IsValueType ? "record struct" : "record",
@@ -161,7 +137,10 @@ public class DbParamsIncrementalGenerator : IIncrementalGenerator
             }
         };
 
-        return $"{keyword} {symbol.Name}";
+        var modifiers = symbol.IsStatic ? "static partial" : "partial";
+        var accessibility = GetAccessibility(symbol);
+
+        return $"{accessibility} {modifiers} {keyword} {symbol.Name}";
     }
 
     private static string GetSafeFileName(TypeInfo typeInfo)

@@ -2,8 +2,8 @@
   <Folder Name="/Accounting/">
     <Project Path="Accounting\src\Accounting.Api\Accounting.Api.csproj" Type="Classic C#" />
     <Project Path="Accounting\src\Accounting.AppHost\Accounting.AppHost.csproj" Type="Classic C#" />
-    <Project Path="Accounting\src\Accounting.BackOffice\Accounting.BackOffice.csproj" Type="Classic C#" />
     <Project Path="Accounting\src\Accounting.BackOffice.Orleans\Accounting.BackOffice.Orleans.csproj" Type="Classic C#" />
+    <Project Path="Accounting\src\Accounting.BackOffice\Accounting.BackOffice.csproj" Type="Classic C#" />
     <Project Path="Accounting\src\Accounting.Contracts\Accounting.Contracts.csproj" Type="Classic C#" />
     <Project Path="Accounting\src\Accounting\Accounting.csproj" Type="Classic C#" />
   </Folder>
@@ -16,8 +16,8 @@
   <Folder Name="/Billing/">
     <Project Path="Billing\src\Billing.Api\Billing.Api.csproj" Type="Classic C#" />
     <Project Path="Billing\src\Billing.AppHost\Billing.AppHost.csproj" Type="Classic C#" />
-    <Project Path="Billing\src\Billing.BackOffice\Billing.BackOffice.csproj" Type="Classic C#" />
     <Project Path="Billing\src\Billing.BackOffice.Orleans\Billing.BackOffice.Orleans.csproj" Type="Classic C#" />
+    <Project Path="Billing\src\Billing.BackOffice\Billing.BackOffice.csproj" Type="Classic C#" />
     <Project Path="Billing\src\Billing.Contracts\Billing.Contracts.csproj" Type="Classic C#" />
     <Project Path="Billing\src\Billing\Billing.csproj" Type="Classic C#" />
   </Folder>
@@ -28,10 +28,13 @@
     <Project Path="Billing\test\Billing.Tests\Billing.Tests.csproj" Type="Classic C#" />
   </Folder>
   <Folder Name="/Platform/">
+    <Project Path="Platform\src\Operations.Extensions.SourceGenerators\Operations.Extensions.SourceGenerators.csproj" Type="Classic C#" />
     <Project Path="Platform\src\Operations.Extensions\Operations.Extensions.csproj" Type="Classic C#" />
     <Project Path="Platform\src\Operations.ServiceDefaults.Api\Operations.ServiceDefaults.Api.csproj" Type="Classic C#" />
     <Project Path="Platform\src\Operations.ServiceDefaults\Operations.ServiceDefaults.csproj" Type="Classic C#" />
-    <Project Path="Platform\src\Operations.Extensions.SourceGenerators\Operations.Extensions.SourceGenerators.csproj" Type="Classic C#" />
+  </Folder>
+  <Folder Name="/Platform/Tests/">
+    <Project Path="Platform\test\Operations.Extensions.Tests\Operations.Extensions.Tests.csproj" Type="Classic C#" />
   </Folder>
   <Folder Name="/Solution Items/">
     <File Path="compose.yaml" />
