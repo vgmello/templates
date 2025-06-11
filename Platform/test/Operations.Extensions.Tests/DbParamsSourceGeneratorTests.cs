@@ -1,5 +1,6 @@
 using Dapper;
 using Operations.Extensions.Dapper;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Operations.Extensions.Tests;
 
@@ -9,6 +10,7 @@ public partial record SimpleTestCommand(string Name, int Value);
 [DbParams]
 public partial class TestClassCommand
 {
+    [Column("Test")]
     public string FirstName { get; set; } = string.Empty;
     public string LastName { get; set; } = string.Empty;
     public DateTime CreatedAt { get; set; }
