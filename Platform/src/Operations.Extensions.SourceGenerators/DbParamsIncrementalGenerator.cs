@@ -8,6 +8,7 @@ namespace Operations.Extensions.SourceGenerators;
 public class DbParamsIncrementalGenerator : IIncrementalGenerator
 {
     private const string DbParamsAttributeName = "Operations.Extensions.Dapper.DbParamsAttribute";
+    private const string ColumnAttributeName = "System.ComponentModel.DataAnnotations.Schema.ColumnAttribute";
 
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
@@ -36,8 +37,8 @@ public class DbParamsIncrementalGenerator : IIncrementalGenerator
         var properties = typeSymbol.GetMembers()
             .OfType<IPropertySymbol>()
             .Where(static p => p.DeclaredAccessibility == Accessibility.Public)
-            .Select(static p => p.Name)
-            .OrderBy(static x => x) // Ensure deterministic ordering
+            .Select(p => new PropertyInfo(p.Name, GetParameterName(p)))
+            .OrderBy(static x => x.PropertyName) // Ensure deterministic ordering
             .ToImmutableArray();
 
         // Build containing type hierarchy as strings
@@ -105,10 +106,9 @@ public class DbParamsIncrementalGenerator : IIncrementalGenerator
         sb.AppendLine("    {");
         sb.AppendLine("        var p = new global::Dapper.DynamicParameters();");
 
-        foreach (var propertyName in typeInfo.Properties)
+        foreach (var property in typeInfo.Properties)
         {
-            var parameterName = ToSnakeCase(propertyName);
-            sb.AppendLine($"        p.Add(\"{parameterName}\", {propertyName});");
+            sb.AppendLine($"        p.Add(\"{property.ParameterName}\", {property.PropertyName});");
         }
 
         sb.AppendLine("        return p;");
@@ -181,6 +181,28 @@ public class DbParamsIncrementalGenerator : IIncrementalGenerator
         return sb.ToString();
     }
 
+    private static string GetParameterName(IPropertySymbol property)
+    {
+        foreach (var attr in property.GetAttributes())
+        {
+            if (attr.AttributeClass?.ToDisplayString() == ColumnAttributeName)
+            {
+                if (attr.ConstructorArguments.Length > 0 && attr.ConstructorArguments[0].Value is string ctorName && !string.IsNullOrWhiteSpace(ctorName))
+                    return ctorName;
+
+                foreach (var named in attr.NamedArguments)
+                {
+                    if (named.Key == "Name" && named.Value.Value is string namedName && !string.IsNullOrWhiteSpace(namedName))
+                        return namedName;
+                }
+
+                break;
+            }
+        }
+
+        return ToSnakeCase(property.Name);
+    }
+
     private static string GetAccessibility(INamedTypeSymbol symbol)
     {
         return symbol.DeclaredAccessibility switch
@@ -200,6 +222,8 @@ public class DbParamsIncrementalGenerator : IIncrementalGenerator
         string TypeName,
         string TypeDeclaration,
         ImmutableArray<string> ContainingTypes,
-        ImmutableArray<string> Properties
+        ImmutableArray<PropertyInfo> Properties
     );
+
+    private readonly record struct PropertyInfo(string PropertyName, string ParameterName);
 }
