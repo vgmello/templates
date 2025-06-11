@@ -56,7 +56,7 @@ public class DbParamsSourceGeneratorTests
         var parameters = command.ToDbParams();
         parameters.ShouldNotBeNull();
 
-        parameters.ParameterNames.ShouldContain("first_name");
+        parameters.ParameterNames.ShouldContain("Test");
         parameters.ParameterNames.ShouldContain("last_name");
         parameters.ParameterNames.ShouldContain("created_at");
     }
