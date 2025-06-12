@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Data;
 using System.Linq;
 using System.Text;
+using System.Collections.Generic; // For List<Diagnostic>
 
 namespace Operations.Extensions.SourceGenerators;
 
@@ -16,16 +17,23 @@ public class DbCommandSourceGenerator : IIncrementalGenerator
 {
     private const string DbCommandAttributeFullName = "Operations.Extensions.Dapper.DbCommandAttribute";
     private const string ColumnAttributeFullName = "System.ComponentModel.DataAnnotations.Schema.ColumnAttribute";
-    private const string ICommandFullName = "Operations.Extensions.Messaging.ICommand";
+    // ICommandFullName is removed as non-generic ICommand is removed.
     private const string ICommandOfTResultFullName = "Operations.Extensions.Messaging.ICommand`1";
 
-    // Diagnostic Descriptor
     private static readonly DiagnosticDescriptor NonQueryWithGenericResultWarning = new DiagnosticDescriptor(
         id: "DBCOMMANDGEN001",
         title: "NonQuery attribute used with generic ICommand<TResult>",
         messageFormat: "DbCommandAttribute's NonQuery property is true for command '{0}' which implements ICommand<{1}>. This is unusual as NonQuery typically implies no data is returned. The generated handler will execute the command and attempt to return default({1}).",
         category: "DbCommandSourceGenerator",
         DiagnosticSeverity.Warning,
+        isEnabledByDefault: true);
+
+    private static readonly DiagnosticDescriptor CommandMissingInterfaceError = new DiagnosticDescriptor(
+        id: "DBCOMMANDGEN002",
+        title: "Command missing ICommand<TResult> interface",
+        messageFormat: "Class '{0}' is decorated with DbCommandAttribute specifying 'sp' or 'sql' for handler generation, but it does not implement ICommand<TResult>. Handler cannot be generated without a result type.",
+        category: "DbCommandSourceGenerator",
+        DiagnosticSeverity.Error,
         isEnabledByDefault: true);
 
     public void Initialize(IncrementalGeneratorInitializationContext context)
@@ -40,9 +48,18 @@ public class DbCommandSourceGenerator : IIncrementalGenerator
         context.RegisterSourceOutput(commandTypes, static (spc, typeInfo) =>
         {
             if (typeInfo is null) return;
-            // Pass SourceProductionContext to ExtractTypeInfo for diagnostic reporting if needed,
-            // or report diagnostics directly in GenerateHandlerPart.
-            // For now, GenerateHandlerPart will handle its own diagnostics.
+
+            foreach (var diagnostic in typeInfo.DiagnosticsToReport)
+            {
+                spc.ReportDiagnostic(diagnostic);
+            }
+
+            // Only proceed with generation if there are no errors
+            if (typeInfo.DiagnosticsToReport.Any(d => d.Severity == DiagnosticSeverity.Error))
+            {
+                return;
+            }
+
             GenerateDbOpsPart(spc, typeInfo);
             GenerateHandlerPart(spc, typeInfo);
         });
@@ -59,31 +76,25 @@ public class DbCommandSourceGenerator : IIncrementalGenerator
         if (dbCommandAttribute == null)
             return null;
 
+        var diagnostics = new List<Diagnostic>();
+
         string? sp = null;
         string? sql = null;
-        bool useSnakeCase = false; // Default from attribute constructor
-        bool returnsAffectedRecords = true; // Default from attribute constructor
-        bool nonQueryAttribute = false; // Default from attribute constructor
+        bool useSnakeCase = false;
+        bool nonQueryAttribute = true;
 
-        // DbCommandAttribute constructor: DbCommandAttribute(string? sp = null, string? sql = null, bool useSnakeCase = false, bool returnsAffectedRecords = true, bool nonQuery = false)
-        // Arguments are positional and resolved by Roslyn, including their default values if not specified by user.
         if (dbCommandAttribute.ConstructorArguments.Length > 0 && dbCommandAttribute.ConstructorArguments[0].Value is string spVal) sp = spVal;
         if (dbCommandAttribute.ConstructorArguments.Length > 1 && dbCommandAttribute.ConstructorArguments[1].Value is string sqlVal) sql = sqlVal;
         if (dbCommandAttribute.ConstructorArguments.Length > 2 && dbCommandAttribute.ConstructorArguments[2].Value is bool uscVal) useSnakeCase = uscVal;
-        if (dbCommandAttribute.ConstructorArguments.Length > 3 && dbCommandAttribute.ConstructorArguments[3].Value is bool rarVal) returnsAffectedRecords = rarVal;
-        if (dbCommandAttribute.ConstructorArguments.Length > 4 && dbCommandAttribute.ConstructorArguments[4].Value is bool nqVal) nonQueryAttribute = nqVal;
+        if (dbCommandAttribute.ConstructorArguments.Length > 3 && dbCommandAttribute.ConstructorArguments[3].Value is bool nqVal) nonQueryAttribute = nqVal;
 
-        // Also check NamedArguments, as user could specify them by name, which might override positional defaults
-        // if the attribute was constructed that way (though less common for full-constructor attributes).
-        // For an attribute with all-optional constructor args, named args are common.
-        foreach (var arg in dbCommandAttribute.NamedArguments) // This path is less likely if all args are constructor args
+        foreach (var arg in dbCommandAttribute.NamedArguments)
         {
             switch (arg.Key)
             {
                 case "Sp": sp = arg.Value.Value as string ?? sp; break;
                 case "Sql": sql = arg.Value.Value as string ?? sql; break;
                 case "UseSnakeCase": if (arg.Value.Value is bool bVal) useSnakeCase = bVal; break;
-                case "ReturnsAffectedRecords": if (arg.Value.Value is bool rVal) returnsAffectedRecords = rVal; break;
                 case "NonQuery": if (arg.Value.Value is bool nqVal) nonQueryAttribute = nqVal; break;
             }
         }
@@ -110,7 +121,6 @@ public class DbCommandSourceGenerator : IIncrementalGenerator
 
         string? commandResultTypeFullName = null;
         string? genericArgumentResultTypeFullName = null;
-        bool isNonQueryType = false; // From ICommand interface
         bool isEnumerableResult = false;
 
         var iCommandOfTResultInterface = typeSymbol.AllInterfaces.FirstOrDefault(i =>
@@ -128,20 +138,17 @@ public class DbCommandSourceGenerator : IIncrementalGenerator
                 genericArgumentResultTypeFullName = enumerableTypeArg.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
             }
         }
-        else
+        else if (!string.IsNullOrWhiteSpace(sp) || !string.IsNullOrWhiteSpace(sql))
         {
-            var iCommandInterface = typeSymbol.AllInterfaces.FirstOrDefault(i =>
-                i.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat) == $"global::{ICommandFullName}");
-            if (iCommandInterface != null)
-            {
-                isNonQueryType = true;
-            }
+            // Handler is expected, but ICommand<TResult> is missing.
+            var diagnostic = Diagnostic.Create(CommandMissingInterfaceError, typeSymbol.Locations.FirstOrDefault() ?? Location.None, typeSymbol.Name);
+            diagnostics.Add(diagnostic);
         }
 
         var containingTypes = GetContainingTypeDeclarations(typeSymbol);
 
         return new TypeInfo(
-            Symbol: typeSymbol, // Store symbol for location in diagnostic
+            Symbol: typeSymbol,
             Namespace: typeSymbol.ContainingNamespace.IsGlobalNamespace ? null : typeSymbol.ContainingNamespace.ToDisplayString(),
             TypeName: typeSymbol.Name,
             TypeDeclaration: GetTypeDeclarationSyntax(typeSymbol),
@@ -149,18 +156,19 @@ public class DbCommandSourceGenerator : IIncrementalGenerator
             Sp: sp,
             Sql: sql,
             UseSnakeCase: useSnakeCase,
-            ReturnsAffectedRecords: returnsAffectedRecords,
-            IsNonQueryAttribute: nonQueryAttribute, // New field
+            IsNonQueryAttribute: nonQueryAttribute,
             Properties: properties,
             CommandResultTypeFullName: commandResultTypeFullName,
             GenericArgumentResultTypeFullName: genericArgumentResultTypeFullName,
-            IsNonQueryType: isNonQueryType,
-            IsEnumerableResult: isEnumerableResult
+            // IsNonQueryType removed
+            IsEnumerableResult: isEnumerableResult,
+            DiagnosticsToReport: diagnostics.ToImmutableList() // Add diagnostics list
         );
     }
 
     private static void GenerateDbOpsPart(SourceProductionContext spc, TypeInfo typeInfo)
     {
+        // This part is always generated if the attribute is present.
         var sourceBuilder = new StringBuilder();
         sourceBuilder.AppendLine("// <auto-generated/>");
         sourceBuilder.AppendLine("#nullable enable");
@@ -200,12 +208,14 @@ public class DbCommandSourceGenerator : IIncrementalGenerator
     private static void GenerateHandlerPart(SourceProductionContext spc, TypeInfo typeInfo)
     {
         if (string.IsNullOrWhiteSpace(typeInfo.Sp) && string.IsNullOrWhiteSpace(typeInfo.Sql))
-            return;
+            return; // No handler if Sp or Sql is not provided
 
-        if (!typeInfo.IsNonQueryType && typeInfo.CommandResultTypeFullName == null)
+        // If CommandResultTypeFullName is null, it means ICommand<TResult> was not found.
+        // An error diagnostic DBCOMMANDGEN002 should have been logged by ExtractTypeInfo and reported by Initialize's output action.
+        // Generation should be skipped by the check in Initialize's RegisterSourceOutput action.
+        // This check is an additional safeguard.
+        if (typeInfo.CommandResultTypeFullName == null)
         {
-            // Report diagnostic: Handler cannot be generated if not ICommand or ICommand<TResult>
-            // For now, just skip generation. A diagnostic would be better.
             return;
         }
 
@@ -234,52 +244,37 @@ public class DbCommandSourceGenerator : IIncrementalGenerator
         string commandType = string.IsNullOrEmpty(typeInfo.Sp) ? "CommandType.Text" : "CommandType.StoredProcedure";
         string defaultReturnForNonQueryGeneric = "";
 
-        if (typeInfo.IsNonQueryAttribute)
+        // Logic now hinges on CommandResultTypeFullName and IsNonQueryAttribute
+        if (typeInfo.CommandResultTypeFullName == "global::System.Int32" || typeInfo.CommandResultTypeFullName == "int") // ICommand<int>
         {
-            // NonQuery attribute is true, overrides other logic for return type determination
-            if (typeInfo.IsNonQueryType) // Implements ICommand
+            returnType = "Task<int>";
+            if (typeInfo.IsNonQueryAttribute) // NonQuery = true means rows affected
             {
-                returnType = "Task";
-                dapperCall = $"await connection.ExecuteAsync(new CommandDefinition(\"{commandText}\", dbParams, commandType: {commandType}, cancellationToken: cancellationToken));";
+                dapperCall = $"return await connection.ExecuteAsync(new CommandDefinition(\"{commandText}\", dbParams, commandType: {commandType}, cancellationToken: cancellationToken));";
             }
-            else if (typeInfo.CommandResultTypeFullName == "global::System.Int32" || typeInfo.CommandResultTypeFullName == "int") // Implements ICommand<int>
+            else // NonQuery = false means scalar query
             {
-                returnType = "Task<int>";
-                dapperCall = $"return await connection.ExecuteAsync(new CommandDefinition(\"{commandText}\", dbParams, commandType: {commandType}, cancellationToken: cancellationToken));"; // Returns rows affected
+                dapperCall = $"return await connection.ExecuteScalarAsync<int>(new CommandDefinition(\"{commandText}\", dbParams, commandType: {commandType}, cancellationToken: cancellationToken));";
             }
-            else // Implements ICommand<TResult> where TResult is not int
+        }
+        else // ICommand<TResult> where TResult is not int (or if TResult is a "unit" type representing void)
+        {
+            returnType = $"Task<{typeInfo.CommandResultTypeFullName}>";
+            if (typeInfo.IsNonQueryAttribute) // NonQuery = true for non-int TResult
             {
-                // Issue diagnostic
+                // Diagnostic is reported by Initialize's output action based on TypeInfo.DiagnosticsToReport
+                // No need to call spc.ReportDiagnostic here again if it's already in typeInfo.
+                // However, the plan was to report DBCOMMANDGEN001 from here.
+                // Let's ensure it's reported via spc from where it has context.
                 var location = typeInfo.Symbol.Locations.FirstOrDefault() ?? Location.None;
                 spc.ReportDiagnostic(Diagnostic.Create(NonQueryWithGenericResultWarning, location, typeInfo.TypeName, typeInfo.CommandResultTypeFullName));
 
-                returnType = $"Task<{typeInfo.CommandResultTypeFullName}>";
                 dapperCall = $"await connection.ExecuteAsync(new CommandDefinition(\"{commandText}\", dbParams, commandType: {commandType}, cancellationToken: cancellationToken));";
                 defaultReturnForNonQueryGeneric = $"return default({typeInfo.CommandResultTypeFullName});";
             }
-        }
-        else // NonQuery attribute is false, use existing logic
-        {
-            if (typeInfo.IsNonQueryType) // Implements ICommand
+            else // NonQuery = false (standard query for ICommand<TResult>)
             {
-                returnType = "Task";
-                dapperCall = $"await connection.ExecuteAsync(new CommandDefinition(\"{commandText}\", dbParams, commandType: {commandType}, cancellationToken: cancellationToken));";
-            }
-            else // Implements ICommand<TResult>
-            {
-                returnType = $"Task<{typeInfo.CommandResultTypeFullName}>";
-                if (typeInfo.CommandResultTypeFullName == "global::System.Int32" || typeInfo.CommandResultTypeFullName == "int")
-                {
-                    if (typeInfo.ReturnsAffectedRecords)
-                    {
-                        dapperCall = $"return await connection.ExecuteAsync(new CommandDefinition(\"{commandText}\", dbParams, commandType: {commandType}, cancellationToken: cancellationToken));";
-                    }
-                    else
-                    {
-                        dapperCall = $"return await connection.ExecuteScalarAsync<int>(new CommandDefinition(\"{commandText}\", dbParams, commandType: {commandType}, cancellationToken: cancellationToken));";
-                    }
-                }
-                else if (typeInfo.IsEnumerableResult)
+                if (typeInfo.IsEnumerableResult)
                 {
                     dapperCall = $"return await connection.QueryAsync<{typeInfo.GenericArgumentResultTypeFullName}>(new CommandDefinition(\"{commandText}\", dbParams, commandType: {commandType}, cancellationToken: cancellationToken));";
                 }
@@ -344,8 +339,9 @@ public class DbCommandSourceGenerator : IIncrementalGenerator
     }
 }
 
+// Updated TypeInfo: Removed IsNonQueryType, added DiagnosticsToReport
 internal record TypeInfo(
-    INamedTypeSymbol Symbol, // Added for diagnostic location
+    INamedTypeSymbol Symbol,
     string? Namespace,
     string TypeName,
     string TypeDeclaration,
@@ -353,27 +349,27 @@ internal record TypeInfo(
     string? Sp,
     string? Sql,
     bool UseSnakeCase,
-    bool ReturnsAffectedRecords,
-    bool IsNonQueryAttribute, // New field
+    bool IsNonQueryAttribute,
     ImmutableArray<PropertyInfo> Properties,
-    string? CommandResultTypeFullName,
+    string? CommandResultTypeFullName, // Null if ICommand<TResult> not found
     string? GenericArgumentResultTypeFullName,
-    bool IsNonQueryType, // Renamed from IsNonQuery for clarity
-    bool IsEnumerableResult
+    // bool IsNonQueryType, // Removed
+    bool IsEnumerableResult,
+    ImmutableList<Diagnostic> DiagnosticsToReport // New field for collecting diagnostics
 )
 {
     public string SafeFileName => $"{Namespace?.Replace('.', '_') ?? "global"}_{TypeName.Replace('<', '_').Replace('>', '_')}";
-    // Updated FullyQualifiedTypeName to be more robust by directly using typeSymbol parts
     public string FullyQualifiedTypeName => ConstructFullyQualifiedName(Symbol);
 
     private static string ConstructFullyQualifiedName(INamedTypeSymbol typeSymbol)
     {
         var parts = new System.Collections.Generic.List<string>();
-        var current = typeSymbol;
-        while(current != null && !current.ContainingNamespace.IsGlobalNamespace)
+        var currentType = typeSymbol;
+        while(currentType != null)
         {
-            parts.Add(current.Name + (current.IsGenericType ? FormatGenerics(current.TypeArguments) : ""));
-            current = current.ContainingType;
+            var partName = currentType.Name + (currentType.IsGenericType ? FormatGenerics(currentType.TypeArguments) : "");
+            parts.Add(partName);
+            currentType = currentType.ContainingType;
         }
         parts.Reverse();
         string typeNameWithNesting = string.Join(".", parts);
@@ -384,7 +380,8 @@ internal record TypeInfo(
         }
         return $"global::{typeSymbol.ContainingNamespace.ToDisplayString()}.{typeNameWithNesting}";
     }
-     private static string FormatGenerics(ImmutableArray<ITypeSymbol> typeArguments) // Duplicated for local use
+
+     private static string FormatGenerics(ImmutableArray<ITypeSymbol> typeArguments)
     {
         if (typeArguments.IsEmpty) return string.Empty;
         return $"<{string.Join(", ", typeArguments.Select(ta => ta.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)))}>";

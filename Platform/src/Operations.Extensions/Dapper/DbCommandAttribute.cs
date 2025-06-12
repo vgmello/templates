@@ -33,17 +33,15 @@ public sealed class DbCommandAttribute : Attribute
     public bool UseSnakeCase { get; }
 
     /// <summary>
-    /// For commands implementing ICommand&lt;int&gt;, indicates whether the returned integer
-    /// represents the number of affected records (true, default) or a scalar integer value returned by the query (false).
-    /// This property may be effectively overridden if NonQuery is set to true.
-    /// </summary>
-    public bool ReturnsAffectedRecords { get; }
-
-    /// <summary>
-    /// Gets a value indicating that the command is primarily non-query, even if it implements ICommand&lt;int&gt;.
-    /// If true for ICommand&lt;int&gt;, the handler will use ExecuteAsync and return rows affected, overriding ReturnsAffectedRecords behavior.
-    /// If true for ICommand&lt;TResult&gt; where TResult is not int, this may lead to diagnostics or unexpected behavior as query results are expected.
-    /// Default is false.
+    /// Gets a value indicating the nature of the command. This flag primarily influences behavior for ICommand&lt;int&gt;.
+    /// If true (default):
+    ///   - For ICommand&lt;int&gt;: The generated handler will use Dapper's ExecuteAsync (expecting rows affected).
+    ///   - For ICommand&lt;TResult&gt; where TResult is not int: A diagnostic warning may be issued by the source generator,
+    ///     as using NonQuery=true with a command expecting a specific data structure is atypical. The handler may default
+    ///     to an ExecuteAsync call and return default(TResult).
+    /// If false:
+    ///   - For ICommand&lt;int&gt;: The generated handler will use Dapper's ExecuteScalarAsync&lt;int&gt; (expecting a scalar integer query result).
+    ///   - For ICommand&lt;TResult&gt; where TResult is not int: The handler will perform a query (e.g., QueryFirstOrDefaultAsync or QueryAsync).
     /// </summary>
     public bool NonQuery { get; }
 
@@ -52,15 +50,18 @@ public sealed class DbCommandAttribute : Attribute
     /// </summary>
     /// <param name="sp">The name of the stored procedure. Mutually exclusive with <paramref name="sql"/>.</param>
     /// <param name="sql">The SQL query text. Mutually exclusive with <paramref name="sp"/>.</param>
-    /// <param name="useSnakeCase">If true, maps command class property names to snake_case for DB parameters in the generated ToDbParams() method. Default is false.</param>
-    /// <param name="returnsAffectedRecords">For commands implementing ICommand&lt;int&gt;, specifies if the integer result represents affected records (default is true) or a scalar query result (false).</param>
-    /// <param name="nonQuery">Indicates if the command is primarily a non-query operation. If true, this may influence handler generation, particularly for ICommand&lt;int&gt; to ensure ExecuteAsync is used. Default is false.</param>
+    /// <param name="useSnakeCase">If true, maps command class property names to snake_case for DB parameters. Default is false.</param>
+    /// <param name="nonQuery">
+    /// Indicates the nature of the command, with its primary effect on commands implementing ICommand&lt;int&gt;.
+    /// Default is true.
+    /// If true: For ICommand&lt;int&gt;, the generated handler uses ExecuteAsync (rows affected). For other ICommand&lt;TResult&gt;, a diagnostic may be issued.
+    /// If false: For ICommand&lt;int&gt;, the generated handler uses ExecuteScalarAsync&lt;int&gt;. For other ICommand&lt;TResult&gt;, a query is performed.
+    /// </param>
     public DbCommandAttribute(
         string? sp = null,
         string? sql = null,
         bool useSnakeCase = false,
-        bool returnsAffectedRecords = true,
-        bool nonQuery = false) // Added nonQuery parameter
+        bool nonQuery = true)
     {
         if (!string.IsNullOrWhiteSpace(sp) && !string.IsNullOrWhiteSpace(sql))
         {
@@ -70,7 +71,6 @@ public sealed class DbCommandAttribute : Attribute
         Sp = sp;
         Sql = sql;
         UseSnakeCase = useSnakeCase;
-        ReturnsAffectedRecords = returnsAffectedRecords;
-        NonQuery = nonQuery; // Set the NonQuery property
+        NonQuery = nonQuery;
     }
 }

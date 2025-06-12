@@ -28,7 +28,7 @@ public class CreateCustomerValidator : AbstractValidator<CreateCashierCommand>
 public static partial class CreateCashierCommandHandler
 {
     // Nested InsertCashierCommand definition:
-    [DbCommand(sp: "billing.create_cashier", UseSnakeCase = true, ReturnsAffectedRecords = true, NonQuery = true)]
+    [DbCommand(sp: "billing.create_cashier", UseSnakeCase = true, NonQuery = true)]
     public partial record InsertCashierCommand(Guid CashierId, string Name, string? Email) : ICommand<int>;
 
     public static async Task<(Result<CashierModel>, CashierCreatedEvent)> Handle(
