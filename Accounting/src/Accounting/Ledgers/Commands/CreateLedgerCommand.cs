@@ -2,6 +2,8 @@
 
 using Accounting.Contracts.Ledgers.IntegrationEvents;
 using Accounting.Contracts.Ledgers.Models;
+using Dapper;
+using Npgsql;
 using LedgerEntity = Accounting.Ledgers.Data.Entities.LedgerBalance;
 using LedgerModel = Accounting.Contracts.Ledgers.Models.Ledger;
 
@@ -24,13 +26,12 @@ public static class CreateLedgerCommandHandler
     public static async Task<(Result<LedgerModel>, LedgerCreatedEvent)> Handle(
         CreateLedgerCommand command, IMessageContext messaging, CancellationToken cancellationToken)
     {
-        var entity = new LedgerEntity
-        {
-            LedgerBalanceId = Guid.NewGuid(),
-            ClientId = command.ClientId,
-            LedgerType = command.LedgerType,
-            BalanceDate = DateOnly.FromDateTime(DateTime.UtcNow)
-        };
+        // The LedgerBalance constructor now handles ID generation and sets properties.
+        var entity = new LedgerEntity(
+            command.ClientId,
+            command.LedgerType,
+            DateOnly.FromDateTime(DateTime.UtcNow)
+        );
 
         await messaging.InvokeCommandAsync(new InsertLedgerCommand(entity), cancellationToken);
 
@@ -44,8 +45,12 @@ public static class CreateLedgerCommandHandler
         return (result, new LedgerCreatedEvent(result));
     }
 
-    public static Task<int> Handle(InsertLedgerCommand command, CancellationToken cancellationToken)
+    public static async Task<int> Handle(InsertLedgerCommand command, NpgsqlConnection connection, CancellationToken cancellationToken)
     {
-        return Task.FromResult(1);
+        const string sql = """
+            INSERT INTO LedgerBalances (LedgerBalanceId, ClientId, LedgerType, BalanceDate)
+            VALUES (@LedgerBalanceId, @ClientId, @LedgerType, @BalanceDate)
+            """;
+        return await connection.ExecuteAsync(sql, command.Ledger);
     }
 }

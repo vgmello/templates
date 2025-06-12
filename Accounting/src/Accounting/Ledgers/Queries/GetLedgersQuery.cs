@@ -2,6 +2,8 @@
 
 using System.ComponentModel.DataAnnotations;
 using Accounting.Contracts.Ledgers.Models;
+using Dapper;
+using Npgsql;
 
 namespace Accounting.Ledgers.Queries;
 
@@ -18,12 +20,23 @@ public record GetLedgersQuery
 
 public static class GetLedgersQueryHandler
 {
-    public static async Task<IEnumerable<GetLedgersQuery.Result>> Handle(GetLedgersQuery query, CancellationToken cancellationToken)
+    public static async Task<IEnumerable<GetLedgersQuery.Result>> Handle(
+        GetLedgersQuery query,
+        NpgsqlConnection connection,
+        CancellationToken cancellationToken)
     {
-        return new[]
-        {
-            new GetLedgersQuery.Result(Guid.NewGuid(), Guid.NewGuid(), LedgerType.Cash),
-            new GetLedgersQuery.Result(Guid.NewGuid(), Guid.NewGuid(), LedgerType.Payable)
-        };
+        const string sql = """
+            SELECT
+                LedgerBalanceId AS LedgerId,
+                ClientId,
+                LedgerType
+            FROM LedgerBalances
+            ORDER BY LedgerBalanceId -- Or any other consistent ordering column
+            LIMIT @Limit OFFSET @Offset
+            """;
+
+        return await connection.QueryAsync<GetLedgersQuery.Result>(
+            sql,
+            new { query.Limit, query.Offset });
     }
 }

@@ -1,18 +1,25 @@
 // Copyright (c) ABCDEG. All rights reserved.
 
+using Dapper;
+using Npgsql;
+
 namespace Accounting.Ledgers.Queries;
 
 public record GetLedgerQuery(Guid Id);
 
 public static class GetLedgerQueryHandler
 {
-    public static async Task<Contracts.Ledgers.Models.Ledger> Handle(GetLedgerQuery query, CancellationToken cancellationToken)
+    public static async Task<Contracts.Ledgers.Models.Ledger?> Handle(GetLedgerQuery query, NpgsqlConnection connection, CancellationToken cancellationToken)
     {
-        return new Contracts.Ledgers.Models.Ledger
-        {
-            LedgerId = query.Id,
-            ClientId = Guid.NewGuid(),
-            LedgerType = Contracts.Ledgers.Models.LedgerType.Cash
-        };
+        const string sql = """
+            SELECT
+                LedgerBalanceId AS LedgerId,
+                ClientId,
+                LedgerType,
+                BalanceDate
+            FROM LedgerBalances
+            WHERE LedgerBalanceId = @Id
+            """;
+        return await connection.QuerySingleOrDefaultAsync<Contracts.Ledgers.Models.Ledger>(sql, new { query.Id });
     }
 }
