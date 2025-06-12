@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework> <!-- Or your solution's target framework -->
+    <TargetFramework>net9.0</TargetFramework>
     <IsPackable>false</IsPackable>
     <NoWarn>NU1803</NoWarn> <!-- Suppress warning for non-HTTPS source if needed for local npm registry -->
   </PropertyGroup>

@@ -1,0 +1,143 @@
+syntax = "proto3";
+
+option csharp_namespace = "Billing.Api.Grpc";
+
+package billing;
+
+// Service definition for Cashier management
+service CashiersService {
+  rpc GetCashier (GetCashierRequest) returns (Cashier);
+  rpc GetCashiers (GetCashiersRequest) returns (GetCashiersResponse);
+  rpc CreateCashier (CreateCashierRequest) returns (Cashier);
+  rpc UpdateCashier (UpdateCashierRequest) returns (Cashier);
+  rpc DeleteCashier (DeleteCashierRequest) returns (DeleteCashierResponse);
+}
+
+// Service definition for Invoice management
+service InvoicesService {
+  rpc GetInvoice (GetInvoiceRequest) returns (Invoice);
+  rpc GetInvoices (GetInvoicesRequest) returns (GetInvoicesResponse);
+  rpc CreateInvoice (CreateInvoiceRequest) returns (Invoice);
+  rpc UpdateInvoice (UpdateInvoiceRequest) returns (Invoice);
+  rpc DeleteInvoice (DeleteInvoiceRequest) returns (DeleteInvoiceResponse);
+}
+
+// Cashier model
+message Cashier {
+  string cashier_id = 1;
+  string name = 2;
+  string email = 3;
+  string created_at = 4;
+  string updated_at = 5;
+  repeated CashierCurrency currencies = 6;
+  bool is_active = 7;
+}
+
+// Cashier currency model
+message CashierCurrency {
+  string currency = 1;
+  double balance = 2;
+  string last_updated = 3;
+}
+
+// Invoice model
+message Invoice {
+  string invoice_id = 1;
+  string cashier_id = 2;
+  double amount = 3;
+  string currency = 4;
+  string description = 5;
+  InvoiceStatus status = 6;
+  string created_at = 7;
+  string updated_at = 8;
+  string due_date = 9;
+}
+
+// Invoice status enum
+enum InvoiceStatus {
+  INVOICE_STATUS_UNSPECIFIED = 0;
+  INVOICE_STATUS_DRAFT = 1;
+  INVOICE_STATUS_PENDING = 2;
+  INVOICE_STATUS_PAID = 3;
+  INVOICE_STATUS_CANCELLED = 4;
+  INVOICE_STATUS_OVERDUE = 5;
+}
+
+// Cashier Request/Response messages
+message GetCashierRequest {
+  string cashier_id = 1;
+}
+
+message GetCashiersRequest {
+  int32 limit = 1;
+  int32 offset = 2;
+  bool active_only = 3;
+}
+
+message GetCashiersResponse {
+  repeated Cashier cashiers = 1;
+  int32 total_count = 2;
+}
+
+message CreateCashierRequest {
+  string name = 1;
+  string email = 2;
+}
+
+message UpdateCashierRequest {
+  string cashier_id = 1;
+  string name = 2;
+  string email = 3;
+  bool is_active = 4;
+}
+
+message DeleteCashierRequest {
+  string cashier_id = 1;
+}
+
+message DeleteCashierResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+// Invoice Request/Response messages
+message GetInvoiceRequest {
+  string invoice_id = 1;
+}
+
+message GetInvoicesRequest {
+  int32 limit = 1;
+  int32 offset = 2;
+  string cashier_id = 3; // Optional filter
+  InvoiceStatus status = 4; // Optional filter
+}
+
+message GetInvoicesResponse {
+  repeated Invoice invoices = 1;
+  int32 total_count = 2;
+}
+
+message CreateInvoiceRequest {
+  string cashier_id = 1;
+  double amount = 2;
+  string currency = 3;
+  string description = 4;
+  string due_date = 5;
+}
+
+message UpdateInvoiceRequest {
+  string invoice_id = 1;
+  double amount = 2;
+  string description = 3;
+  InvoiceStatus status = 4;
+  string due_date = 5;
+}
+
+message DeleteInvoiceRequest {
+  string invoice_id = 1;
+}
+
+message DeleteInvoiceResponse {
+  bool success = 1;
+  string message = 2;
+}

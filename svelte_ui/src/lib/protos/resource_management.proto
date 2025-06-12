@@ -2,23 +2,123 @@ syntax = "proto3";
 
 package ResourceManagementApi;
 
-option csharp_namespace = "Accounting.Api.Protos.ResourceManagement";
+option csharp_namespace = "Platform.Api.Grpc.ResourceManagement";
 
-// Service definition for managing resources
+// Service definition for managing resources and dashboard
 service ResourceManager {
-  // A simple RPC to get a resource
   rpc GetResource (GetResourceRequest) returns (GetResourceResponse);
-  // Add more RPCs for Create, Update, Delete as needed
+  rpc GetDashboardStats (GetDashboardStatsRequest) returns (GetDashboardStatsResponse);
+  rpc GetSystemHealth (GetSystemHealthRequest) returns (GetSystemHealthResponse);
 }
 
-// Request message for GetResource
+// Dashboard service for aggregated data
+service DashboardService {
+  rpc GetOverview (GetOverviewRequest) returns (GetOverviewResponse);
+  rpc GetRecentActivity (GetRecentActivityRequest) returns (GetRecentActivityResponse);
+}
+
+// Request/Response messages for Resource management
 message GetResourceRequest {
   string resource_id = 1;
 }
 
-// Response message for GetResource
 message GetResourceResponse {
   string resource_id = 1;
   string name = 2;
   string description = 3;
+  string resource_type = 4;
+  string status = 5;
+  string created_at = 6;
+  string updated_at = 7;
+}
+
+// Dashboard statistics messages
+message GetDashboardStatsRequest {
+  string time_range = 1; // e.g., "24h", "7d", "30d"
+}
+
+message GetDashboardStatsResponse {
+  int32 total_ledgers = 1;
+  int32 total_cashiers = 2;
+  int32 total_invoices = 3;
+  int32 pending_invoices = 4;
+  double total_revenue = 5;
+  string currency = 6;
+  repeated ServiceStatus service_statuses = 7;
+}
+
+message ServiceStatus {
+  string service_name = 1;
+  string status = 2; // "healthy", "degraded", "unhealthy"
+  string last_check = 3;
+  string version = 4;
+}
+
+// System health messages
+message GetSystemHealthRequest {
+  bool include_details = 1;
+}
+
+message GetSystemHealthResponse {
+  string overall_status = 1;
+  repeated HealthCheck health_checks = 2;
+  string timestamp = 3;
+}
+
+message HealthCheck {
+  string component = 1;
+  string status = 2;
+  string message = 3;
+  map<string, string> details = 4;
+}
+
+// Dashboard overview messages
+message GetOverviewRequest {
+  string user_id = 1; // Optional for user-specific data
+}
+
+message GetOverviewResponse {
+  DashboardStats stats = 1;
+  repeated RecentActivity recent_activities = 2;
+  repeated SystemAlert alerts = 3;
+}
+
+message DashboardStats {
+  int32 active_ledgers = 1;
+  int32 active_cashiers = 2;
+  int32 pending_invoices = 3;
+  int32 overdue_invoices = 4;
+  double total_outstanding = 5;
+  double total_paid_today = 6;
+  string currency = 7;
+}
+
+message RecentActivity {
+  string activity_id = 1;
+  string activity_type = 2; // "ledger_created", "invoice_paid", etc.
+  string description = 3;
+  string timestamp = 4;
+  string user_id = 5;
+  map<string, string> metadata = 6;
+}
+
+message SystemAlert {
+  string alert_id = 1;
+  string severity = 2; // "info", "warning", "error", "critical"
+  string title = 3;
+  string message = 4;
+  string timestamp = 5;
+  bool acknowledged = 6;
+}
+
+// Recent activity messages
+message GetRecentActivityRequest {
+  int32 limit = 1;
+  string activity_type = 2; // Optional filter
+  string since = 3; // ISO timestamp
+}
+
+message GetRecentActivityResponse {
+  repeated RecentActivity activities = 1;
+  string next_cursor = 2;
 }
