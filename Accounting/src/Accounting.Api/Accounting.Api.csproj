@@ -17,7 +17,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <None Include="**/Protos/**/*.proto"/>
+        <Protobuf Include="Protos/resource_management.proto" GrpcServices="Server" ProtoRoot="Protos/" />
     </ItemGroup>
 
     <ItemGroup>

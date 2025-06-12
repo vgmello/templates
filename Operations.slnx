@@ -47,4 +47,7 @@
     <File Path=".http\Accounting.Api.http" />
     <File Path=".http\Billing.Api.http" />
   </Folder>
+  <Folder Name="/SvelteUI/">
+    <Project Path="svelte_ui\svelte_ui.csproj" Type="Classic C#" />
+  </Folder>
 </Solution>

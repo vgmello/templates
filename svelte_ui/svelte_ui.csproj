@@ -1,0 +1,38 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework> <!-- Or your solution's target framework -->
+    <IsPackable>false</IsPackable>
+    <NoWarn>NU1803</NoWarn> <!-- Suppress warning for non-HTTPS source if needed for local npm registry -->
+  </PropertyGroup>
+
+  <Target Name="EnsureNpmInstalled" BeforeTargets="BuildNPM">
+    <Exec Command="npm --version" ContinueOnError="true">
+      <Output TaskParameter="ExitCode" PropertyName="ErrorCode" />
+    </Exec>
+    <Error Condition="'$(ErrorCode)' != '0'" Text="NPM is not installed. Please install Node.js and NPM to build this project." />
+  </Target>
+
+  <Target Name="BuildNPM" DependsOnTargets="EnsureNpmInstalled" BeforeTargets="Build">
+    <Message Importance="high" Text="Restoring NPM packages..." />
+    <Exec Command="npm install" WorkingDirectory="." />
+    <Message Importance="high" Text="Building SvelteKit app..." />
+    <Exec Command="npm run build" WorkingDirectory="." />
+  </Target>
+
+  <Target Name="RunDev" DependsOnTargets="EnsureNpmInstalled">
+    <Message Importance="high" Text="Starting SvelteKit development server..." />
+    <Exec Command="npm run dev" WorkingDirectory="." />
+  </Target>
+
+  <Target Name="CleanNPM" BeforeTargets="Clean">
+    <Message Importance="high" Text="Cleaning NPM artifacts..." />
+    <RemoveDir Directories="node_modules" />
+    <RemoveDir Directories=".svelte-kit" />
+    <RemoveDir Directories="build" />
+  </Target>
+
+  <ItemGroup>
+    <!-- All files in the Svelte project, adjust as needed -->
+    <Content Include="**/*" Exclude="node_modules/**/*;.svelte-kit/**/*;build/**/*;**/bin/**/*;**/obj/**/*" />
+  </ItemGroup>
+</Project>

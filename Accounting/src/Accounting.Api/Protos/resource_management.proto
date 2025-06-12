@@ -1,0 +1,24 @@
+syntax = "proto3";
+
+package ResourceManagementApi;
+
+option csharp_namespace = "Accounting.Api.Protos.ResourceManagement";
+
+// Service definition for managing resources
+service ResourceManager {
+  // A simple RPC to get a resource
+  rpc GetResource (GetResourceRequest) returns (GetResourceResponse);
+  // Add more RPCs for Create, Update, Delete as needed
+}
+
+// Request message for GetResource
+message GetResourceRequest {
+  string resource_id = 1;
+}
+
+// Response message for GetResource
+message GetResourceResponse {
+  string resource_id = 1;
+  string name = 2;
+  string description = 3;
+}

@@ -5,6 +5,8 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Scalar.AspNetCore;
+using Microsoft.AspNetCore.HttpLogging; // Added for HttpLoggingOptions
+using Microsoft.OpenApi.Models; // Added for OpenApiInfo
 
 namespace Operations.ServiceDefaults.Api;
 
@@ -15,8 +17,12 @@ public static class ApiExtensions
         builder.Services.AddControllers();
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddProblemDetails();
-        builder.Services.AddOpenApi();
-        builder.Services.AddHttpLogging();
+        // Replace AddOpenApi with AddSwaggerGen
+        builder.Services.AddSwaggerGen(c =>
+        {
+            c.SwaggerDoc("v1", new OpenApiInfo { Title = $"{builder.Environment.ApplicationName} API", Version = "v1" });
+        });
+        builder.Services.AddHttpLogging(options => { }); // Provide empty lambda for configureOptions
 
         builder.Services.AddGrpc();
         builder.Services.AddGrpcReflection();
@@ -37,6 +43,7 @@ public static class ApiExtensions
     {
         app.UseHttpLogging();
         app.UseRouting();
+        app.UseCors("AllowSvelteDev"); // Apply the CORS policy
         app.UseAuthentication();
         app.UseAuthorization();
 
@@ -50,7 +57,13 @@ public static class ApiExtensions
 
         if (app.Environment.IsDevelopment())
         {
-            app.MapOpenApi();
+            // Replace MapOpenApi with UseSwagger and UseSwaggerUI
+            app.UseSwagger();
+            app.UseSwaggerUI(c =>
+            {
+                c.SwaggerEndpoint("/swagger/v1/swagger.json", $"{app.Environment.ApplicationName} v1");
+                // Optionally, configure other SwaggerUI options here
+            });
             app.MapScalarApiReference(options => options.WithTitle($"{app.Environment.ApplicationName} OpenAPI"));
             app.MapGrpcReflectionService();
         }

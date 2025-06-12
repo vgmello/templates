@@ -24,7 +24,7 @@
         <PackageReference Include="Grpc.AspNetCore"/>
         <PackageReference Include="Grpc.AspNetCore.Server.Reflection"/>
         <PackageReference Include="Grpc.AspNetCore.Web"/>
-        <PackageReference Include="Microsoft.AspNetCore.OpenApi"/>
+        <PackageReference Include="Swashbuckle.AspNetCore" />
         <PackageReference Include="OpenTelemetry.Extensions.Hosting" />
         <PackageReference Include="Scalar.AspNetCore"/>
     </ItemGroup>
