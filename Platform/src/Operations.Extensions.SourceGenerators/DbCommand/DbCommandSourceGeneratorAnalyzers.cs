@@ -2,7 +2,7 @@
 
 using Microsoft.CodeAnalysis;
 
-namespace Operations.Extensions.SourceGenerators;
+namespace Operations.Extensions.SourceGenerators.DbCommand;
 
 internal static class DbCommandSourceGeneratorAnalyzers
 {

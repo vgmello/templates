@@ -1,17 +1,34 @@
 // Copyright (c) ABCDEG. All rights reserved.
 
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
+using Operations.Extensions.SourceGenerators.Extensions;
 using System.Collections.Immutable;
 using System.Text;
 
-namespace Operations.Extensions.SourceGenerators;
+namespace Operations.Extensions.SourceGenerators.DbCommand;
 
 internal record DbCommandAttributes(string? Sp, string? Sql, bool UseSnakeCase, bool NonQuery);
 
 internal record PropertyInfo(string PropertyName, string ParameterName);
 
 internal record DbCommandResultTypeInfo(string FullTypeName, string GenericArgumentResultFullTypeName, bool IsEnumerableResult);
+
+internal record TypeInfo(
+    INamedTypeSymbol Symbol,
+    string? Namespace,
+    string TypeName,
+    string TypeDeclaration,
+    ImmutableArray<string> ContainingTypes,
+    ImmutableArray<PropertyInfo> Properties,
+    DbCommandResultTypeInfo? CommandResultTypeInfo,
+    DbCommandAttributes CommandAttributesValues,
+    ImmutableList<Diagnostic> DiagnosticsToReport
+)
+{
+    public string SafeFileName { get; } = $"{Namespace?.Replace('.', '_') ?? "global"}_{TypeName.Replace('<', '_').Replace('>', '_')}";
+
+    public string FullyQualifiedTypeName { get; } = Symbol.GetFullyQualifiedName();
+}
 
 [Generator]
 public class DbCommandSourceGenerator : IIncrementalGenerator
@@ -21,6 +38,8 @@ public class DbCommandSourceGenerator : IIncrementalGenerator
     private const string ColumnAttributeFullName = "System.ComponentModel.DataAnnotations.Schema.ColumnAttribute";
 
     private const string ICommandFullName = "Operations.Extensions.Messaging.ICommand`1";
+
+    private const string IDbParamsProviderFullName = "Operations.Extensions.Dapper.IDbParamsProvider";
 
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
@@ -62,10 +81,11 @@ public class DbCommandSourceGenerator : IIncrementalGenerator
         if (dbCommandAttribute is null)
             return null;
 
-        var containingTypes = GetContainingTypeDeclarations(typeSymbol);
-        var commandResultTypeInfo = GetDbCommandResultInfo(typeSymbol);
+        var typeDeclaration = typeSymbol.GetTypeDeclaration();
+        var containingTypes = typeSymbol.GetContainingTypeDeclarations();
 
         var dbCommandAttributeValues = GetDbCommandAttributeValues(dbCommandAttribute);
+        var commandResultTypeInfo = GetDbCommandResultInfo(typeSymbol);
         var properties = GetDbCommandObjectProperties(typeSymbol, dbCommandAttributeValues);
 
         var diagnostics = new List<Diagnostic>();
@@ -77,52 +97,13 @@ public class DbCommandSourceGenerator : IIncrementalGenerator
             Symbol: typeSymbol,
             Namespace: typeSymbol.ContainingNamespace.IsGlobalNamespace ? null : typeSymbol.ContainingNamespace.ToDisplayString(),
             TypeName: typeSymbol.Name,
-            TypeDeclaration: GetTypeDeclarationSyntax(typeSymbol),
+            TypeDeclaration: typeDeclaration,
             ContainingTypes: containingTypes,
             Properties: properties,
             CommandResultTypeInfo: commandResultTypeInfo,
             CommandAttributesValues: dbCommandAttributeValues,
-            DiagnosticsToReport: diagnostics.ToImmutableList() // Add diagnostics list
+            DiagnosticsToReport: diagnostics.ToImmutableList()
         );
-    }
-
-    private static ImmutableArray<string> GetContainingTypeDeclarations(INamedTypeSymbol typeSymbol)
-    {
-        var builder = ImmutableArray.CreateBuilder<string>();
-        var parent = typeSymbol.ContainingType;
-
-        while (parent is not null)
-        {
-            builder.Add(GetTypeDeclarationSyntax(parent));
-            parent = parent.ContainingType;
-        }
-
-        builder.Reverse();
-
-        return builder.ToImmutable();
-    }
-
-    private static DbCommandResultTypeInfo? GetDbCommandResultInfo(INamedTypeSymbol typeSymbol)
-    {
-        var iCommandInterface = typeSymbol.AllInterfaces.FirstOrDefault(i =>
-            i.OriginalDefinition.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat) == $"global::{ICommandFullName}");
-
-        if (iCommandInterface?.TypeArguments[0] is not INamedTypeSymbol commandResultType)
-            return null;
-
-        var commandResultFullTypeName = commandResultType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
-        var genericArgumentResultFullTypeName = commandResultFullTypeName;
-        var isEnumerableResult = false;
-
-        var implementsIEnumerable = commandResultType.OriginalDefinition.ImplementsIEnumerable();
-
-        if (implementsIEnumerable && commandResultType.TypeArguments.FirstOrDefault() is INamedTypeSymbol enumerableTypeArg)
-        {
-            isEnumerableResult = true;
-            genericArgumentResultFullTypeName = enumerableTypeArg.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
-        }
-
-        return new DbCommandResultTypeInfo(commandResultFullTypeName, genericArgumentResultFullTypeName, isEnumerableResult);
     }
 
     private static DbCommandAttributes GetDbCommandAttributeValues(AttributeData dbCommandAttribute)
@@ -155,6 +136,29 @@ public class DbCommandSourceGenerator : IIncrementalGenerator
         return new DbCommandAttributes(Sp: spValue, Sql: sqlValue, UseSnakeCase: useSnakeCase, NonQuery: nonQueryValue);
     }
 
+    private static DbCommandResultTypeInfo? GetDbCommandResultInfo(INamedTypeSymbol typeSymbol)
+    {
+        var iCommandInterface = typeSymbol.AllInterfaces.FirstOrDefault(i =>
+            i.OriginalDefinition.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat) == $"global::{ICommandFullName}");
+
+        if (iCommandInterface?.TypeArguments[0] is not INamedTypeSymbol commandResultType)
+            return null;
+
+        var commandResultFullTypeName = commandResultType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+        var genericArgumentResultFullTypeName = commandResultFullTypeName;
+        var isEnumerableResult = false;
+
+        var implementsIEnumerable = commandResultType.OriginalDefinition.ImplementsIEnumerable();
+
+        if (implementsIEnumerable && commandResultType.TypeArguments.FirstOrDefault() is INamedTypeSymbol enumerableTypeArg)
+        {
+            isEnumerableResult = true;
+            genericArgumentResultFullTypeName = enumerableTypeArg.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+        }
+
+        return new DbCommandResultTypeInfo(commandResultFullTypeName, genericArgumentResultFullTypeName, isEnumerableResult);
+    }
+
     private static ImmutableArray<PropertyInfo> GetDbCommandObjectProperties(INamedTypeSymbol typeSymbol,
         DbCommandAttributes dbCommandAttributeValues)
     {
@@ -179,13 +183,12 @@ public class DbCommandSourceGenerator : IIncrementalGenerator
 
     private static void GenerateDbOpsPart(SourceProductionContext spc, TypeInfo typeInfo)
     {
-        // This part is always generated if the attribute is present.
         var sourceBuilder = new StringBuilder();
         sourceBuilder.AppendLine("// <auto-generated/>");
         sourceBuilder.AppendLine("#nullable enable");
         sourceBuilder.AppendLine();
 
-        if (typeInfo.Namespace != null)
+        if (typeInfo.Namespace is not null)
         {
             sourceBuilder.AppendLine($"namespace {typeInfo.Namespace};");
             sourceBuilder.AppendLine();
@@ -193,9 +196,11 @@ public class DbCommandSourceGenerator : IIncrementalGenerator
 
         AppendContainingTypeStarts(sourceBuilder, typeInfo.ContainingTypes);
 
-        sourceBuilder.AppendLine($"{typeInfo.TypeDeclaration} : global::Operations.Extensions.Dapper.IDbParamsProvider");
+        sourceBuilder.AppendLine($"{typeInfo.TypeDeclaration} : global::{IDbParamsProviderFullName}");
         sourceBuilder.AppendLine("{");
+
         GenerateToDbParamsMethod(sourceBuilder, typeInfo);
+
         sourceBuilder.AppendLine("}");
 
         AppendContainingTypeEnds(sourceBuilder, typeInfo.ContainingTypes);
@@ -205,15 +210,20 @@ public class DbCommandSourceGenerator : IIncrementalGenerator
 
     private static void GenerateToDbParamsMethod(StringBuilder sb, TypeInfo typeInfo)
     {
-        sb.AppendLine("    public global::Dapper.DynamicParameters ToDbParams()");
+        sb.AppendLine("    public global::System.Object ToDbParams()");
         sb.AppendLine("    {");
-        sb.AppendLine("        var p = new global::Dapper.DynamicParameters();");
+        sb.AppendLine("        var p = new {");
 
-        foreach (var prop in typeInfo.Properties)
+        var properties = typeInfo.Properties.ToList();
+
+        for (var i = 0; i < properties.Count; i++)
         {
-            sb.AppendLine($"        p.Add(\"{prop.ParameterName}\", this.{prop.PropertyName});");
+            var prop = properties[i];
+            var comma = i < properties.Count - 1 ? "," : string.Empty;
+            sb.AppendLine($"            {prop.ParameterName} = this.{prop.PropertyName}{comma}");
         }
 
+        sb.AppendLine("        };");
         sb.AppendLine("        return p;");
         sb.AppendLine("    }");
     }
@@ -226,7 +236,7 @@ public class DbCommandSourceGenerator : IIncrementalGenerator
 
         if (typeInfo.CommandResultTypeInfo is null)
         {
-            return; // No ICommand<TResult> implemented on class having DbCommandAttribute
+            return;
         }
 
         var handlerClassName = $"{typeInfo.TypeName}Handler";
@@ -327,25 +337,6 @@ public class DbCommandSourceGenerator : IIncrementalGenerator
         spc.AddSource($"{typeInfo.SafeFileName}.{handlerClassName}.g.cs", sourceBuilder.ToString());
     }
 
-    private static string GetTypeDeclarationSyntax(INamedTypeSymbol typeSymbol)
-    {
-        var kind = typeSymbol.TypeKind switch
-        {
-            TypeKind.Class => typeSymbol.IsRecord ? "partial record class" : "partial class",
-            TypeKind.Struct => typeSymbol.IsRecord ? "partial record struct" : "partial struct", _ => "partial class"
-        };
-
-        return
-            $"{SyntaxFacts.GetText(typeSymbol.DeclaredAccessibility)} {kind} {typeSymbol.Name}{(typeSymbol.IsGenericType ? FormatGenerics(typeSymbol.TypeArguments) : "")}";
-    }
-
-    private static string FormatGenerics(ImmutableArray<ITypeSymbol> typeArguments)
-    {
-        if (typeArguments.IsEmpty) return string.Empty;
-
-        return $"<{string.Join(", ", typeArguments.Select(ta => ta.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)))}>";
-    }
-
     private static void AppendContainingTypeStarts(StringBuilder sb, ImmutableArray<string> containingTypes)
     {
         foreach (var typeDecl in containingTypes)
@@ -357,102 +348,9 @@ public class DbCommandSourceGenerator : IIncrementalGenerator
 
     private static void AppendContainingTypeEnds(StringBuilder sb, ImmutableArray<string> containingTypes)
     {
-        for (var i = 0; i < containingTypes.Length; i++) { sb.AppendLine("}"); }
-    }
-}
-
-// Updated TypeInfo: Removed IsNonQueryType, added DiagnosticsToReport
-internal record TypeInfo(
-    INamedTypeSymbol Symbol,
-    string? Namespace,
-    string TypeName,
-    string TypeDeclaration,
-    ImmutableArray<string> ContainingTypes,
-    ImmutableArray<PropertyInfo> Properties,
-    DbCommandResultTypeInfo? CommandResultTypeInfo,
-    DbCommandAttributes CommandAttributesValues,
-    ImmutableList<Diagnostic> DiagnosticsToReport
-)
-{
-    public string SafeFileName => $"{Namespace?.Replace('.', '_') ?? "global"}_{TypeName.Replace('<', '_').Replace('>', '_')}";
-    public string FullyQualifiedTypeName => ConstructFullyQualifiedName(Symbol);
-
-    private static string ConstructFullyQualifiedName(INamedTypeSymbol typeSymbol)
-    {
-        var parts = new List<string>();
-        var currentType = typeSymbol;
-
-        while (currentType != null)
+        for (var i = 0; i < containingTypes.Length; i++)
         {
-            var partName = currentType.Name + (currentType.IsGenericType ? FormatGenerics(currentType.TypeArguments) : "");
-            parts.Add(partName);
-            currentType = currentType.ContainingType;
+            sb.AppendLine("}");
         }
-
-        parts.Reverse();
-        var typeNameWithNesting = string.Join(".", parts);
-
-        if (typeSymbol.ContainingNamespace.IsGlobalNamespace)
-        {
-            return $"global::{typeNameWithNesting}";
-        }
-
-        return $"global::{typeSymbol.ContainingNamespace.ToDisplayString()}.{typeNameWithNesting}";
-    }
-
-    private static string FormatGenerics(ImmutableArray<ITypeSymbol> typeArguments)
-    {
-        if (typeArguments.IsEmpty) return string.Empty;
-
-        return $"<{string.Join(", ", typeArguments.Select(ta => ta.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)))}>";
-    }
-}
-
-public static class SourceGeneratorExtensions
-{
-    public static T? GetConstructorArgument<T>(this AttributeData attribute, int index)
-    {
-        if (attribute.ConstructorArguments.Length > index && attribute.ConstructorArguments[index].Value is T argValue)
-        {
-            return argValue;
-        }
-
-        return default;
-    }
-
-    public static AttributeData? GetAttribute(this ISymbol symbol, string attributeFullName)
-    {
-        return symbol.GetAttributes().FirstOrDefault(ad =>
-            ad.AttributeClass?.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat) == $"global::{attributeFullName}");
-    }
-
-    public static bool ImplementsIEnumerable(this INamedTypeSymbol typeSymbol)
-    {
-        return typeSymbol.AllInterfaces.Any(i =>
-            i.Name == "IEnumerable" &&
-            (i.ContainingNamespace.ToDisplayString() == "System.Collections" ||
-             i.ContainingNamespace.ToDisplayString() == "System.Collections.Generic"));
-    }
-
-    public static string ToSnakeCase(this string value)
-    {
-        if (string.IsNullOrEmpty(value))
-            return value;
-
-        var sb = new StringBuilder();
-
-        for (var i = 0; i < value.Length; i++)
-        {
-            var c = value[i];
-
-            if (char.IsUpper(c))
-            {
-                if (i > 0 && value[i - 1] != '_') sb.Append('_');
-                sb.Append(char.ToLowerInvariant(c));
-            }
-            else sb.Append(c);
-        }
-
-        return sb.ToString();
     }
 }
