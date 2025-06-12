@@ -4,13 +4,12 @@ using System; // For Guid
 using System.Threading;
 using System.Threading.Tasks;
 using Billing.Contracts.Cashier.IntegrationEvents;
-using Billing.Contracts.Cashier.Models; // For CashierModel (assuming namespace)
+using Billing.Contracts.Cashier.Models;
 using Operations.Extensions; // For Result
-using Operations.Extensions.Messaging; // For ICommand (on CreateCashierCommand)
+using Operations.Extensions.Messaging; // For ICommand, IMessageBus
 using FluentValidation;
-using Npgsql; // For NpgsqlDataSource
-// Using for the new, separate InsertCashierCommand is implicit if in same namespace,
-// but good to be mindful if it were different. It's in Billing.Cashier.Commands.
+// Npgsql is no longer directly used by this handler.
+// using Npgsql;
 
 namespace Billing.Cashier.Commands;
 
@@ -28,48 +27,46 @@ public class CreateCustomerValidator : AbstractValidator<CreateCashierCommand>
 
 public static partial class CreateCashierCommandHandler
 {
-    // The InternalInsertCashierDbCommand record is now removed from here.
-    // It's replaced by the separate InsertCashierCommand file and its generated handler.
-
     public static async Task<(Result<CashierModel>, CashierCreatedEvent)> Handle(
         CreateCashierCommand command,
-        NpgsqlDataSource dataSource,
+        IMessageBus messaging, // Changed from NpgsqlDataSource to IMessageBus
         CancellationToken cancellationToken)
     {
         var cashierId = Guid.NewGuid();
 
-        // Create the new, separate InsertCashierCommand
         var insertCommand = new InsertCashierCommand(cashierId, command.Name, command.Email);
 
-        // Call the source-generated handler for InsertCashierCommand.
-        // The DbCommandSourceGenerator is expected to create an InsertCashierCommandHandler class
-        // with a static HandleAsync method.
-        int rowsAffected = await InsertCashierCommandHandler.HandleAsync(insertCommand, dataSource, cancellationToken);
+        // Reverted to using IMessageBus to invoke the command.
+        // The IMessageBus infrastructure is expected to find and execute the
+        // source-generated InsertCashierCommandHandler.HandleAsync.
+        // If InsertCashierCommand returns int (rows affected), InvokeCommandAsync<int> should be used.
+        // The previous feedback used `await messaging.InvokeCommandAsync(insertCommand, cancellationToken);`
+        // which implies either the bus handles the type dispatch or it's a fire-and-forget.
+        // Given ICommand<int>, we expect an int result.
+
+        int rowsAffected = await messaging.InvokeCommandAsync(insertCommand, cancellationToken);
+
+        // It's important that the message bus infrastructure and the source-generated handler for ICommand<int>
+        // correctly return the integer result from the database operation.
+        // The `NonQuery = true` on `InsertCashierCommand` means the generated handler will use ExecuteAsync,
+        // which returns rows affected - this is consistent with `ICommand<int>`.
 
         if (rowsAffected == 0)
         {
-            // Handle case where cashier wasn't created, e.g., return a failure result.
-            // This specific error handling (message, event details) can be tuned.
-            // For now, creating a simple failure result.
+            // Handle case where cashier wasn't created (no rows affected).
             var failureModel = new CashierModel { CashierId = cashierId, Name = command.Name, Email = command.Email };
-            return (Result.Fail<CashierModel>("Failed to create cashier in the database. No rows were affected."),
-                    new CashierCreatedEvent(failureModel, "CreationFailed:DatabaseOperationFailed"));
+            return (Result.Fail<CashierModel>("Failed to create cashier. The database operation reported no rows affected."),
+                    new CashierCreatedEvent(failureModel, "CreationFailed:NoRowsAffected"));
         }
 
-        var cashierModel = new CashierModel
+        var result = new CashierModel
         {
             CashierId = cashierId,
             Name = command.Name,
             Email = command.Email
         };
 
-        var createdEvent = new CashierCreatedEvent(cashierModel);
-
-        return (Result.Ok(cashierModel), createdEvent);
+        var createdEvent = new CashierCreatedEvent(result);
+        return (Result.Ok(result), createdEvent);
     }
-
-    // Any manually written handler for a previous version of InsertCashierCommand
-    // (like the one that used NpgsqlDataSourceExtensions.CallSp or ExecuteDbCommandAsync directly)
-    // should have already been removed or is implicitly removed by this overwrite if it was here.
-    // The key is that the call above to InsertCashierCommandHandler.HandleAsync relies on generated code.
 }

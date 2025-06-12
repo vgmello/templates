@@ -6,8 +6,7 @@ using Operations.Extensions.Messaging; // For ICommand<int>
 
 namespace Billing.Cashier.Commands;
 
-[DbCommand(sp: "billing.create_cashier", UseSnakeCase = true, ReturnsAffectedRecords = true)]
+[DbCommand(sp: "billing.create_cashier", UseSnakeCase = true, ReturnsAffectedRecords = true, NonQuery = true)]
 public record InsertCashierCommand(Guid CashierId, string Name, string? Email) : ICommand<int>;
-// Properties CashierId, Name, Email are public by virtue of being a record.
-// UseSnakeCase = true will map: CashierId -> cashier_id, Name -> name, Email -> email for ToDbParams.
-// ReturnsAffectedRecords = true means the ICommand<int> result is from ExecuteAsync (rows affected).
+// Note: As per generator logic, if NonQuery = true, ReturnsAffectedRecords is effectively ignored for ICommand<int>
+// and ExecuteAsync (rows affected) is used. Setting ReturnsAffectedRecords = true here is fine for clarity if NonQuery was false.

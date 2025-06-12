@@ -19,6 +19,7 @@ public class DbCommandAttributeTests
         Assert.Null(attribute.Sql);
         Assert.False(attribute.UseSnakeCase);
         Assert.True(attribute.ReturnsAffectedRecords); // Default for returnsAffectedRecords is true
+        Assert.False(attribute.NonQuery); // Default for NonQuery is false
     }
 
     [Fact]
@@ -35,6 +36,7 @@ public class DbCommandAttributeTests
         Assert.Null(attribute.Sql);
         Assert.False(attribute.UseSnakeCase);
         Assert.True(attribute.ReturnsAffectedRecords);
+        Assert.False(attribute.NonQuery);
     }
 
     [Fact]
@@ -51,6 +53,7 @@ public class DbCommandAttributeTests
         Assert.Equal(sqlQuery, attribute.Sql);
         Assert.False(attribute.UseSnakeCase);
         Assert.True(attribute.ReturnsAffectedRecords);
+        Assert.False(attribute.NonQuery);
     }
 
     [Fact]
@@ -61,6 +64,7 @@ public class DbCommandAttributeTests
 
         // Assert
         Assert.True(attribute.UseSnakeCase);
+        Assert.False(attribute.NonQuery); // Check NonQuery default
     }
 
     [Fact]
@@ -71,25 +75,67 @@ public class DbCommandAttributeTests
 
         // Assert
         Assert.False(attribute.ReturnsAffectedRecords);
+        Assert.False(attribute.NonQuery); // Check NonQuery default
     }
 
     [Fact]
-    public void Constructor_AllParametersProvided_SetsAllPropertiesCorrectly()
+    public void Constructor_NonQueryTrue_SetsNonQueryCorrectly()
+    {
+        // Act
+        var attribute = new DbCommandAttribute(nonQuery: true);
+
+        // Assert
+        Assert.True(attribute.NonQuery);
+        // Assert other defaults
+        Assert.Null(attribute.Sp);
+        Assert.Null(attribute.Sql);
+        Assert.False(attribute.UseSnakeCase);
+        Assert.True(attribute.ReturnsAffectedRecords);
+    }
+
+    [Fact]
+    public void Constructor_AllParametersProvided_SetsAllPropertiesCorrectly() // Old test, ensure NonQuery default is checked or set
     {
         // Arrange
         var spName = "test_sp_all";
         var useSnake = true;
         var returnsAffected = false;
+        // bool nonQuery = false; // Assuming default if not specified for this test variant
 
         // Act
-        // Note: Sql is omitted to ensure sp is chosen and not to trigger the mutual exclusivity error.
-        var attribute = new DbCommandAttribute(sp: spName, sql: null, useSnakeCase: useSnake, returnsAffectedRecords: returnsAffected);
+        var attribute = new DbCommandAttribute(sp: spName, sql: null, useSnakeCase: useSnake, returnsAffectedRecords: returnsAffected /* nonQuery default is false */);
 
         // Assert
         Assert.Equal(spName, attribute.Sp);
         Assert.Null(attribute.Sql);
         Assert.Equal(useSnake, attribute.UseSnakeCase);
         Assert.Equal(returnsAffected, attribute.ReturnsAffectedRecords);
+        Assert.False(attribute.NonQuery); // Default NonQuery
+    }
+
+    [Fact]
+    public void Constructor_AllParamsIncludingNonQuery_SetsAllPropertiesCorrectly() // New specific test for NonQuery
+    {
+        // Arrange
+        var spName = "test_sp_all_nq";
+        var useSnake = true;
+        var returnsAffected = false; // Explicitly set to false
+        var nonQueryVal = true;
+
+        // Act
+        var attribute = new DbCommandAttribute(
+            sp: spName,
+            sql: null,
+            useSnakeCase: useSnake,
+            returnsAffectedRecords: returnsAffected,
+            nonQuery: nonQueryVal);
+
+        // Assert
+        Assert.Equal(spName, attribute.Sp);
+        Assert.Null(attribute.Sql);
+        Assert.Equal(useSnake, attribute.UseSnakeCase);
+        Assert.Equal(returnsAffected, attribute.ReturnsAffectedRecords); // Will be stored
+        Assert.Equal(nonQueryVal, attribute.NonQuery); // Will be stored
     }
 
     [Fact]
@@ -101,49 +147,42 @@ public class DbCommandAttributeTests
 
         // Act & Assert
         var exception = Assert.Throws<ArgumentException>(() => new DbCommandAttribute(sp: spName, sql: sqlQuery));
-        // Check if the message contains the relevant part, rather than exact match for flexibility.
         Assert.Contains("Cannot provide both 'sp' and 'sql' parameters.", exception.Message);
     }
 
     [Theory]
-    [InlineData(" ")] // Whitespace SP/SQL
-    [InlineData("some_value")] // Valid SP/SQL
-    // Null case for sp/sql is covered by default constructor or when one is set and other is explicitly null.
+    [InlineData(" ")]
+    [InlineData("some_value")]
     public void Constructor_SpOrSqlCanBeNullOrWhitespaceIfTheOtherIsNot(string? value)
     {
-        // Case 1: sp is value, sql is null (explicitly)
         var attr1 = new DbCommandAttribute(sp: value, sql: null);
         Assert.Equal(value, attr1.Sp);
         Assert.Null(attr1.Sql);
+        Assert.False(attr1.NonQuery);
 
-        // Case 2: sql is value, sp is null (explicitly)
         var attr2 = new DbCommandAttribute(sp: null, sql: value);
         Assert.Null(attr2.Sp);
         Assert.Equal(value, attr2.Sql);
+        Assert.False(attr2.NonQuery);
     }
 
     [Fact]
     public void Constructor_SpAndSqlAreNull_IsValid()
     {
-        // This case is for when [DbCommand] is used only to configure ToDbParams behavior (e.g. UseSnakeCase)
-        // Act
         var attribute = new DbCommandAttribute(sp: null, sql: null, useSnakeCase: true);
-
-        // Assert
         Assert.Null(attribute.Sp);
         Assert.Null(attribute.Sql);
-        Assert.True(attribute.UseSnakeCase); // Ensure other params are still processed
+        Assert.True(attribute.UseSnakeCase);
+        Assert.False(attribute.NonQuery);
     }
 
     [Fact]
     public void Constructor_SpIsEmptyAndSqlIsNull_IsValid()
     {
-        // Act
         var attribute = new DbCommandAttribute(sp: "", sql: null, useSnakeCase: true);
-
-        // Assert
-        Assert.Equal("", attribute.Sp); // Empty is a valid value (though generator might ignore it for handler)
+        Assert.Equal("", attribute.Sp);
         Assert.Null(attribute.Sql);
         Assert.True(attribute.UseSnakeCase);
+        Assert.False(attribute.NonQuery);
     }
 }
