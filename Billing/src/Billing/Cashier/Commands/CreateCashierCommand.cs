@@ -1,14 +1,7 @@
 // Copyright (c) ABCDEG. All rights reserved.
 
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 using Billing.Contracts.Cashier.IntegrationEvents;
-using Billing.Contracts.Cashier.Models;
-using Operations.Extensions;
-using Operations.Extensions.Messaging;
 using Operations.Extensions.Dapper; // Added for DbCommandAttribute
-using FluentValidation;
 
 namespace Billing.Cashier.Commands;
 
@@ -51,6 +44,7 @@ public static partial class CreateCashierCommandHandler
         };
 
         var createdEvent = new CashierCreatedEvent(result);
+
         return (Result.Ok(result), createdEvent);
     }
 }

@@ -1,53 +1,40 @@
 // Copyright (c) ABCDEG. All rights reserved.
-#nullable enable
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Collections.Immutable;
-using System.Data;
-using System.Linq;
 using System.Text;
-using System.Collections.Generic; // For List<Diagnostic>
 
 namespace Operations.Extensions.SourceGenerators;
 
-[Generator(LanguageNames.CSharp)]
+internal record DbCommandAttributes(string? Sp, string? Sql, bool UseSnakeCase, bool NonQuery);
+
+internal record PropertyInfo(string PropertyName, string ParameterName);
+
+internal record DbCommandResultTypeInfo(string FullTypeName, string GenericArgumentResultFullTypeName, bool IsEnumerableResult);
+
+[Generator]
 public class DbCommandSourceGenerator : IIncrementalGenerator
 {
     private const string DbCommandAttributeFullName = "Operations.Extensions.Dapper.DbCommandAttribute";
+
     private const string ColumnAttributeFullName = "System.ComponentModel.DataAnnotations.Schema.ColumnAttribute";
-    // ICommandFullName is removed as non-generic ICommand is removed.
-    private const string ICommandOfTResultFullName = "Operations.Extensions.Messaging.ICommand`1";
 
-    private static readonly DiagnosticDescriptor NonQueryWithGenericResultWarning = new DiagnosticDescriptor(
-        id: "DBCOMMANDGEN001",
-        title: "NonQuery attribute used with generic ICommand<TResult>",
-        messageFormat: "DbCommandAttribute's NonQuery property is true for command '{0}' which implements ICommand<{1}>. This is unusual as NonQuery typically implies no data is returned. The generated handler will execute the command and attempt to return default({1}).",
-        category: "DbCommandSourceGenerator",
-        DiagnosticSeverity.Warning,
-        isEnabledByDefault: true);
-
-    private static readonly DiagnosticDescriptor CommandMissingInterfaceError = new DiagnosticDescriptor(
-        id: "DBCOMMANDGEN002",
-        title: "Command missing ICommand<TResult> interface",
-        messageFormat: "Class '{0}' is decorated with DbCommandAttribute specifying 'sp' or 'sql' for handler generation, but it does not implement ICommand<TResult>. Handler cannot be generated without a result type.",
-        category: "DbCommandSourceGenerator",
-        DiagnosticSeverity.Error,
-        isEnabledByDefault: true);
+    private const string ICommandFullName = "Operations.Extensions.Messaging.ICommand`1";
 
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
         var commandTypes = context.SyntaxProvider
             .ForAttributeWithMetadataName(
-                DbCommandAttributeFullName,
-                predicate: static (node, _) => node is ClassDeclarationSyntax,
-                transform: static (ctx, ct) => ExtractTypeInfo(ctx, ct))
+                fullyQualifiedMetadataName: DbCommandAttributeFullName,
+                predicate: static (_, _) => true, // all types with the attribute
+                transform: static (ctx, _) => ExtractTypeInfo(ctx))
             .Where(static typeInfo => typeInfo is not null);
 
         context.RegisterSourceOutput(commandTypes, static (spc, typeInfo) =>
         {
-            if (typeInfo is null) return;
+            if (typeInfo is null)
+                return;
 
             foreach (var diagnostic in typeInfo.DiagnosticsToReport)
             {
@@ -65,87 +52,26 @@ public class DbCommandSourceGenerator : IIncrementalGenerator
         });
     }
 
-    private static TypeInfo? ExtractTypeInfo(GeneratorAttributeSyntaxContext context, CancellationToken cancellationToken)
+    private static TypeInfo? ExtractTypeInfo(GeneratorAttributeSyntaxContext context)
     {
         if (context.TargetSymbol is not INamedTypeSymbol typeSymbol)
             return null;
 
-        var dbCommandAttribute = typeSymbol.GetAttributes().FirstOrDefault(ad =>
-            ad.AttributeClass?.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat) == $"global::{DbCommandAttributeFullName}");
+        var dbCommandAttribute = typeSymbol.GetAttribute(DbCommandAttributeFullName);
 
-        if (dbCommandAttribute == null)
+        if (dbCommandAttribute is null)
             return null;
+
+        var containingTypes = GetContainingTypeDeclarations(typeSymbol);
+        var commandResultTypeInfo = GetDbCommandResultInfo(typeSymbol);
+
+        var dbCommandAttributeValues = GetDbCommandAttributeValues(dbCommandAttribute);
+        var properties = GetDbCommandObjectProperties(typeSymbol, dbCommandAttributeValues);
 
         var diagnostics = new List<Diagnostic>();
 
-        string? sp = null;
-        string? sql = null;
-        bool useSnakeCase = false;
-        bool nonQueryAttribute = true;
-
-        if (dbCommandAttribute.ConstructorArguments.Length > 0 && dbCommandAttribute.ConstructorArguments[0].Value is string spVal) sp = spVal;
-        if (dbCommandAttribute.ConstructorArguments.Length > 1 && dbCommandAttribute.ConstructorArguments[1].Value is string sqlVal) sql = sqlVal;
-        if (dbCommandAttribute.ConstructorArguments.Length > 2 && dbCommandAttribute.ConstructorArguments[2].Value is bool uscVal) useSnakeCase = uscVal;
-        if (dbCommandAttribute.ConstructorArguments.Length > 3 && dbCommandAttribute.ConstructorArguments[3].Value is bool nqVal) nonQueryAttribute = nqVal;
-
-        foreach (var arg in dbCommandAttribute.NamedArguments)
-        {
-            switch (arg.Key)
-            {
-                case "Sp": sp = arg.Value.Value as string ?? sp; break;
-                case "Sql": sql = arg.Value.Value as string ?? sql; break;
-                case "UseSnakeCase": if (arg.Value.Value is bool bVal) useSnakeCase = bVal; break;
-                case "NonQuery": if (arg.Value.Value is bool nqVal) nonQueryAttribute = nqVal; break;
-            }
-        }
-
-        var properties = typeSymbol.GetMembers()
-            .OfType<IPropertySymbol>()
-            .Where(p => p.DeclaredAccessibility == Accessibility.Public && !p.IsStatic && p.GetMethod != null)
-            .Select(p =>
-            {
-                var columnNameAttr = p.GetAttributes().FirstOrDefault(ad =>
-                    ad.AttributeClass?.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat) == $"global::{ColumnAttributeFullName}");
-                string parameterName;
-                if (columnNameAttr != null && columnNameAttr.ConstructorArguments.Any() && columnNameAttr.ConstructorArguments[0].Value is string customName)
-                {
-                    parameterName = customName;
-                }
-                else
-                {
-                    parameterName = useSnakeCase ? ToSnakeCase(p.Name) : p.Name;
-                }
-                return new PropertyInfo(p.Name, parameterName, p.Type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat));
-            })
-            .ToImmutableArray();
-
-        string? commandResultTypeFullName = null;
-        string? genericArgumentResultTypeFullName = null;
-        bool isEnumerableResult = false;
-
-        var iCommandOfTResultInterface = typeSymbol.AllInterfaces.FirstOrDefault(i =>
-            i.OriginalDefinition.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat) == $"global::{ICommandOfTResultFullName}");
-
-        if (iCommandOfTResultInterface != null && iCommandOfTResultInterface.TypeArguments.FirstOrDefault() is INamedTypeSymbol typeArgument)
-        {
-            commandResultTypeFullName = typeArgument.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
-            genericArgumentResultTypeFullName = commandResultTypeFullName;
-
-            if (typeArgument.OriginalDefinition.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat) == "global::System.Collections.Generic.IEnumerable`1" &&
-                typeArgument.TypeArguments.FirstOrDefault() is INamedTypeSymbol enumerableTypeArg)
-            {
-                isEnumerableResult = true;
-                genericArgumentResultTypeFullName = enumerableTypeArg.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
-            }
-        }
-        else if (!string.IsNullOrWhiteSpace(sp) || !string.IsNullOrWhiteSpace(sql))
-        {
-            // Handler is expected, but ICommand<TResult> is missing.
-            var diagnostic = Diagnostic.Create(CommandMissingInterfaceError, typeSymbol.Locations.FirstOrDefault() ?? Location.None, typeSymbol.Name);
-            diagnostics.Add(diagnostic);
-        }
-
-        var containingTypes = GetContainingTypeDeclarations(typeSymbol);
+        DbCommandSourceGeneratorAnalyzers.ExecuteMissingInterfaceAnalyzer(typeSymbol,
+            commandResultTypeInfo, dbCommandAttributeValues, diagnostics);
 
         return new TypeInfo(
             Symbol: typeSymbol,
@@ -153,17 +79,102 @@ public class DbCommandSourceGenerator : IIncrementalGenerator
             TypeName: typeSymbol.Name,
             TypeDeclaration: GetTypeDeclarationSyntax(typeSymbol),
             ContainingTypes: containingTypes,
-            Sp: sp,
-            Sql: sql,
-            UseSnakeCase: useSnakeCase,
-            IsNonQueryAttribute: nonQueryAttribute,
             Properties: properties,
-            CommandResultTypeFullName: commandResultTypeFullName,
-            GenericArgumentResultTypeFullName: genericArgumentResultTypeFullName,
-            // IsNonQueryType removed
-            IsEnumerableResult: isEnumerableResult,
+            CommandResultTypeInfo: commandResultTypeInfo,
+            CommandAttributesValues: dbCommandAttributeValues,
             DiagnosticsToReport: diagnostics.ToImmutableList() // Add diagnostics list
         );
+    }
+
+    private static ImmutableArray<string> GetContainingTypeDeclarations(INamedTypeSymbol typeSymbol)
+    {
+        var builder = ImmutableArray.CreateBuilder<string>();
+        var parent = typeSymbol.ContainingType;
+
+        while (parent is not null)
+        {
+            builder.Add(GetTypeDeclarationSyntax(parent));
+            parent = parent.ContainingType;
+        }
+
+        builder.Reverse();
+
+        return builder.ToImmutable();
+    }
+
+    private static DbCommandResultTypeInfo? GetDbCommandResultInfo(INamedTypeSymbol typeSymbol)
+    {
+        var iCommandInterface = typeSymbol.AllInterfaces.FirstOrDefault(i =>
+            i.OriginalDefinition.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat) == $"global::{ICommandFullName}");
+
+        if (iCommandInterface?.TypeArguments[0] is not INamedTypeSymbol commandResultType)
+            return null;
+
+        var commandResultFullTypeName = commandResultType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+        var genericArgumentResultFullTypeName = commandResultFullTypeName;
+        var isEnumerableResult = false;
+
+        var implementsIEnumerable = commandResultType.OriginalDefinition.ImplementsIEnumerable();
+
+        if (implementsIEnumerable && commandResultType.TypeArguments.FirstOrDefault() is INamedTypeSymbol enumerableTypeArg)
+        {
+            isEnumerableResult = true;
+            genericArgumentResultFullTypeName = enumerableTypeArg.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+        }
+
+        return new DbCommandResultTypeInfo(commandResultFullTypeName, genericArgumentResultFullTypeName, isEnumerableResult);
+    }
+
+    private static DbCommandAttributes GetDbCommandAttributeValues(AttributeData dbCommandAttribute)
+    {
+        var spValue = dbCommandAttribute.GetConstructorArgument<string>(index: 0);
+        var sqlValue = dbCommandAttribute.GetConstructorArgument<string>(index: 1);
+        var useSnakeCaseValue = dbCommandAttribute.GetConstructorArgument<bool?>(index: 2);
+        var nonQueryValue = dbCommandAttribute.GetConstructorArgument<bool>(index: 3);
+
+        foreach (var arg in dbCommandAttribute.NamedArguments)
+        {
+            switch (arg.Key)
+            {
+                case "Sp": spValue = arg.Value.Value as string ?? spValue; break;
+                case "Sql": sqlValue = arg.Value.Value as string ?? sqlValue; break;
+                case "UseSnakeCase":
+                    if (arg.Value.Value is bool useSnakeCaseVal) useSnakeCaseValue = useSnakeCaseVal;
+
+                    break;
+                case "NonQuery":
+                    if (arg.Value.Value is bool nonQueryVal) nonQueryValue = nonQueryVal;
+
+                    break;
+            }
+        }
+
+        // TODO: Enable snake_case default from project settings
+        var useSnakeCase = useSnakeCaseValue ?? false;
+
+        return new DbCommandAttributes(Sp: spValue, Sql: sqlValue, UseSnakeCase: useSnakeCase, NonQuery: nonQueryValue);
+    }
+
+    private static ImmutableArray<PropertyInfo> GetDbCommandObjectProperties(INamedTypeSymbol typeSymbol,
+        DbCommandAttributes dbCommandAttributeValues)
+    {
+        return typeSymbol.GetMembers()
+            .OfType<IPropertySymbol>()
+            .Where(prop => prop is { DeclaredAccessibility: Accessibility.Public, IsStatic: false, GetMethod: not null })
+            .Select(prop => new PropertyInfo(
+                PropertyName: prop.Name,
+                ParameterName: GetParameterNameFromProperty(prop, dbCommandAttributeValues.UseSnakeCase))).ToImmutableArray();
+
+        static string GetParameterNameFromProperty(IPropertySymbol prop, bool useSnakeCase)
+        {
+            var columnNameAttribute = prop.GetAttribute(ColumnAttributeFullName);
+            var customColumnName = columnNameAttribute?.GetConstructorArgument<string>(index: 0);
+
+            if (customColumnName is not null)
+                return customColumnName;
+
+            return useSnakeCase ? prop.Name.ToSnakeCase() : prop.Name;
+        }
     }
 
     private static void GenerateDbOpsPart(SourceProductionContext spc, TypeInfo typeInfo)
@@ -197,26 +208,25 @@ public class DbCommandSourceGenerator : IIncrementalGenerator
         sb.AppendLine("    public global::Dapper.DynamicParameters ToDbParams()");
         sb.AppendLine("    {");
         sb.AppendLine("        var p = new global::Dapper.DynamicParameters();");
+
         foreach (var prop in typeInfo.Properties)
         {
             sb.AppendLine($"        p.Add(\"{prop.ParameterName}\", this.{prop.PropertyName});");
         }
+
         sb.AppendLine("        return p;");
         sb.AppendLine("    }");
     }
 
     private static void GenerateHandlerPart(SourceProductionContext spc, TypeInfo typeInfo)
     {
-        if (string.IsNullOrWhiteSpace(typeInfo.Sp) && string.IsNullOrWhiteSpace(typeInfo.Sql))
+        if (string.IsNullOrWhiteSpace(typeInfo.CommandAttributesValues.Sp) &&
+            string.IsNullOrWhiteSpace(typeInfo.CommandAttributesValues.Sql))
             return; // No handler if Sp or Sql is not provided
 
-        // If CommandResultTypeFullName is null, it means ICommand<TResult> was not found.
-        // An error diagnostic DBCOMMANDGEN002 should have been logged by ExtractTypeInfo and reported by Initialize's output action.
-        // Generation should be skipped by the check in Initialize's RegisterSourceOutput action.
-        // This check is an additional safeguard.
-        if (typeInfo.CommandResultTypeFullName == null)
+        if (typeInfo.CommandResultTypeInfo is null)
         {
-            return;
+            return; // No ICommand<TResult> implemented on class having DbCommandAttribute
         }
 
         var handlerClassName = $"{typeInfo.TypeName}Handler";
@@ -238,28 +248,38 @@ public class DbCommandSourceGenerator : IIncrementalGenerator
         sourceBuilder.AppendLine($"public static class {handlerClassName}");
         sourceBuilder.AppendLine("{");
 
+        var commandText = typeInfo.CommandAttributesValues.Sp ?? typeInfo.CommandAttributesValues.Sql!;
+        var commandType = string.IsNullOrEmpty(typeInfo.CommandAttributesValues.Sql)
+            ? "CommandType.Text"
+            : "CommandType.StoredProcedure";
+        var defaultReturnForNonQueryGeneric = "";
+
         string returnType;
         string dapperCall;
-        string commandText = typeInfo.Sp ?? typeInfo.Sql!;
-        string commandType = string.IsNullOrEmpty(typeInfo.Sp) ? "CommandType.Text" : "CommandType.StoredProcedure";
-        string defaultReturnForNonQueryGeneric = "";
 
-        // Logic now hinges on CommandResultTypeFullName and IsNonQueryAttribute
-        if (typeInfo.CommandResultTypeFullName == "global::System.Int32" || typeInfo.CommandResultTypeFullName == "int") // ICommand<int>
+        var resultTypeInfo = typeInfo.CommandResultTypeInfo;
+
+        if (resultTypeInfo.FullTypeName is "global::System.Int32" or "int") // ICommand<int>
         {
             returnType = "Task<int>";
-            if (typeInfo.IsNonQueryAttribute) // NonQuery = true means rows affected
+
+            if (typeInfo.CommandAttributesValues.NonQuery)
             {
-                dapperCall = $"return await connection.ExecuteAsync(new CommandDefinition(\"{commandText}\", dbParams, commandType: {commandType}, cancellationToken: cancellationToken));";
+                dapperCall =
+                    $"return await connection.ExecuteAsync(new CommandDefinition(\"{commandText}\", dbParams, commandType: {commandType}," +
+                    $" cancellationToken: cancellationToken));";
             }
-            else // NonQuery = false means scalar query
+            else
             {
-                dapperCall = $"return await connection.ExecuteScalarAsync<int>(new CommandDefinition(\"{commandText}\", dbParams, commandType: {commandType}, cancellationToken: cancellationToken));";
+                dapperCall =
+                    $"return await connection.ExecuteScalarAsync<int>(new CommandDefinition(\"{commandText}\", dbParams," +
+                    $" commandType: {commandType}, cancellationToken: cancellationToken));";
             }
         }
         else // ICommand<TResult> where TResult is not int (or if TResult is a "unit" type representing void)
         {
             returnType = $"Task<{typeInfo.CommandResultTypeFullName}>";
+
             if (typeInfo.IsNonQueryAttribute) // NonQuery = true for non-int TResult
             {
                 // Diagnostic is reported by Initialize's output action based on TypeInfo.DiagnosticsToReport
@@ -267,75 +287,77 @@ public class DbCommandSourceGenerator : IIncrementalGenerator
                 // However, the plan was to report DBCOMMANDGEN001 from here.
                 // Let's ensure it's reported via spc from where it has context.
                 var location = typeInfo.Symbol.Locations.FirstOrDefault() ?? Location.None;
-                spc.ReportDiagnostic(Diagnostic.Create(NonQueryWithGenericResultWarning, location, typeInfo.TypeName, typeInfo.CommandResultTypeFullName));
+                spc.ReportDiagnostic(Diagnostic.Create(NonQueryWithGenericResultWarning, location, typeInfo.TypeName,
+                    typeInfo.CommandResultTypeFullName));
 
-                dapperCall = $"await connection.ExecuteAsync(new CommandDefinition(\"{commandText}\", dbParams, commandType: {commandType}, cancellationToken: cancellationToken));";
+                dapperCall =
+                    $"await connection.ExecuteAsync(new CommandDefinition(\"{commandText}\", dbParams, commandType: {commandType}, cancellationToken: cancellationToken));";
                 defaultReturnForNonQueryGeneric = $"return default({typeInfo.CommandResultTypeFullName});";
             }
             else // NonQuery = false (standard query for ICommand<TResult>)
             {
                 if (typeInfo.IsEnumerableResult)
                 {
-                    dapperCall = $"return await connection.QueryAsync<{typeInfo.GenericArgumentResultTypeFullName}>(new CommandDefinition(\"{commandText}\", dbParams, commandType: {commandType}, cancellationToken: cancellationToken));";
+                    dapperCall =
+                        $"return await connection.QueryAsync<{typeInfo.GenericArgumentResultTypeFullName}>(new CommandDefinition(\"{commandText}\", dbParams, commandType: {commandType}, cancellationToken: cancellationToken));";
                 }
                 else // Single object result
                 {
-                    dapperCall = $"return await connection.QueryFirstOrDefaultAsync<{typeInfo.GenericArgumentResultTypeFullName}>(new CommandDefinition(\"{commandText}\", dbParams, commandType: {commandType}, cancellationToken: cancellationToken));";
+                    dapperCall =
+                        $"return await connection.QueryFirstOrDefaultAsync<{typeInfo.GenericArgumentResultTypeFullName}>(new CommandDefinition(\"{commandText}\", dbParams, commandType: {commandType}, cancellationToken: cancellationToken));";
                 }
             }
         }
 
-        sourceBuilder.AppendLine($"    public static async {returnType} HandleAsync({typeInfo.FullyQualifiedTypeName} command, global::Npgsql.NpgsqlDataSource dataSource, global::System.Threading.CancellationToken cancellationToken = default)");
+        sourceBuilder.AppendLine(
+            $"    public static async {returnType} HandleAsync({typeInfo.FullyQualifiedTypeName} command, global::Npgsql.NpgsqlDataSource dataSource, global::System.Threading.CancellationToken cancellationToken = default)");
         sourceBuilder.AppendLine("    {");
         sourceBuilder.AppendLine("        await using var connection = await dataSource.OpenConnectionAsync(cancellationToken);");
         sourceBuilder.AppendLine("        var dbParams = command.ToDbParams();");
         sourceBuilder.AppendLine($"        {dapperCall}");
+
         if (!string.IsNullOrEmpty(defaultReturnForNonQueryGeneric))
         {
             sourceBuilder.AppendLine($"        {defaultReturnForNonQueryGeneric}");
         }
+
         sourceBuilder.AppendLine("    }");
         sourceBuilder.AppendLine("}");
 
         spc.AddSource($"{typeInfo.SafeFileName}.{handlerClassName}.g.cs", sourceBuilder.ToString());
     }
 
-    private static string ToSnakeCase(string name)
-    {
-        if (string.IsNullOrEmpty(name)) return name;
-        var sb = new StringBuilder();
-        for (int i = 0; i < name.Length; i++) { char c = name[i]; if (char.IsUpper(c)) { if (i > 0 && name[i - 1] != '_') sb.Append('_'); sb.Append(char.ToLowerInvariant(c)); } else sb.Append(c); }
-        return sb.ToString();
-    }
-
     private static string GetTypeDeclarationSyntax(INamedTypeSymbol typeSymbol)
     {
-        var kind = typeSymbol.TypeKind switch { TypeKind.Class => typeSymbol.IsRecord ? "partial record class" : "partial class", TypeKind.Struct => typeSymbol.IsRecord ? "partial record struct" : "partial struct", _ => "partial class" };
-        return $"{SyntaxFacts.GetText(typeSymbol.DeclaredAccessibility)} {kind} {typeSymbol.Name}{(typeSymbol.IsGenericType ? FormatGenerics(typeSymbol.TypeArguments) : "")}";
+        var kind = typeSymbol.TypeKind switch
+        {
+            TypeKind.Class => typeSymbol.IsRecord ? "partial record class" : "partial class",
+            TypeKind.Struct => typeSymbol.IsRecord ? "partial record struct" : "partial struct", _ => "partial class"
+        };
+
+        return
+            $"{SyntaxFacts.GetText(typeSymbol.DeclaredAccessibility)} {kind} {typeSymbol.Name}{(typeSymbol.IsGenericType ? FormatGenerics(typeSymbol.TypeArguments) : "")}";
     }
 
     private static string FormatGenerics(ImmutableArray<ITypeSymbol> typeArguments)
     {
         if (typeArguments.IsEmpty) return string.Empty;
-        return $"<{string.Join(", ", typeArguments.Select(ta => ta.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)))}>";
-    }
 
-    private static ImmutableArray<string> GetContainingTypeDeclarations(INamedTypeSymbol typeSymbol)
-    {
-        var builder = ImmutableArray.CreateBuilder<string>();
-        var parent = typeSymbol.ContainingType;
-        while (parent != null) { builder.Add(GetTypeDeclarationSyntax(parent)); parent = parent.ContainingType; }
-        builder.Reverse(); return builder.ToImmutable();
+        return $"<{string.Join(", ", typeArguments.Select(ta => ta.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)))}>";
     }
 
     private static void AppendContainingTypeStarts(StringBuilder sb, ImmutableArray<string> containingTypes)
     {
-        foreach (var typeDecl in containingTypes) { sb.AppendLine(typeDecl); sb.AppendLine("{"); }
+        foreach (var typeDecl in containingTypes)
+        {
+            sb.AppendLine(typeDecl);
+            sb.AppendLine("{");
+        }
     }
 
     private static void AppendContainingTypeEnds(StringBuilder sb, ImmutableArray<string> containingTypes)
     {
-        for (int i = 0; i < containingTypes.Length; i++) { sb.AppendLine("}"); }
+        for (var i = 0; i < containingTypes.Length; i++) { sb.AppendLine("}"); }
     }
 }
 
@@ -346,16 +368,10 @@ internal record TypeInfo(
     string TypeName,
     string TypeDeclaration,
     ImmutableArray<string> ContainingTypes,
-    string? Sp,
-    string? Sql,
-    bool UseSnakeCase,
-    bool IsNonQueryAttribute,
     ImmutableArray<PropertyInfo> Properties,
-    string? CommandResultTypeFullName, // Null if ICommand<TResult> not found
-    string? GenericArgumentResultTypeFullName,
-    // bool IsNonQueryType, // Removed
-    bool IsEnumerableResult,
-    ImmutableList<Diagnostic> DiagnosticsToReport // New field for collecting diagnostics
+    DbCommandResultTypeInfo? CommandResultTypeInfo,
+    DbCommandAttributes CommandAttributesValues,
+    ImmutableList<Diagnostic> DiagnosticsToReport
 )
 {
     public string SafeFileName => $"{Namespace?.Replace('.', '_') ?? "global"}_{TypeName.Replace('<', '_').Replace('>', '_')}";
@@ -363,29 +379,80 @@ internal record TypeInfo(
 
     private static string ConstructFullyQualifiedName(INamedTypeSymbol typeSymbol)
     {
-        var parts = new System.Collections.Generic.List<string>();
+        var parts = new List<string>();
         var currentType = typeSymbol;
-        while(currentType != null)
+
+        while (currentType != null)
         {
             var partName = currentType.Name + (currentType.IsGenericType ? FormatGenerics(currentType.TypeArguments) : "");
             parts.Add(partName);
             currentType = currentType.ContainingType;
         }
+
         parts.Reverse();
-        string typeNameWithNesting = string.Join(".", parts);
+        var typeNameWithNesting = string.Join(".", parts);
 
         if (typeSymbol.ContainingNamespace.IsGlobalNamespace)
         {
             return $"global::{typeNameWithNesting}";
         }
+
         return $"global::{typeSymbol.ContainingNamespace.ToDisplayString()}.{typeNameWithNesting}";
     }
 
-     private static string FormatGenerics(ImmutableArray<ITypeSymbol> typeArguments)
+    private static string FormatGenerics(ImmutableArray<ITypeSymbol> typeArguments)
     {
         if (typeArguments.IsEmpty) return string.Empty;
+
         return $"<{string.Join(", ", typeArguments.Select(ta => ta.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)))}>";
     }
 }
 
-internal record PropertyInfo(string PropertyName, string ParameterName, string PropertyTypeFullName);
+public static class SourceGeneratorExtensions
+{
+    public static T? GetConstructorArgument<T>(this AttributeData attribute, int index)
+    {
+        if (attribute.ConstructorArguments.Length > index && attribute.ConstructorArguments[index].Value is T argValue)
+        {
+            return argValue;
+        }
+
+        return default;
+    }
+
+    public static AttributeData? GetAttribute(this ISymbol symbol, string attributeFullName)
+    {
+        return symbol.GetAttributes().FirstOrDefault(ad =>
+            ad.AttributeClass?.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat) == $"global::{attributeFullName}");
+    }
+
+    public static bool ImplementsIEnumerable(this INamedTypeSymbol typeSymbol)
+    {
+        return typeSymbol.AllInterfaces.Any(i =>
+            i.Name == "IEnumerable" &&
+            (i.ContainingNamespace.ToDisplayString() == "System.Collections" ||
+             i.ContainingNamespace.ToDisplayString() == "System.Collections.Generic"));
+    }
+
+    public static string ToSnakeCase(this string value)
+    {
+        if (string.IsNullOrEmpty(value))
+            return value;
+
+        var sb = new StringBuilder();
+
+        for (var i = 0; i < value.Length; i++)
+        {
+            var c = value[i];
+
+            if (char.IsUpper(c))
+            {
+                if (i > 0 && value[i - 1] != '_') sb.Append('_');
+                sb.Append(char.ToLowerInvariant(c));
+            }
+            else sb.Append(c);
+        }
+
+        return sb.ToString();
+    }
+}

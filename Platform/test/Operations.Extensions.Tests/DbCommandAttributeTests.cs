@@ -1,8 +1,6 @@
 // Copyright (c) ABCDEG. All rights reserved.
 
-using System;
 using Operations.Extensions.Dapper;
-using Xunit;
 
 namespace Operations.Extensions.Tests;
 
