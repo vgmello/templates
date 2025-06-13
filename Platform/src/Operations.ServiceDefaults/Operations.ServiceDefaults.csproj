@@ -24,6 +24,11 @@
         <FrameworkReference Include="Microsoft.AspNetCore.App"/>
     </ItemGroup>
 
+    <!--
+        IMPORTANT Reminder: All the dependencies in this project should be needed by all the Host projects (Api, Backoffice, Orleans, etc.).
+        We want to avoid adding a dependency to a specific Host project type, as it would not be used by the others.
+    -->
+
     <ItemGroup>
         <PackageReference Include="Aspire.Npgsql"/>
         <PackageReference Include="FluentValidation.DependencyInjectionExtensions"/>

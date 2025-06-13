@@ -1,11 +1,11 @@
 // Copyright (c) ABCDEG. All rights reserved.
 
 using Billing.Contracts.Cashier.IntegrationEvents;
-using CashierModel = Billing.Contracts.Cashier.Models.Cashier;
 using Operations.Extensions.Dapper;
-using Npgsql;
 
 namespace Billing.Cashier.Commands;
+
+using CashierModel = Billing.Contracts.Cashier.Models.Cashier;
 
 public record CreateCashierCommand(string Name, string Email) : ICommand<Result<CashierModel>>;
 
@@ -19,13 +19,15 @@ public class CreateCustomerValidator : AbstractValidator<CreateCashierCommand>
     }
 }
 
-public static class CreateCashierCommandHandler
+public static partial class CreateCashierCommandHandler
 {
-    [DbParams]
+    [DbCommand(sp: "billing.create_cashier", nonQuery: true, paramsCase: DbParamsCase.SnakeCase)]
     public partial record InsertCashierCommand(Guid CashierId, string Name, string? Email) : ICommand<int>;
 
     public static async Task<(Result<CashierModel>, CashierCreatedEvent)> Handle(
-        CreateCashierCommand command, IMessageBus messaging, CancellationToken cancellationToken)
+        CreateCashierCommand command,
+        IMessageBus messaging,
+        CancellationToken cancellationToken)
     {
         var cashierId = Guid.NewGuid();
 
@@ -40,11 +42,8 @@ public static class CreateCashierCommandHandler
             Email = command.Email
         };
 
-        return (result, new CashierCreatedEvent(result));
-    }
+        var createdEvent = new CashierCreatedEvent(result);
 
-    public static async Task<int> Handle(InsertCashierCommand command, NpgsqlDataSource dataSource, CancellationToken cancellationToken)
-    {
-        return await dataSource.CallSp("billing.create_cashier", command.ToDbParams(), cancellationToken);
+        return (result, createdEvent);
     }
 }
