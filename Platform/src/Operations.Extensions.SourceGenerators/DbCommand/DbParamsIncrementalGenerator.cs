@@ -7,7 +7,7 @@ using System.Text;
 
 namespace Operations.Extensions.SourceGenerators.DbCommand;
 
-internal record DbCommandAttributes(string? Sp, string? Sql, bool UseSnakeCase, bool NonQuery);
+internal record DbCommandAttributes(string? Sp, string? Sql, bool UseSnakeCase, bool NonQuery, string? DataSource);
 
 internal record DbPropertyInfo(string PropertyName, string ParameterName);
 
@@ -138,6 +138,13 @@ public class DbCommandSourceGenerator : IIncrementalGenerator
         sourceBuilder.AppendLine("using System.Threading.Tasks;");
         sourceBuilder.AppendLine("using Dapper;");
         sourceBuilder.AppendLine("using System.Data;");
+        sourceBuilder.AppendLine("using System.Data.Common;");
+
+        // Conditionally add using for FromKeyedServicesAttribute
+        if (!string.IsNullOrEmpty(dbCommandTypeInfo.CommandAttributesValues.DataSource))
+        {
+            sourceBuilder.AppendLine("using Microsoft.Extensions.DependencyInjection;");
+        }
 
         AppendNamespace(sourceBuilder, dbCommandTypeInfo.Namespace);
 
@@ -151,10 +158,16 @@ public class DbCommandSourceGenerator : IIncrementalGenerator
             sourceBuilder.AppendLine("{");
         }
 
+        var dataSourceParamName = "dataSource"; // Can be 'dataSource' or '_dataSource' if there's a conflict, but unlikely here.
+        var dataSourceKey = dbCommandTypeInfo.CommandAttributesValues.DataSource;
+        var dataSourceParameterDeclaration = string.IsNullOrEmpty(dataSourceKey)
+            ? $"global::System.Data.Common.DbDataSource {dataSourceParamName}"
+            : $"[global::Microsoft.Extensions.DependencyInjection.FromKeyedServicesAttribute(\"{dataSourceKey}\")] global::System.Data.Common.DbDataSource {dataSourceParamName}";
+
         sourceBuilder.AppendLine(
-            $"    public static async {returnTypeDeclaration} HandleAsync({dbCommandTypeInfo.FullyQualifiedTypeName} command, global::Npgsql.NpgsqlDataSource dataSource, global::System.Threading.CancellationToken cancellationToken = default)");
+            $"    public static async {returnTypeDeclaration} HandleAsync({dbCommandTypeInfo.FullyQualifiedTypeName} command, {dataSourceParameterDeclaration}, global::System.Threading.CancellationToken cancellationToken = default)");
         sourceBuilder.AppendLine("    {");
-        sourceBuilder.AppendLine("        await using var connection = await dataSource.OpenConnectionAsync(cancellationToken);");
+        sourceBuilder.AppendLine($"        await using var connection = await {dataSourceParamName}.OpenConnectionAsync(cancellationToken);");
         sourceBuilder.AppendLine("        var dbParams = command.ToDbParams();");
         sourceBuilder.AppendLine($"        {dapperCall}");
         sourceBuilder.AppendLine("    }");
@@ -280,30 +293,19 @@ public class DbCommandSourceGenerator : IIncrementalGenerator
     {
         var spValue = dbCommandAttribute.GetConstructorArgument<string>(index: 0);
         var sqlValue = dbCommandAttribute.GetConstructorArgument<string>(index: 1);
-        var dbParamCase = dbCommandAttribute.GetConstructorArgument<int>(index: 2);
+        var dbParamCaseValue = dbCommandAttribute.GetConstructorArgument<int>(index: 2); // DbParamsCase enum
         var nonQueryValue = dbCommandAttribute.GetConstructorArgument<bool>(index: 3);
+        var dataSourceValue = dbCommandAttribute.GetConstructorArgument<string>(index: 4);
 
-        foreach (var arg in dbCommandAttribute.NamedArguments)
-        {
-            switch (arg.Key)
-            {
-                case "sp": spValue = arg.Value.Value as string ?? spValue; break;
-                case "sql": sqlValue = arg.Value.Value as string ?? sqlValue; break;
-                case "paramsCase":
-                    if (arg.Value.Value is int dbParamCaseVal) dbParamCase = dbParamCaseVal;
+        // DbParamsCase.SnakeCase has a value of 1. See DbCommandAttribute.cs
+        var useSnakeCase = dbParamCaseValue == 1;
 
-                    break;
-                case "nonQuery":
-                    if (arg.Value.Value is bool nonQueryVal) nonQueryValue = nonQueryVal;
-
-                    break;
-            }
-        }
-
-        // TODO: Enable snake_case default from project settings
-        var useSnakeCase = dbParamCase == 1;
-
-        return new DbCommandAttributes(Sp: spValue, Sql: sqlValue, UseSnakeCase: useSnakeCase, NonQuery: nonQueryValue);
+        return new DbCommandAttributes(
+            Sp: spValue,
+            Sql: sqlValue,
+            UseSnakeCase: useSnakeCase,
+            NonQuery: nonQueryValue,
+            DataSource: dataSourceValue);
     }
 
     private static DbCommandResultTypeInfo? GetDbCommandResultInfo(INamedTypeSymbol typeSymbol)

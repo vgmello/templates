@@ -28,7 +28,8 @@ public sealed class DbCommandAttribute : Attribute
         string? sp = null,
         string? sql = null,
         DbParamsCase paramsCase = DbParamsCase.Default,
-        bool nonQuery = false)
+        bool nonQuery = false,
+        string? dataSource = null)
     {
         if (!string.IsNullOrWhiteSpace(sp) && !string.IsNullOrWhiteSpace(sql))
         {
@@ -40,6 +41,7 @@ public sealed class DbCommandAttribute : Attribute
         Sql = sql;
         ParamsCase = paramsCase;
         NonQuery = nonQuery;
+        DataSource = dataSource;
     }
 
     /// <summary>
@@ -76,6 +78,11 @@ public sealed class DbCommandAttribute : Attribute
     ///     QueryAsync).
     /// </summary>
     public bool NonQuery { get; }
+
+    /// <summary>
+    ///     Gets the data source key.
+    /// </summary>
+    public string? DataSource { get; }
 }
 
 public enum DbParamsCase
