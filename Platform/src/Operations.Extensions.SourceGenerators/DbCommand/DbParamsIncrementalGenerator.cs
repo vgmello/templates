@@ -3,7 +3,6 @@
 using Microsoft.CodeAnalysis;
 using Operations.Extensions.SourceGenerators.Extensions;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Text;
 
 namespace Operations.Extensions.SourceGenerators.DbCommand;
@@ -43,14 +42,12 @@ public class DbCommandSourceGenerator : IIncrementalGenerator
 
     private const string ColumnAttributeFullName = "System.ComponentModel.DataAnnotations.Schema.ColumnAttribute";
 
-    private const string ICommandFullName = "Operations.Extensions.Messaging.ICommand`1";
+    private const string ICommandFullName = "Operations.Extensions.Messaging.ICommand<TResult>";
 
     private const string IDbParamsProviderFullName = "Operations.Extensions.Dapper.IDbParamsProvider";
 
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
-        Debugger.Break();
-
         var commandTypes = context.SyntaxProvider
             .ForAttributeWithMetadataName(
                 fullyQualifiedMetadataName: DbCommandAttributeFullName,
@@ -95,11 +92,11 @@ public class DbCommandSourceGenerator : IIncrementalGenerator
 
         var diagnostics = new List<Diagnostic>();
 
-        DbCommandAnalyzers.ExecuteMissingInterfaceAnalyzer(typeSymbol,
-            commandResultTypeInfo, dbCommandAttributeValues, diagnostics);
-
-        DbCommandAnalyzers.ExecuteNonQueryWithNonIntegralResultAnalyzer(typeSymbol,
-            commandResultTypeInfo, dbCommandAttributeValues, diagnostics);
+        // DbCommandAnalyzers.ExecuteMissingInterfaceAnalyzer(typeSymbol,
+        //     commandResultTypeInfo, dbCommandAttributeValues, diagnostics);
+        //
+        // DbCommandAnalyzers.ExecuteNonQueryWithNonIntegralResultAnalyzer(typeSymbol,
+        //     commandResultTypeInfo, dbCommandAttributeValues, diagnostics);
 
         return new DbCommandTypeInfo(
             Namespace: typeSymbol.ContainingNamespace.IsGlobalNamespace ? null : typeSymbol.ContainingNamespace.ToDisplayString(),
@@ -147,12 +144,12 @@ public class DbCommandSourceGenerator : IIncrementalGenerator
     private static DbCommandResultTypeInfo? GetDbCommandResultInfo(INamedTypeSymbol typeSymbol)
     {
         var iCommandInterface = typeSymbol.AllInterfaces.FirstOrDefault(i =>
-            i.OriginalDefinition.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat) == $"global::{ICommandFullName}");
+            i.OriginalDefinition.GetFullyQualifiedName() == $"global::{ICommandFullName}");
 
         if (iCommandInterface?.TypeArguments[0] is not INamedTypeSymbol commandResultType)
             return null;
 
-        var commandResultFullTypeName = commandResultType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+        var commandResultFullTypeName = commandResultType.GetFullyQualifiedName();
         var genericArgumentResultFullTypeName = commandResultFullTypeName;
         var isEnumerableResult = false;
 
@@ -161,7 +158,7 @@ public class DbCommandSourceGenerator : IIncrementalGenerator
         if (implementsIEnumerable && commandResultType.TypeArguments.FirstOrDefault() is INamedTypeSymbol enumerableTypeArg)
         {
             isEnumerableResult = true;
-            genericArgumentResultFullTypeName = enumerableTypeArg.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+            genericArgumentResultFullTypeName = enumerableTypeArg.GetFullyQualifiedName();
         }
 
         return new DbCommandResultTypeInfo(

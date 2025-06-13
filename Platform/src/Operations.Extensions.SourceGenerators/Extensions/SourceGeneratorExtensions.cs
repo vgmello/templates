@@ -20,8 +20,7 @@ public static class SourceGeneratorExtensions
 
     public static AttributeData? GetAttribute(this ISymbol symbol, string attributeFullName)
     {
-        return symbol.GetAttributes().FirstOrDefault(ad =>
-            ad.AttributeClass?.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat) == $"global::{attributeFullName}");
+        return symbol.GetAttributes().FirstOrDefault(ad => ad.AttributeClass?.GetFullyQualifiedName() == $"global::{attributeFullName}");
     }
 
     public static bool ImplementsIEnumerable(this INamedTypeSymbol typeSymbol)
@@ -36,7 +35,7 @@ public static class SourceGeneratorExtensions
     {
         var kind = typeSymbol.TypeKind switch
         {
-            TypeKind.Class => typeSymbol.IsRecord ? "partial record class" : "partial class",
+            TypeKind.Class => typeSymbol.IsRecord ? "partial record" : "partial class",
             TypeKind.Struct => typeSymbol.IsRecord ? "partial record struct" : "partial struct",
             _ => "partial class"
         };
@@ -46,7 +45,7 @@ public static class SourceGeneratorExtensions
         return $"{SyntaxFacts.GetText(typeSymbol.DeclaredAccessibility)} {kind} {typeSymbol.Name}{genericArgDefinition}";
     }
 
-    public static string GetFullyQualifiedName(this INamedTypeSymbol typeSymbol)
+    public static string GetFullyQualifiedNameLegacy(this INamedTypeSymbol typeSymbol)
     {
         var parts = new List<string>();
         var currentType = typeSymbol;
@@ -68,6 +67,9 @@ public static class SourceGeneratorExtensions
 
         return $"global::{typeSymbol.ContainingNamespace.ToDisplayString()}.{typeNameWithNesting}";
     }
+
+    public static string GetFullyQualifiedName(this INamedTypeSymbol typeSymbol) =>
+        typeSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
 
     public static ImmutableArray<string> GetContainingTypeDeclarations(this INamedTypeSymbol typeSymbol)
     {
