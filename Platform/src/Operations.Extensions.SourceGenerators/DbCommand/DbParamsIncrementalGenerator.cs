@@ -33,6 +33,8 @@ internal record DbCommandTypeInfo(
     public string SafeFileName { get; } = $"{Namespace?.Replace('.', '_') ?? "global"}_{TypeName.Replace('<', '_').Replace('>', '_')}";
 
     public bool ImplementsICommandInterface => CommandResultTypeInfo is not null;
+
+    public bool IsNestedType => ContainingTypes.Length > 0;
 }
 
 [Generator]
@@ -73,6 +75,169 @@ public class DbCommandSourceGenerator : IIncrementalGenerator
         });
     }
 
+    private static void GenerateDbOpsPart(SourceProductionContext spc, DbCommandTypeInfo dbCommandTypeInfo)
+    {
+        var sourceBuilder = new StringBuilder();
+
+        AppendFileHeader(sourceBuilder);
+        AppendNamespace(sourceBuilder, dbCommandTypeInfo.Namespace);
+        AppendContainingTypeStarts(sourceBuilder, dbCommandTypeInfo.ContainingTypes);
+
+        sourceBuilder.AppendLine($"{dbCommandTypeInfo.TypeDeclaration} : global::{IDbParamsProviderFullName}");
+        sourceBuilder.AppendLine("{");
+
+        GenerateToDbParamsMethod(sourceBuilder, dbCommandTypeInfo);
+
+        sourceBuilder.AppendLine("}");
+
+        AppendContainingTypeEnds(sourceBuilder, dbCommandTypeInfo.ContainingTypes);
+
+        spc.AddSource($"{dbCommandTypeInfo.SafeFileName}.DbOps.g.cs", sourceBuilder.ToString());
+    }
+
+    private static void GenerateToDbParamsMethod(StringBuilder sb, DbCommandTypeInfo dbCommandTypeInfo)
+    {
+        sb.AppendLine("    public global::System.Object ToDbParams()");
+        sb.AppendLine("    {");
+        sb.AppendLine("        var p = new {");
+
+        var properties = dbCommandTypeInfo.Properties.ToList();
+
+        for (var i = 0; i < properties.Count; i++)
+        {
+            var prop = properties[i];
+            var comma = i < properties.Count - 1 ? "," : string.Empty;
+            sb.AppendLine($"            {prop.ParameterName} = this.{prop.PropertyName}{comma}");
+        }
+
+        sb.AppendLine("        };");
+        sb.AppendLine("        return p;");
+        sb.AppendLine("    }");
+    }
+
+    private static void GenerateHandlerPart(SourceProductionContext spc, DbCommandTypeInfo dbCommandTypeInfo)
+    {
+        if (string.IsNullOrWhiteSpace(dbCommandTypeInfo.CommandAttributesValues.Sp) &&
+            string.IsNullOrWhiteSpace(dbCommandTypeInfo.CommandAttributesValues.Sql))
+            return; // No handler if Sp or Sql is not provided
+
+        // Not an ICommand
+        if (dbCommandTypeInfo.CommandResultTypeInfo is null)
+        {
+            return;
+        }
+
+        var handlerClassName = $"{dbCommandTypeInfo.TypeName}Handler";
+        var sourceBuilder = new StringBuilder();
+
+        var returnTypeDeclaration = $"Task<{dbCommandTypeInfo.CommandResultTypeInfo.FullTypeName}>";
+        var dapperCall = CreateDapperCall(dbCommandTypeInfo.CommandResultTypeInfo, dbCommandTypeInfo.CommandAttributesValues);
+
+        AppendFileHeader(sourceBuilder);
+
+        sourceBuilder.AppendLine("using System.Threading.Tasks;");
+        sourceBuilder.AppendLine("using Dapper;");
+        sourceBuilder.AppendLine("using System.Data;");
+
+        AppendNamespace(sourceBuilder, dbCommandTypeInfo.Namespace);
+
+        if (dbCommandTypeInfo.IsNestedType)
+        {
+            AppendContainingTypeStarts(sourceBuilder, dbCommandTypeInfo.ContainingTypes);
+        }
+        else
+        {
+            sourceBuilder.AppendLine($"public static class {handlerClassName}");
+            sourceBuilder.AppendLine("{");
+        }
+
+        sourceBuilder.AppendLine(
+            $"    public static async {returnTypeDeclaration} HandleAsync({dbCommandTypeInfo.FullyQualifiedTypeName} command, global::Npgsql.NpgsqlDataSource dataSource, global::System.Threading.CancellationToken cancellationToken = default)");
+        sourceBuilder.AppendLine("    {");
+        sourceBuilder.AppendLine("        await using var connection = await dataSource.OpenConnectionAsync(cancellationToken);");
+        sourceBuilder.AppendLine("        var dbParams = command.ToDbParams();");
+        sourceBuilder.AppendLine($"        {dapperCall}");
+        sourceBuilder.AppendLine("    }");
+
+        if (dbCommandTypeInfo.IsNestedType)
+        {
+            AppendContainingTypeEnds(sourceBuilder, dbCommandTypeInfo.ContainingTypes);
+        }
+        else
+        {
+            sourceBuilder.AppendLine("}");
+        }
+
+        var fileSuffix = dbCommandTypeInfo.IsNestedType ? string.Empty : $".{handlerClassName}";
+        spc.AddSource($"{dbCommandTypeInfo.SafeFileName}{fileSuffix}.g.cs", sourceBuilder.ToString());
+    }
+
+    private static string CreateDapperCall(DbCommandResultTypeInfo resultTypeInfo, DbCommandAttributes commandAttributesValues)
+    {
+        var commandText = commandAttributesValues.Sp ?? commandAttributesValues.Sql!;
+        var commandType = string.IsNullOrEmpty(commandAttributesValues.Sp)
+            ? "CommandType.Text"
+            : "CommandType.StoredProcedure";
+
+        var commandDefinitionCall = $"new CommandDefinition(\"{commandText}\", dbParams, commandType: {commandType}, " +
+                                    $"cancellationToken: cancellationToken)";
+
+        // ICommand<short/int/long>
+        if (resultTypeInfo.IsIntegralType)
+        {
+            if (commandAttributesValues.NonQuery)
+            {
+                return $"return await connection.ExecuteAsync({commandDefinitionCall});";
+            }
+
+            return $"return await connection" +
+                   $".ExecuteScalarAsync<{resultTypeInfo.GenericArgumentResultFullTypeName}>({commandDefinitionCall});";
+        }
+
+        // ICommand<IEnumerable<TResul>>
+        if (resultTypeInfo.IsEnumerableResult)
+        {
+            return $"return await connection.QueryAsync<{resultTypeInfo.GenericArgumentResultFullTypeName}>({commandDefinitionCall});";
+        }
+
+        // Single object result
+        return $"return await connection" +
+               $".QueryFirstOrDefaultAsync<{resultTypeInfo.GenericArgumentResultFullTypeName}>({commandDefinitionCall});";
+    }
+
+    private static void AppendContainingTypeStarts(StringBuilder sb, ImmutableArray<string> containingTypes)
+    {
+        foreach (var typeDecl in containingTypes)
+        {
+            sb.AppendLine(typeDecl);
+            sb.AppendLine("{");
+        }
+    }
+
+    private static void AppendContainingTypeEnds(StringBuilder sb, ImmutableArray<string> containingTypes)
+    {
+        for (var i = 0; i < containingTypes.Length; i++)
+        {
+            sb.AppendLine("}");
+        }
+    }
+
+    private static void AppendNamespace(StringBuilder sb, string? ns)
+    {
+        if (ns is not null)
+        {
+            sb.AppendLine($"namespace {ns};");
+            sb.AppendLine();
+        }
+    }
+
+    private static void AppendFileHeader(StringBuilder sb)
+    {
+        sb.AppendLine("// <auto-generated/>");
+        sb.AppendLine("#nullable enable");
+        sb.AppendLine();
+    }
+
     private static DbCommandTypeInfo? ExtractTypeInfo(GeneratorAttributeSyntaxContext context)
     {
         if (context.TargetSymbol is not INamedTypeSymbol typeSymbol)
@@ -92,11 +257,11 @@ public class DbCommandSourceGenerator : IIncrementalGenerator
 
         var diagnostics = new List<Diagnostic>();
 
-        // DbCommandAnalyzers.ExecuteMissingInterfaceAnalyzer(typeSymbol,
-        //     commandResultTypeInfo, dbCommandAttributeValues, diagnostics);
-        //
-        // DbCommandAnalyzers.ExecuteNonQueryWithNonIntegralResultAnalyzer(typeSymbol,
-        //     commandResultTypeInfo, dbCommandAttributeValues, diagnostics);
+        DbCommandAnalyzers.ExecuteMissingInterfaceAnalyzer(
+            typeSymbol, commandResultTypeInfo, dbCommandAttributeValues, diagnostics);
+
+        DbCommandAnalyzers.ExecuteNonQueryWithNonIntegralResultAnalyzer(
+            typeSymbol, commandResultTypeInfo, dbCommandAttributeValues, diagnostics);
 
         return new DbCommandTypeInfo(
             Namespace: typeSymbol.ContainingNamespace.IsGlobalNamespace ? null : typeSymbol.ContainingNamespace.ToDisplayString(),
@@ -188,149 +353,6 @@ public class DbCommandSourceGenerator : IIncrementalGenerator
                 return customColumnName;
 
             return useSnakeCase ? prop.Name.ToSnakeCase() : prop.Name;
-        }
-    }
-
-    private static void GenerateDbOpsPart(SourceProductionContext spc, DbCommandTypeInfo dbCommandTypeInfo)
-    {
-        var sourceBuilder = new StringBuilder();
-        sourceBuilder.AppendLine("// <auto-generated/>");
-        sourceBuilder.AppendLine("#nullable enable");
-        sourceBuilder.AppendLine();
-
-        if (dbCommandTypeInfo.Namespace is not null)
-        {
-            sourceBuilder.AppendLine($"namespace {dbCommandTypeInfo.Namespace};");
-            sourceBuilder.AppendLine();
-        }
-
-        AppendContainingTypeStarts(sourceBuilder, dbCommandTypeInfo.ContainingTypes);
-
-        sourceBuilder.AppendLine($"{dbCommandTypeInfo.TypeDeclaration} : global::{IDbParamsProviderFullName}");
-        sourceBuilder.AppendLine("{");
-
-        GenerateToDbParamsMethod(sourceBuilder, dbCommandTypeInfo);
-
-        sourceBuilder.AppendLine("}");
-
-        AppendContainingTypeEnds(sourceBuilder, dbCommandTypeInfo.ContainingTypes);
-
-        spc.AddSource($"{dbCommandTypeInfo.SafeFileName}.DbOps.g.cs", sourceBuilder.ToString());
-    }
-
-    private static void GenerateToDbParamsMethod(StringBuilder sb, DbCommandTypeInfo dbCommandTypeInfo)
-    {
-        sb.AppendLine("    public global::System.Object ToDbParams()");
-        sb.AppendLine("    {");
-        sb.AppendLine("        var p = new {");
-
-        var properties = dbCommandTypeInfo.Properties.ToList();
-
-        for (var i = 0; i < properties.Count; i++)
-        {
-            var prop = properties[i];
-            var comma = i < properties.Count - 1 ? "," : string.Empty;
-            sb.AppendLine($"            {prop.ParameterName} = this.{prop.PropertyName}{comma}");
-        }
-
-        sb.AppendLine("        };");
-        sb.AppendLine("        return p;");
-        sb.AppendLine("    }");
-    }
-
-    private static void GenerateHandlerPart(SourceProductionContext spc, DbCommandTypeInfo dbCommandTypeInfo)
-    {
-        if (string.IsNullOrWhiteSpace(dbCommandTypeInfo.CommandAttributesValues.Sp) &&
-            string.IsNullOrWhiteSpace(dbCommandTypeInfo.CommandAttributesValues.Sql))
-            return; // No handler if Sp or Sql is not provided
-
-        // Not an ICommand
-        if (dbCommandTypeInfo.CommandResultTypeInfo is null)
-        {
-            return;
-        }
-
-        var handlerClassName = $"{dbCommandTypeInfo.TypeName}Handler";
-        var sourceBuilder = new StringBuilder();
-
-        sourceBuilder.AppendLine("// <auto-generated/>");
-        sourceBuilder.AppendLine("#nullable enable");
-        sourceBuilder.AppendLine();
-        sourceBuilder.AppendLine("using System.Threading.Tasks;");
-        sourceBuilder.AppendLine("using Dapper;");
-        sourceBuilder.AppendLine("using System.Data;");
-
-        if (dbCommandTypeInfo.Namespace is not null)
-        {
-            sourceBuilder.AppendLine($"namespace {dbCommandTypeInfo.Namespace};");
-            sourceBuilder.AppendLine();
-        }
-
-        var returnTypeDeclaration = $"Task<{dbCommandTypeInfo.CommandResultTypeInfo.FullTypeName}>";
-        var dapperCall = CreateDapperCall(dbCommandTypeInfo.CommandResultTypeInfo, dbCommandTypeInfo.CommandAttributesValues);
-
-        sourceBuilder.AppendLine($"public static class {handlerClassName}");
-        sourceBuilder.AppendLine("{");
-        sourceBuilder.AppendLine(
-            $"    public static async {returnTypeDeclaration} HandleAsync({dbCommandTypeInfo.FullyQualifiedTypeName} command, global::Npgsql.NpgsqlDataSource dataSource, global::System.Threading.CancellationToken cancellationToken = default)");
-        sourceBuilder.AppendLine("    {");
-        sourceBuilder.AppendLine("        await using var connection = await dataSource.OpenConnectionAsync(cancellationToken);");
-        sourceBuilder.AppendLine("        var dbParams = command.ToDbParams();");
-        sourceBuilder.AppendLine($"       {dapperCall}");
-        sourceBuilder.AppendLine("    }");
-
-        sourceBuilder.AppendLine("}");
-
-        spc.AddSource($"{dbCommandTypeInfo.SafeFileName}.{handlerClassName}.g.cs", sourceBuilder.ToString());
-    }
-
-    private static string CreateDapperCall(DbCommandResultTypeInfo resultTypeInfo, DbCommandAttributes commandAttributesValues)
-    {
-        var commandText = commandAttributesValues.Sp ?? commandAttributesValues.Sql!;
-        var commandType = string.IsNullOrEmpty(commandAttributesValues.Sp)
-            ? "CommandType.Text"
-            : "CommandType.StoredProcedure";
-
-        var commandDefinitionCall = $"new CommandDefinition(\"{commandText}\", dbParams, commandType: {commandType}, " +
-                                    $"cancellationToken: cancellationToken)";
-
-        // ICommand<short/int/long>
-        if (resultTypeInfo.IsIntegralType)
-        {
-            if (commandAttributesValues.NonQuery)
-            {
-                return $"return await connection.ExecuteAsync({commandDefinitionCall});";
-            }
-
-            return $"return await connection" +
-                   $".ExecuteScalarAsync<{resultTypeInfo.GenericArgumentResultFullTypeName}>({commandDefinitionCall});";
-        }
-
-        // ICommand<IEnumerable<TResul>>
-        if (resultTypeInfo.IsEnumerableResult)
-        {
-            return $"return await connection.QueryAsync<{resultTypeInfo.GenericArgumentResultFullTypeName}>({commandDefinitionCall});";
-        }
-
-        // Single object result
-        return $"return await connection" +
-               $".QueryFirstOrDefaultAsync<{resultTypeInfo.GenericArgumentResultFullTypeName}>({commandDefinitionCall});";
-    }
-
-    private static void AppendContainingTypeStarts(StringBuilder sb, ImmutableArray<string> containingTypes)
-    {
-        foreach (var typeDecl in containingTypes)
-        {
-            sb.AppendLine(typeDecl);
-            sb.AppendLine("{");
-        }
-    }
-
-    private static void AppendContainingTypeEnds(StringBuilder sb, ImmutableArray<string> containingTypes)
-    {
-        for (var i = 0; i < containingTypes.Length; i++)
-        {
-            sb.AppendLine("}");
         }
     }
 }
