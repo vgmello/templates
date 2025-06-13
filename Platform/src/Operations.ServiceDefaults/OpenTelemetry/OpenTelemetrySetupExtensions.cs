@@ -17,9 +17,16 @@ public static class OpenTelemetrySetupExtensions
     {
         var activitySourceName = builder.Configuration.GetValue<string>("OpenTelemetry:ActivitySourceName")
                                  ?? builder.Environment.ApplicationName;
+        var commandMeterName = builder.Configuration.GetValue<string>("OpenTelemetry:CommandMeterName")
+                               ?? $"{builder.Environment.ApplicationName}.Commands";
 
         var activitySource = new ActivitySource(activitySourceName);
         builder.Services.AddSingleton(activitySource);
+
+        // It's good practice to also register the command Meter instance if other services might need to create instruments
+        // without directly using IMeterFactory or if a specific configured Meter instance is preferred.
+        var commandMeter = new System.Diagnostics.Metrics.Meter(commandMeterName);
+        builder.Services.AddSingleton(commandMeter);
 
         builder.Logging.AddOpenTelemetry(logging =>
         {
@@ -34,7 +41,8 @@ public static class OpenTelemetrySetupExtensions
                 .AddAspNetCoreInstrumentation()
                 .AddHttpClientInstrumentation()
                 .AddRuntimeInstrumentation()
-                .AddMeter(nameof(Wolverine)))
+                .AddMeter(nameof(Wolverine))
+                .AddMeter(commandMeterName)) // Add the new meter for command-specific metrics
             .WithTracing(tracing => tracing
                 .AddSource(activitySourceName)
                 .AddAspNetCoreInstrumentation()
