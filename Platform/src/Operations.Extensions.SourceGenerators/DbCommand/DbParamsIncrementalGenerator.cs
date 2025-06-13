@@ -3,23 +3,29 @@
 using Microsoft.CodeAnalysis;
 using Operations.Extensions.SourceGenerators.Extensions;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Text;
 
 namespace Operations.Extensions.SourceGenerators.DbCommand;
 
 internal record DbCommandAttributes(string? Sp, string? Sql, bool UseSnakeCase, bool NonQuery);
 
-internal record PropertyInfo(string PropertyName, string ParameterName);
+internal record DbPropertyInfo(string PropertyName, string ParameterName);
 
-internal record DbCommandResultTypeInfo(string FullTypeName, string GenericArgumentResultFullTypeName, bool IsEnumerableResult);
+internal record DbCommandResultTypeInfo(
+    string Name,
+    string FullTypeName,
+    string GenericArgumentResultFullTypeName,
+    bool IsIntegralType,
+    bool IsEnumerableResult);
 
-internal record TypeInfo(
-    INamedTypeSymbol Symbol,
+internal record DbCommandTypeInfo(
     string? Namespace,
     string TypeName,
+    string FullyQualifiedTypeName,
     string TypeDeclaration,
     ImmutableArray<string> ContainingTypes,
-    ImmutableArray<PropertyInfo> Properties,
+    ImmutableArray<DbPropertyInfo> Properties,
     DbCommandResultTypeInfo? CommandResultTypeInfo,
     DbCommandAttributes CommandAttributesValues,
     ImmutableList<Diagnostic> DiagnosticsToReport
@@ -27,7 +33,7 @@ internal record TypeInfo(
 {
     public string SafeFileName { get; } = $"{Namespace?.Replace('.', '_') ?? "global"}_{TypeName.Replace('<', '_').Replace('>', '_')}";
 
-    public string FullyQualifiedTypeName { get; } = Symbol.GetFullyQualifiedName();
+    public bool ImplementsICommandInterface => CommandResultTypeInfo is not null;
 }
 
 [Generator]
@@ -43,6 +49,8 @@ public class DbCommandSourceGenerator : IIncrementalGenerator
 
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
+        Debugger.Break();
+
         var commandTypes = context.SyntaxProvider
             .ForAttributeWithMetadataName(
                 fullyQualifiedMetadataName: DbCommandAttributeFullName,
@@ -52,10 +60,7 @@ public class DbCommandSourceGenerator : IIncrementalGenerator
 
         context.RegisterSourceOutput(commandTypes, static (spc, typeInfo) =>
         {
-            if (typeInfo is null)
-                return;
-
-            foreach (var diagnostic in typeInfo.DiagnosticsToReport)
+            foreach (var diagnostic in typeInfo!.DiagnosticsToReport)
             {
                 spc.ReportDiagnostic(diagnostic);
             }
@@ -71,7 +76,7 @@ public class DbCommandSourceGenerator : IIncrementalGenerator
         });
     }
 
-    private static TypeInfo? ExtractTypeInfo(GeneratorAttributeSyntaxContext context)
+    private static DbCommandTypeInfo? ExtractTypeInfo(GeneratorAttributeSyntaxContext context)
     {
         if (context.TargetSymbol is not INamedTypeSymbol typeSymbol)
             return null;
@@ -90,13 +95,16 @@ public class DbCommandSourceGenerator : IIncrementalGenerator
 
         var diagnostics = new List<Diagnostic>();
 
-        DbCommandSourceGeneratorAnalyzers.ExecuteMissingInterfaceAnalyzer(typeSymbol,
+        DbCommandAnalyzers.ExecuteMissingInterfaceAnalyzer(typeSymbol,
             commandResultTypeInfo, dbCommandAttributeValues, diagnostics);
 
-        return new TypeInfo(
-            Symbol: typeSymbol,
+        DbCommandAnalyzers.ExecuteNonQueryWithNonIntegralResultAnalyzer(typeSymbol,
+            commandResultTypeInfo, dbCommandAttributeValues, diagnostics);
+
+        return new DbCommandTypeInfo(
             Namespace: typeSymbol.ContainingNamespace.IsGlobalNamespace ? null : typeSymbol.ContainingNamespace.ToDisplayString(),
             TypeName: typeSymbol.Name,
+            FullyQualifiedTypeName: typeSymbol.GetFullyQualifiedName(),
             TypeDeclaration: typeDeclaration,
             ContainingTypes: containingTypes,
             Properties: properties,
@@ -110,20 +118,20 @@ public class DbCommandSourceGenerator : IIncrementalGenerator
     {
         var spValue = dbCommandAttribute.GetConstructorArgument<string>(index: 0);
         var sqlValue = dbCommandAttribute.GetConstructorArgument<string>(index: 1);
-        var useSnakeCaseValue = dbCommandAttribute.GetConstructorArgument<bool?>(index: 2);
+        var dbParamCase = dbCommandAttribute.GetConstructorArgument<int>(index: 2);
         var nonQueryValue = dbCommandAttribute.GetConstructorArgument<bool>(index: 3);
 
         foreach (var arg in dbCommandAttribute.NamedArguments)
         {
             switch (arg.Key)
             {
-                case "Sp": spValue = arg.Value.Value as string ?? spValue; break;
-                case "Sql": sqlValue = arg.Value.Value as string ?? sqlValue; break;
-                case "UseSnakeCase":
-                    if (arg.Value.Value is bool useSnakeCaseVal) useSnakeCaseValue = useSnakeCaseVal;
+                case "sp": spValue = arg.Value.Value as string ?? spValue; break;
+                case "sql": sqlValue = arg.Value.Value as string ?? sqlValue; break;
+                case "paramsCase":
+                    if (arg.Value.Value is int dbParamCaseVal) dbParamCase = dbParamCaseVal;
 
                     break;
-                case "NonQuery":
+                case "nonQuery":
                     if (arg.Value.Value is bool nonQueryVal) nonQueryValue = nonQueryVal;
 
                     break;
@@ -131,7 +139,7 @@ public class DbCommandSourceGenerator : IIncrementalGenerator
         }
 
         // TODO: Enable snake_case default from project settings
-        var useSnakeCase = useSnakeCaseValue ?? false;
+        var useSnakeCase = dbParamCase == 1;
 
         return new DbCommandAttributes(Sp: spValue, Sql: sqlValue, UseSnakeCase: useSnakeCase, NonQuery: nonQueryValue);
     }
@@ -156,16 +164,21 @@ public class DbCommandSourceGenerator : IIncrementalGenerator
             genericArgumentResultFullTypeName = enumerableTypeArg.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
         }
 
-        return new DbCommandResultTypeInfo(commandResultFullTypeName, genericArgumentResultFullTypeName, isEnumerableResult);
+        return new DbCommandResultTypeInfo(
+            Name: commandResultType.Name,
+            FullTypeName: commandResultFullTypeName,
+            GenericArgumentResultFullTypeName: genericArgumentResultFullTypeName,
+            IsIntegralType: commandResultType.IsIntegralType(),
+            IsEnumerableResult: isEnumerableResult);
     }
 
-    private static ImmutableArray<PropertyInfo> GetDbCommandObjectProperties(INamedTypeSymbol typeSymbol,
+    private static ImmutableArray<DbPropertyInfo> GetDbCommandObjectProperties(INamedTypeSymbol typeSymbol,
         DbCommandAttributes dbCommandAttributeValues)
     {
         return typeSymbol.GetMembers()
             .OfType<IPropertySymbol>()
             .Where(prop => prop is { DeclaredAccessibility: Accessibility.Public, IsStatic: false, GetMethod: not null })
-            .Select(prop => new PropertyInfo(
+            .Select(prop => new DbPropertyInfo(
                 PropertyName: prop.Name,
                 ParameterName: GetParameterNameFromProperty(prop, dbCommandAttributeValues.UseSnakeCase))).ToImmutableArray();
 
@@ -181,40 +194,40 @@ public class DbCommandSourceGenerator : IIncrementalGenerator
         }
     }
 
-    private static void GenerateDbOpsPart(SourceProductionContext spc, TypeInfo typeInfo)
+    private static void GenerateDbOpsPart(SourceProductionContext spc, DbCommandTypeInfo dbCommandTypeInfo)
     {
         var sourceBuilder = new StringBuilder();
         sourceBuilder.AppendLine("// <auto-generated/>");
         sourceBuilder.AppendLine("#nullable enable");
         sourceBuilder.AppendLine();
 
-        if (typeInfo.Namespace is not null)
+        if (dbCommandTypeInfo.Namespace is not null)
         {
-            sourceBuilder.AppendLine($"namespace {typeInfo.Namespace};");
+            sourceBuilder.AppendLine($"namespace {dbCommandTypeInfo.Namespace};");
             sourceBuilder.AppendLine();
         }
 
-        AppendContainingTypeStarts(sourceBuilder, typeInfo.ContainingTypes);
+        AppendContainingTypeStarts(sourceBuilder, dbCommandTypeInfo.ContainingTypes);
 
-        sourceBuilder.AppendLine($"{typeInfo.TypeDeclaration} : global::{IDbParamsProviderFullName}");
+        sourceBuilder.AppendLine($"{dbCommandTypeInfo.TypeDeclaration} : global::{IDbParamsProviderFullName}");
         sourceBuilder.AppendLine("{");
 
-        GenerateToDbParamsMethod(sourceBuilder, typeInfo);
+        GenerateToDbParamsMethod(sourceBuilder, dbCommandTypeInfo);
 
         sourceBuilder.AppendLine("}");
 
-        AppendContainingTypeEnds(sourceBuilder, typeInfo.ContainingTypes);
+        AppendContainingTypeEnds(sourceBuilder, dbCommandTypeInfo.ContainingTypes);
 
-        spc.AddSource($"{typeInfo.SafeFileName}.DbOps.g.cs", sourceBuilder.ToString());
+        spc.AddSource($"{dbCommandTypeInfo.SafeFileName}.DbOps.g.cs", sourceBuilder.ToString());
     }
 
-    private static void GenerateToDbParamsMethod(StringBuilder sb, TypeInfo typeInfo)
+    private static void GenerateToDbParamsMethod(StringBuilder sb, DbCommandTypeInfo dbCommandTypeInfo)
     {
         sb.AppendLine("    public global::System.Object ToDbParams()");
         sb.AppendLine("    {");
         sb.AppendLine("        var p = new {");
 
-        var properties = typeInfo.Properties.ToList();
+        var properties = dbCommandTypeInfo.Properties.ToList();
 
         for (var i = 0; i < properties.Count; i++)
         {
@@ -228,18 +241,19 @@ public class DbCommandSourceGenerator : IIncrementalGenerator
         sb.AppendLine("    }");
     }
 
-    private static void GenerateHandlerPart(SourceProductionContext spc, TypeInfo typeInfo)
+    private static void GenerateHandlerPart(SourceProductionContext spc, DbCommandTypeInfo dbCommandTypeInfo)
     {
-        if (string.IsNullOrWhiteSpace(typeInfo.CommandAttributesValues.Sp) &&
-            string.IsNullOrWhiteSpace(typeInfo.CommandAttributesValues.Sql))
+        if (string.IsNullOrWhiteSpace(dbCommandTypeInfo.CommandAttributesValues.Sp) &&
+            string.IsNullOrWhiteSpace(dbCommandTypeInfo.CommandAttributesValues.Sql))
             return; // No handler if Sp or Sql is not provided
 
-        if (typeInfo.CommandResultTypeInfo is null)
+        // Not an ICommand
+        if (dbCommandTypeInfo.CommandResultTypeInfo is null)
         {
             return;
         }
 
-        var handlerClassName = $"{typeInfo.TypeName}Handler";
+        var handlerClassName = $"{dbCommandTypeInfo.TypeName}Handler";
         var sourceBuilder = new StringBuilder();
 
         sourceBuilder.AppendLine("// <auto-generated/>");
@@ -249,92 +263,61 @@ public class DbCommandSourceGenerator : IIncrementalGenerator
         sourceBuilder.AppendLine("using Dapper;");
         sourceBuilder.AppendLine("using System.Data;");
 
-        if (typeInfo.Namespace != null)
+        if (dbCommandTypeInfo.Namespace is not null)
         {
-            sourceBuilder.AppendLine($"namespace {typeInfo.Namespace};");
+            sourceBuilder.AppendLine($"namespace {dbCommandTypeInfo.Namespace};");
             sourceBuilder.AppendLine();
         }
 
+        var returnTypeDeclaration = $"Task<{dbCommandTypeInfo.CommandResultTypeInfo.FullTypeName}>";
+        var dapperCall = CreateDapperCall(dbCommandTypeInfo.CommandResultTypeInfo, dbCommandTypeInfo.CommandAttributesValues);
+
         sourceBuilder.AppendLine($"public static class {handlerClassName}");
         sourceBuilder.AppendLine("{");
-
-        var commandText = typeInfo.CommandAttributesValues.Sp ?? typeInfo.CommandAttributesValues.Sql!;
-        var commandType = string.IsNullOrEmpty(typeInfo.CommandAttributesValues.Sql)
-            ? "CommandType.Text"
-            : "CommandType.StoredProcedure";
-        var defaultReturnForNonQueryGeneric = "";
-
-        string returnType;
-        string dapperCall;
-
-        var resultTypeInfo = typeInfo.CommandResultTypeInfo;
-
-        if (resultTypeInfo.FullTypeName is "global::System.Int32" or "int") // ICommand<int>
-        {
-            returnType = "Task<int>";
-
-            if (typeInfo.CommandAttributesValues.NonQuery)
-            {
-                dapperCall =
-                    $"return await connection.ExecuteAsync(new CommandDefinition(\"{commandText}\", dbParams, commandType: {commandType}," +
-                    $" cancellationToken: cancellationToken));";
-            }
-            else
-            {
-                dapperCall =
-                    $"return await connection.ExecuteScalarAsync<int>(new CommandDefinition(\"{commandText}\", dbParams," +
-                    $" commandType: {commandType}, cancellationToken: cancellationToken));";
-            }
-        }
-        else // ICommand<TResult> where TResult is not int (or if TResult is a "unit" type representing void)
-        {
-            returnType = $"Task<{typeInfo.CommandResultTypeFullName}>";
-
-            if (typeInfo.IsNonQueryAttribute) // NonQuery = true for non-int TResult
-            {
-                // Diagnostic is reported by Initialize's output action based on TypeInfo.DiagnosticsToReport
-                // No need to call spc.ReportDiagnostic here again if it's already in typeInfo.
-                // However, the plan was to report DBCOMMANDGEN001 from here.
-                // Let's ensure it's reported via spc from where it has context.
-                var location = typeInfo.Symbol.Locations.FirstOrDefault() ?? Location.None;
-                spc.ReportDiagnostic(Diagnostic.Create(NonQueryWithGenericResultWarning, location, typeInfo.TypeName,
-                    typeInfo.CommandResultTypeFullName));
-
-                dapperCall =
-                    $"await connection.ExecuteAsync(new CommandDefinition(\"{commandText}\", dbParams, commandType: {commandType}, cancellationToken: cancellationToken));";
-                defaultReturnForNonQueryGeneric = $"return default({typeInfo.CommandResultTypeFullName});";
-            }
-            else // NonQuery = false (standard query for ICommand<TResult>)
-            {
-                if (typeInfo.IsEnumerableResult)
-                {
-                    dapperCall =
-                        $"return await connection.QueryAsync<{typeInfo.GenericArgumentResultTypeFullName}>(new CommandDefinition(\"{commandText}\", dbParams, commandType: {commandType}, cancellationToken: cancellationToken));";
-                }
-                else // Single object result
-                {
-                    dapperCall =
-                        $"return await connection.QueryFirstOrDefaultAsync<{typeInfo.GenericArgumentResultTypeFullName}>(new CommandDefinition(\"{commandText}\", dbParams, commandType: {commandType}, cancellationToken: cancellationToken));";
-                }
-            }
-        }
-
         sourceBuilder.AppendLine(
-            $"    public static async {returnType} HandleAsync({typeInfo.FullyQualifiedTypeName} command, global::Npgsql.NpgsqlDataSource dataSource, global::System.Threading.CancellationToken cancellationToken = default)");
+            $"    public static async {returnTypeDeclaration} HandleAsync({dbCommandTypeInfo.FullyQualifiedTypeName} command, global::Npgsql.NpgsqlDataSource dataSource, global::System.Threading.CancellationToken cancellationToken = default)");
         sourceBuilder.AppendLine("    {");
         sourceBuilder.AppendLine("        await using var connection = await dataSource.OpenConnectionAsync(cancellationToken);");
         sourceBuilder.AppendLine("        var dbParams = command.ToDbParams();");
-        sourceBuilder.AppendLine($"        {dapperCall}");
-
-        if (!string.IsNullOrEmpty(defaultReturnForNonQueryGeneric))
-        {
-            sourceBuilder.AppendLine($"        {defaultReturnForNonQueryGeneric}");
-        }
-
+        sourceBuilder.AppendLine($"       {dapperCall}");
         sourceBuilder.AppendLine("    }");
+
         sourceBuilder.AppendLine("}");
 
-        spc.AddSource($"{typeInfo.SafeFileName}.{handlerClassName}.g.cs", sourceBuilder.ToString());
+        spc.AddSource($"{dbCommandTypeInfo.SafeFileName}.{handlerClassName}.g.cs", sourceBuilder.ToString());
+    }
+
+    private static string CreateDapperCall(DbCommandResultTypeInfo resultTypeInfo, DbCommandAttributes commandAttributesValues)
+    {
+        var commandText = commandAttributesValues.Sp ?? commandAttributesValues.Sql!;
+        var commandType = string.IsNullOrEmpty(commandAttributesValues.Sp)
+            ? "CommandType.Text"
+            : "CommandType.StoredProcedure";
+
+        var commandDefinitionCall = $"new CommandDefinition(\"{commandText}\", dbParams, commandType: {commandType}, " +
+                                    $"cancellationToken: cancellationToken)";
+
+        // ICommand<short/int/long>
+        if (resultTypeInfo.IsIntegralType)
+        {
+            if (commandAttributesValues.NonQuery)
+            {
+                return $"return await connection.ExecuteAsync({commandDefinitionCall});";
+            }
+
+            return $"return await connection" +
+                   $".ExecuteScalarAsync<{resultTypeInfo.GenericArgumentResultFullTypeName}>({commandDefinitionCall});";
+        }
+
+        // ICommand<IEnumerable<TResul>>
+        if (resultTypeInfo.IsEnumerableResult)
+        {
+            return $"return await connection.QueryAsync<{resultTypeInfo.GenericArgumentResultFullTypeName}>({commandDefinitionCall});";
+        }
+
+        // Single object result
+        return $"return await connection" +
+               $".QueryFirstOrDefaultAsync<{resultTypeInfo.GenericArgumentResultFullTypeName}>({commandDefinitionCall});";
     }
 
     private static void AppendContainingTypeStarts(StringBuilder sb, ImmutableArray<string> containingTypes)

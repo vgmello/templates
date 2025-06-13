@@ -4,7 +4,7 @@ using Microsoft.CodeAnalysis;
 
 namespace Operations.Extensions.SourceGenerators.DbCommand;
 
-internal static class DbCommandSourceGeneratorAnalyzers
+internal static class DbCommandAnalyzers
 {
     private static readonly DiagnosticDescriptor NonQueryWithGenericResultWarning = new(
         id: "DBCOMMANDGEN001",
@@ -27,16 +27,11 @@ internal static class DbCommandSourceGeneratorAnalyzers
         DiagnosticSeverity.Error,
         isEnabledByDefault: true);
 
-
     /// <summary>
     ///     If <see cref="DbCommandResultTypeInfo" /> is null, it means ICommand&lt;TResult&gt; was not found.
     ///     An error diagnostic DBCOMMANDGEN002 will be logged by ExtractTypeInfo and reported by Initialize's output action.
     ///     Generation should be skipped by the check in Initialize's RegisterSourceOutput action.
     /// </summary>
-    /// <param name="typeSymbol"></param>
-    /// <param name="commandResultTypeInfo"></param>
-    /// <param name="dbCommandAttributeValues"></param>
-    /// <param name="diagnostics"></param>
     public static void ExecuteMissingInterfaceAnalyzer(INamedTypeSymbol typeSymbol,
         DbCommandResultTypeInfo? commandResultTypeInfo, DbCommandAttributes dbCommandAttributeValues, List<Diagnostic> diagnostics)
     {
@@ -45,6 +40,22 @@ internal static class DbCommandSourceGeneratorAnalyzers
         {
             var typeLocation = typeSymbol.Locations.FirstOrDefault() ?? Location.None;
             var diagnostic = Diagnostic.Create(CommandMissingInterfaceError, typeLocation, typeSymbol.Name);
+
+            diagnostics.Add(diagnostic);
+        }
+    }
+
+    /// <summary>
+    ///     If DbCommand attribute's NonQuery property is true, the command must implement ICommand&lt;int&gt; or ICommand&lt;long&gt;
+    /// </summary>
+    public static void ExecuteNonQueryWithNonIntegralResultAnalyzer(INamedTypeSymbol typeSymbol,
+        DbCommandResultTypeInfo? commandResultTypeInfo, DbCommandAttributes dbCommandAttributeValues, List<Diagnostic> diagnostics)
+    {
+        if (dbCommandAttributeValues.NonQuery && commandResultTypeInfo?.IsIntegralType != true)
+        {
+            var typeLocation = typeSymbol.Locations.FirstOrDefault() ?? Location.None;
+            var diagnostic = Diagnostic.Create(NonQueryWithGenericResultWarning,
+                typeLocation, typeSymbol.Name, commandResultTypeInfo?.Name ?? "null");
 
             diagnostics.Add(diagnostic);
         }

@@ -85,6 +85,25 @@ public static class SourceGeneratorExtensions
         return builder.ToImmutable();
     }
 
+    /// <summary>
+    ///     Check if type is integer or long (integral in C# terminology).
+    /// </summary>
+    /// <param name="symbol"></param>
+    /// <returns></returns>
+    public static bool IsIntegralType(this INamedTypeSymbol symbol) =>
+        symbol.SpecialType switch
+        {
+            SpecialType.System_SByte => true,
+            SpecialType.System_Byte => true,
+            SpecialType.System_Int16 => true,
+            SpecialType.System_UInt16 => true,
+            SpecialType.System_Int32 => true,
+            SpecialType.System_UInt32 => true,
+            SpecialType.System_Int64 => true,
+            SpecialType.System_UInt64 => true,
+            _ => false
+        };
+
     public static string GetGenericsDeclaration(this ImmutableArray<ITypeSymbol> typeArguments)
     {
         if (typeArguments.IsEmpty)

@@ -1,11 +1,12 @@
 // Copyright (c) ABCDEG. All rights reserved.
 
 using Billing.Contracts.Cashier.IntegrationEvents;
-using Operations.Extensions.Dapper; // Added for DbCommandAttribute
+using Operations.Extensions.Dapper;
 
 namespace Billing.Cashier.Commands;
 
-// CreateCashierCommand is defined in the same namespace as CreateCashierCommandHandler
+using CashierModel = Billing.Contracts.Cashier.Models.Cashier;
+
 public record CreateCashierCommand(string Name, string Email) : ICommand<Result<CashierModel>>;
 
 public class CreateCustomerValidator : AbstractValidator<CreateCashierCommand>
@@ -20,8 +21,7 @@ public class CreateCustomerValidator : AbstractValidator<CreateCashierCommand>
 
 public static partial class CreateCashierCommandHandler
 {
-    // Nested InsertCashierCommand definition:
-    [DbCommand(sp: "billing.create_cashier", UseSnakeCase = true, NonQuery = true)]
+    [DbCommand(sp: "billing.create_cashier", nonQuery: true, paramsCase: DbParamsCase.SnakeCase)]
     public partial record InsertCashierCommand(Guid CashierId, string Name, string? Email) : ICommand<int>;
 
     public static async Task<(Result<CashierModel>, CashierCreatedEvent)> Handle(
@@ -31,7 +31,6 @@ public static partial class CreateCashierCommandHandler
     {
         var cashierId = Guid.NewGuid();
 
-        // This now refers to the nested CreateCashierCommandHandler.InsertCashierCommand
         var insertCommand = new InsertCashierCommand(cashierId, command.Name, command.Email);
 
         await messaging.InvokeCommandAsync(insertCommand, cancellationToken);
@@ -45,6 +44,6 @@ public static partial class CreateCashierCommandHandler
 
         var createdEvent = new CashierCreatedEvent(result);
 
-        return (Result.Ok(result), createdEvent);
+        return (result, createdEvent);
     }
 }
