@@ -5,13 +5,13 @@
       when DbCommandAttribute.ParamsCase is DbParamsCase.Default.
       Consumed by Operations.Extensions.SourceGenerators.
     -->
-    <OperationsDbCommandDefaultToSnakeCase Condition="'$(OperationsDbCommandDefaultToSnakeCase)' == ''">false</OperationsDbCommandDefaultToSnakeCase>
+    <UseSnakeCaseForDbCommands Condition="'$(UseSnakeCaseForDbCommands)' == ''">false</UseSnakeCaseForDbCommands>
   </PropertyGroup>
   <ItemGroup>
     <!--
-      Makes the OperationsDbCommandDefaultToSnakeCase property visible to the C# compiler
+      Makes the UseSnakeCaseForDbCommands property visible to the C# compiler
       and subsequently to source generators.
     -->
-    <CompilerVisibleProperty Include="OperationsDbCommandDefaultToSnakeCase" />
+    <CompilerVisibleProperty Include="UseSnakeCaseForDbCommands" />
   </ItemGroup>
 </Project>

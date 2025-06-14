@@ -53,7 +53,7 @@ public class DbCommandSourceGenerator : IIncrementalGenerator
         var optionsProvider = context.AnalyzerConfigOptionsProvider
             .Select((provider, _) =>
             {
-                provider.GlobalOptions.TryGetValue("build_property.OperationsDbCommandDefaultToSnakeCase", out var useSnakeCaseValue);
+                provider.GlobalOptions.TryGetValue("build_property.UseSnakeCaseForDbCommands", out var useSnakeCaseValue);
                 bool.TryParse(useSnakeCaseValue, out var defaultUseSnakeCase);
                 return defaultUseSnakeCase;
             });

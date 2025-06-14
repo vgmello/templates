@@ -408,3 +408,6 @@ output-*/*
 
 # Source Generator Generated Code
 **/Generated/
+
+**/._bin
+**/._obj
