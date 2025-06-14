@@ -1,0 +1,17 @@
+<Project>
+  <PropertyGroup>
+    <!--
+      Defines the default value for whether to use snake_case for DB parameters
+      when DbCommandAttribute.ParamsCase is DbParamsCase.Default.
+      Consumed by Operations.Extensions.SourceGenerators.
+    -->
+    <OperationsDbCommandDefaultToSnakeCase Condition="'$(OperationsDbCommandDefaultToSnakeCase)' == ''">false</OperationsDbCommandDefaultToSnakeCase>
+  </PropertyGroup>
+  <ItemGroup>
+    <!--
+      Makes the OperationsDbCommandDefaultToSnakeCase property visible to the C# compiler
+      and subsequently to source generators.
+    -->
+    <CompilerVisibleProperty Include="OperationsDbCommandDefaultToSnakeCase" />
+  </ItemGroup>
+</Project>

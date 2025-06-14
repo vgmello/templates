@@ -23,4 +23,8 @@
         </Content>
     </ItemGroup>
 
+  <!-- Import settings for Operations.Extensions.SourceGenerators, applying to non-Platform projects -->
+  <Import Project="Platform/src/Operations.Extensions.SourceGenerators/Operations.Extensions.SourceGenerators.props"
+          Condition="!$(MSBuildProjectName.StartsWith('Platform')) AND Exists('Platform/src/Operations.Extensions.SourceGenerators/Operations.Extensions.SourceGenerators.props')" />
+
 </Project>
