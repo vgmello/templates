@@ -9,6 +9,8 @@ using System.Reflection;
 using Wolverine;
 using Wolverine.Postgresql;
 using Wolverine.Runtime;
+using Wolverine.Transports.Kafka; // Added for UseKafka
+using System; // Added for Console.WriteLine
 
 namespace Operations.ServiceDefaults.Messaging.Wolverine;
 
@@ -36,31 +38,67 @@ public static class WolverineSetupExtensions
         if (wolverineRegistered)
             return;
 
-        services
-            .AddOptions<ServiceBusOptions>()
-            .BindConfiguration(ServiceBusOptions.SectionName)
-            .ValidateOnStart();
-
-        services.ConfigureOptions<ServiceBusOptions.Configurator>();
-
-        var serviceBusOptions = configuration.GetSection(ServiceBusOptions.SectionName).Get<ServiceBusOptions>() ?? new ServiceBusOptions();
+        // Removed ServiceBusOptions related setup
 
         services.AddWolverine(ExtensionDiscovery.ManualOnly, opts =>
         {
             opts.ApplicationAssembly = Extensions.EntryAssembly;
-            opts.ServiceName = serviceBusOptions.ServiceName;
 
-            opts.UseSystemTextJsonForSerialization();
+            // Centralized ServiceName configuration
+            string serviceNameForConfig = configuration["ServiceName"] ??
+                                          (opts.ApplicationAssembly?.GetName().Name) ??
+                                          "wolverine_service";
+            opts.ServiceName = serviceNameForConfig.ToLowerInvariant().Replace(".", "-");
+            Console.WriteLine($"Wolverine ServiceName configured as: {opts.ServiceName}");
 
-            if (!string.IsNullOrWhiteSpace(serviceBusOptions.ConnectionString))
+            opts.UseSystemTextJsonForSerialization(); // Ensure this is present
+
+            // Centralized PostgreSQL Configuration
+            var pgConnectionString = configuration.GetConnectionString("servicedb");
+            var pgSchemaName = $"{opts.ServiceName}_wolverine"; // Use already processed opts.ServiceName
+
+            if (string.IsNullOrEmpty(pgConnectionString))
             {
-                opts.ConfigurePostgresql(serviceBusOptions.ConnectionString);
-                opts.ConfigureReliableMessaging();
+                Console.WriteLine($"Warning: PostgreSQL connection string 'servicedb' for service '{opts.ServiceName}' not found. Wolverine PostgreSQL persistence might not be fully configured.");
+            }
+            else
+            {
+                opts.ConfigurePostgresql(pgConnectionString, pgSchemaName); // Pass schemaName
+                Console.WriteLine($"Wolverine configured with PostgreSQL persistence for service '{opts.ServiceName}' using schema '{pgSchemaName}'.");
             }
 
+            // Centralized Kafka Configuration
+            var kafkaConnectionString = configuration.GetConnectionString("kafka");
+            if (string.IsNullOrEmpty(kafkaConnectionString))
+            {
+                Console.WriteLine($"Warning: Kafka connection string 'kafka' for service '{opts.ServiceName}' not found. Wolverine Kafka transport might not be fully configured.");
+            }
+            else
+            {
+                opts.UseKafka(kafkaConnectionString); // Basic Kafka setup
+                Console.WriteLine($"Wolverine configured with Kafka transport for service '{opts.ServiceName}'.");
+
+                // Namespace-Based Routing for Integration Events to Kafka
+                opts.PublishMessagesToKafka(message =>
+                {
+                    var messageNamespace = message.GetType().Namespace;
+                    bool isIntegrationEvent = messageNamespace?.EndsWith(".IntegrationEvents") ?? false;
+                    return isIntegrationEvent;
+                });
+                Console.WriteLine("Wolverine: Kafka publishing rule for *.IntegrationEvents messages configured.");
+            }
+
+            // Register CloudEventWrappingPolicy
+            opts.Policies.Add<CloudEventWrappingPolicy>();
+            Console.WriteLine("Wolverine: CloudEventWrappingPolicy registered.");
+
+            // Common Policies
             opts.Policies.AddMiddleware(typeof(RequestPerformanceMiddleware));
             opts.Policies.AddMiddleware(typeof(OpenTelemetryInstrumentationMiddleware));
             opts.Policies.Add<FluentValidationPolicy>();
+
+            // Reliable messaging (transactions, durable inbox/outbox for configured transports)
+            opts.ConfigureReliableMessaging(); // Call this after transports are configured
 
             // Application-specific handlers are configured first.
             opts.ConfigureAppHandlers(opts.ApplicationAssembly);
@@ -122,9 +160,9 @@ public static class WolverineSetupExtensions
         return options;
     }
 
-    public static WolverineOptions ConfigurePostgresql(this WolverineOptions options, string connectionString)
+    public static WolverineOptions ConfigurePostgresql(this WolverineOptions options, string connectionString, string schemaName)
     {
-        var persistenceSchema = options.ServiceName.ToLowerInvariant();
+        var persistenceSchema = schemaName; // Use the passed schemaName
 
 #pragma warning disable CS0618 // Remove when EnableMessageTransport is implemented by Wolverine
 #pragma warning disable S125 // Remove when EnableMessageTransport is implemented by Wolverine

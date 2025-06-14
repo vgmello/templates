@@ -14,6 +14,7 @@
         <ProjectReference Include="..\..\..\Platform\src\Operations.ServiceDefaults.Api\Operations.ServiceDefaults.Api.csproj"/>
         <ProjectReference Include="..\..\..\Platform\src\Operations.ServiceDefaults\Operations.ServiceDefaults.csproj"/>
         <ProjectReference Include="..\Accounting\Accounting.csproj"/>
+        <ProjectReference Include="..\Accounting.Contracts\Accounting.Contracts.csproj" />
     </ItemGroup>
 
     <ItemGroup>
