@@ -411,3 +411,7 @@ output-*/*
 
 **/._bin
 **/._obj
+
+# macOS metadata files
+.DS_Store
+._*
