@@ -44,6 +44,17 @@ public partial record GetProductByIdQuery(int ProductId); // Assuming ICommand<P
 -   `Sp` (string?): The name of the stored procedure to execute. Mutually exclusive with `Sql`.
 -   `Sql` (string?): The raw SQL query text to execute. Mutually exclusive with `Sp`.
 -   `ParamsCase` (DbParamsCase): Specifies how property names are converted to parameter names in `ToDbParams()`. Default is `DbParamsCase.Default` (uses property names as-is). `DbParamsCase.SnakeCase` converts to snake_case.
+    -   **Global Configuration for Default Snake Case**: When `ParamsCase` is set to `DbParamsCase.Default` (or not specified), the actual behavior can be controlled globally via an MSBuild property in your consuming project's `.csproj` file:
+        ```xml
+        <PropertyGroup>
+          <OperationsDbCommandDefaultToSnakeCase>true</OperationsDbCommandDefaultToSnakeCase> <!-- Or false -->
+        </PropertyGroup>
+        ```
+    -   **Interaction**:
+        -   If `OperationsDbCommandDefaultToSnakeCase` is `true` and `ParamsCase` on the attribute is `Default`, snake_case conversion **will be applied**.
+        -   If `OperationsDbCommandDefaultToSnakeCase` is `false` (or not set, as the generator's internal default is `false`) and `ParamsCase` is `Default`, snake_case conversion **will not be applied** (property names used as-is).
+        -   If `ParamsCase` is explicitly set to `DbParamsCase.SnakeCase` on the attribute, it **always applies** snake_case conversion, overriding the MSBuild property for that specific command.
+        -   If the MSBuild property is not set by the user, the source generator defaults to `false` (no snake_case for `DbParamsCase.Default`). The associated `.props` file (if the generator is packaged as a NuGet) might also provide a default value for this property.
 -   `NonQuery` (bool): Indicates if the command is non-query (e.g., an INSERT/UPDATE returning rows affected, typically for `ICommand<int>`). Default is `false`. If `true` for an `ICommand<int>`, `ExecuteAsync` is used. If `false` for `ICommand<int>`, `ExecuteScalarAsync<int>` is used. For other `ICommand<TResult>`, query methods are used.
 -   `DataSource` (string?): An optional key for resolving a specific `DbDataSource` instance via keyed dependency injection services. If provided, the generated `HandleAsync` method's `DbDataSource` parameter will use `[FromKeyedServices("your_key")]`.
 

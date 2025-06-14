@@ -50,11 +50,25 @@ public class DbCommandSourceGenerator : IIncrementalGenerator
 
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
+        var optionsProvider = context.AnalyzerConfigOptionsProvider
+            .Select((provider, _) =>
+            {
+                provider.GlobalOptions.TryGetValue("build_property.OperationsDbCommandDefaultToSnakeCase", out var useSnakeCaseValue);
+                bool.TryParse(useSnakeCaseValue, out var defaultUseSnakeCase);
+                return defaultUseSnakeCase;
+            });
+
         var commandTypes = context.SyntaxProvider
             .ForAttributeWithMetadataName(
                 fullyQualifiedMetadataName: DbCommandAttributeFullName,
                 predicate: static (_, _) => true, // all types with the attribute
-                transform: static (ctx, _) => ExtractTypeInfo(ctx))
+                transform: static (ctx, _) => (ctx, defaultUseSnakeCase: false)) // Placeholder, will be replaced by combining with options
+            .Combine(optionsProvider)
+            .Select((data, _) =>
+            {
+                var (ctx, defaultUseSnakeCase) = data;
+                return ExtractTypeInfo(ctx, defaultUseSnakeCase);
+            })
             .Where(static typeInfo => typeInfo is not null);
 
         context.RegisterSourceOutput(commandTypes, static (spc, typeInfo) =>
@@ -251,7 +265,7 @@ public class DbCommandSourceGenerator : IIncrementalGenerator
         sb.AppendLine();
     }
 
-    private static DbCommandTypeInfo? ExtractTypeInfo(GeneratorAttributeSyntaxContext context)
+    private static DbCommandTypeInfo? ExtractTypeInfo(GeneratorAttributeSyntaxContext context, bool defaultUseSnakeCaseFromMSBuild)
     {
         if (context.TargetSymbol is not INamedTypeSymbol typeSymbol)
             return null;
@@ -264,7 +278,7 @@ public class DbCommandSourceGenerator : IIncrementalGenerator
         var typeDeclaration = typeSymbol.GetTypeDeclaration();
         var containingTypes = typeSymbol.GetContainingTypeDeclarations();
 
-        var dbCommandAttributeValues = GetDbCommandAttributeValues(dbCommandAttribute);
+        var dbCommandAttributeValues = GetDbCommandAttributeValues(dbCommandAttribute, defaultUseSnakeCaseFromMSBuild);
         var commandResultTypeInfo = GetDbCommandResultInfo(typeSymbol);
         var properties = GetDbCommandObjectProperties(typeSymbol, dbCommandAttributeValues);
 
@@ -289,7 +303,7 @@ public class DbCommandSourceGenerator : IIncrementalGenerator
         );
     }
 
-    private static DbCommandAttributes GetDbCommandAttributeValues(AttributeData dbCommandAttribute)
+    private static DbCommandAttributes GetDbCommandAttributeValues(AttributeData dbCommandAttribute, bool defaultUseSnakeCaseFromMSBuild)
     {
         var spValue = dbCommandAttribute.GetConstructorArgument<string>(index: 0);
         var sqlValue = dbCommandAttribute.GetConstructorArgument<string>(index: 1);
@@ -297,13 +311,22 @@ public class DbCommandSourceGenerator : IIncrementalGenerator
         var nonQueryValue = dbCommandAttribute.GetConstructorArgument<bool>(index: 3);
         var dataSourceValue = dbCommandAttribute.GetConstructorArgument<string>(index: 4);
 
-        // DbParamsCase.SnakeCase has a value of 1. See DbCommandAttribute.cs
-        var useSnakeCase = dbParamCaseValue == 1;
+        // Determine final snake case behavior:
+        // DbParamsCase.Default is 0, DbParamsCase.SnakeCase is 1.
+        bool finalUseSnakeCase;
+        if (dbParamCaseValue == 0) // DbParamsCase.Default
+        {
+            finalUseSnakeCase = defaultUseSnakeCaseFromMSBuild;
+        }
+        else // Explicitly set on attribute (e.g., SnakeCase or any future specific value)
+        {
+            finalUseSnakeCase = dbParamCaseValue == 1; // True if DbParamsCase.SnakeCase
+        }
 
         return new DbCommandAttributes(
             Sp: spValue,
             Sql: sqlValue,
-            UseSnakeCase: useSnakeCase,
+            UseSnakeCase: finalUseSnakeCase,
             NonQuery: nonQueryValue,
             DataSource: dataSourceValue);
     }
