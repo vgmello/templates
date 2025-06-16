@@ -46,6 +46,7 @@
     <File Path="Operations.slnx.DotSettings" />
     <File Path=".gitignore" />
     <File Path="Directory.Packages.props" />
+    <File Path="README.md" />
   </Folder>
   <Folder Name="/Solution Items/.http/">
     <File Path=".http\Accounting.Api.http" />
