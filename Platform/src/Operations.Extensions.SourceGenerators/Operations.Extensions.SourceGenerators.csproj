@@ -10,33 +10,20 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Microsoft.CodeAnalysis.CSharp" PrivateAssets="all"/>
-        <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" PrivateAssets="all"/>
+        <AdditionalFiles Include="AnalyzerReleases.Shipped.md" />
+        <AdditionalFiles Include="AnalyzerReleases.Unshipped.md" />
     </ItemGroup>
 
     <ItemGroup>
-        <!-- Used for nuget packaging, uncomment when the nuget is ready -->
-        <!-- <None Include="$(OutputPath)\*.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />-->
+        <PackageReference Include="Microsoft.CodeAnalysis.CSharp">
+            <PrivateAssets>all</PrivateAssets>
+        </PackageReference>
+        <PackageReference Include="Microsoft.CodeAnalysis.Analyzers">
+            <PrivateAssets>all</PrivateAssets>
+        </PackageReference>
+        <PackageReference Include="PolySharp">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+        </PackageReference>
     </ItemGroup>
-
-    <ItemGroup>
-        <!-- Generator dependencies -->
-        <PackageReference Include="System.ComponentModel.Annotations" GeneratePathProperty="true" PrivateAssets="all"/>
-        <ProjectReference Include="..\Operations.Extensions.Abstractions\Operations.Extensions.Abstractions.csproj" PrivateAssets="all"/>
-    </ItemGroup>
-
-    <PropertyGroup>
-        <GetTargetPathDependsOn>$(GetTargetPathDependsOn);GetDependencyTargetPaths</GetTargetPathDependsOn>
-    </PropertyGroup>
-
-    <Target Name="GetDependencyTargetPaths">
-        <ItemGroup>
-            <TargetPathWithTargetPlatformMoniker Include="$(PKGSystem_ComponentModel_Annotations)\lib\netstandard2.0\System.ComponentModel.Annotations.dll"
-                                                 IncludeRuntimeDependency="false"/>
-
-            <TargetPathWithTargetPlatformMoniker Include="$(ProjectDir)\..\Operations.Extensions.Abstractions\$(OutputPath)\*.dll"
-                                                 IncludeRuntimeDependency="false"/>
-        </ItemGroup>
-    </Target>
-
 </Project>

@@ -1,6 +1,7 @@
 // Copyright (c) ABCDEG. All rights reserved.
 
 using Billing.Contracts.Cashier.IntegrationEvents;
+using Operations.Extensions.Dapper;
 
 namespace Billing.Cashier.Commands;
 
@@ -20,7 +21,7 @@ public class CreateCustomerValidator : AbstractValidator<CreateCashierCommand>
 
 public static partial class CreateCashierCommandHandler
 {
-    [DbCommand(sp: "billing.create_cashier", nonQuery: true)]
+    [DbCommand(sp: "billing.create_cashier", nonQuery: true, paramsCase: DbParamsCase.SnakeCase)]
     public partial record InsertCashierCommand(Guid CashierId, string Name, string? Email) : ICommand<int>;
 
     public static async Task<(Result<CashierModel>, CashierCreatedEvent)> Handle(

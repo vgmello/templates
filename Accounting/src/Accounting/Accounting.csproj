@@ -1,8 +1,14 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
     <ItemGroup>
-        <ProjectReference Include="..\..\..\Platform\src\Operations.Extensions\Operations.Extensions.csproj"/>
-        <ProjectReference Include="..\Accounting.Contracts\Accounting.Contracts.csproj"/>
+        <Folder Include="Ledgers\Commands\" />
+        <Folder Include="Ledgers\Data\Entities\" />
+        <Folder Include="Ledgers\Queries\" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\..\..\Platform\src\Operations.Extensions\Operations.Extensions.csproj" />
+        <ProjectReference Include="..\Accounting.Contracts\Accounting.Contracts.csproj" />
     </ItemGroup>
 
 </Project>

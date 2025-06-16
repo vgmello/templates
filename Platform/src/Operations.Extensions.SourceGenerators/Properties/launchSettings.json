@@ -3,8 +3,7 @@
   "profiles": {
     "Generators": {
       "commandName": "DebugRoslynComponent",
-      "targetProject1": "../../test/Operations.Extensions.Tests/Operations.Extensions.Tests.csproj",
-      "targetProject": "../../../Billing/src/Billing/Billing.csproj"
+      "targetProject": "../../test/Operations.Extensions.Tests/Operations.Extensions.Tests.csproj"
     }
   }
 }

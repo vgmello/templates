@@ -1,6 +1,6 @@
 // Copyright (c) ABCDEG. All rights reserved.
 
-using Operations.Extensions.Abstractions.Dapper;
+using Operations.Extensions.Dapper;
 
 namespace Operations.Extensions.Tests;
 
@@ -15,9 +15,8 @@ public class DbCommandAttributeTests
         // Assert
         Assert.Null(attribute.Sp);
         Assert.Null(attribute.Sql);
-        Assert.Equal(DbParamsCase.Unset, attribute.ParamsCase);
+        Assert.Equal(DbParamsCase.Default, attribute.ParamsCase);
         Assert.False(attribute.NonQuery);
-        Assert.Null(attribute.DataSource); // New assertion
     }
 
     [Fact]
@@ -32,7 +31,7 @@ public class DbCommandAttributeTests
         // Assert
         Assert.Equal(spName, attribute.Sp);
         Assert.Null(attribute.Sql);
-        Assert.Equal(DbParamsCase.Unset, attribute.ParamsCase);
+        Assert.Equal(DbParamsCase.Default, attribute.ParamsCase);
         Assert.False(attribute.NonQuery);
     }
 
@@ -48,7 +47,7 @@ public class DbCommandAttributeTests
         // Assert
         Assert.Null(attribute.Sp);
         Assert.Equal(sqlQuery, attribute.Sql);
-        Assert.Equal(DbParamsCase.Unset, attribute.ParamsCase);
+        Assert.Equal(DbParamsCase.Default, attribute.ParamsCase);
         Assert.False(attribute.NonQuery);
     }
 
@@ -74,8 +73,7 @@ public class DbCommandAttributeTests
         // Assert other defaults
         Assert.Null(attribute.Sp);
         Assert.Null(attribute.Sql);
-        Assert.Equal(DbParamsCase.Unset, attribute.ParamsCase);
-        Assert.Null(attribute.DataSource); // New assertion
+        Assert.Equal(DbParamsCase.Default, attribute.ParamsCase);
     }
 
     [Fact]
@@ -85,50 +83,33 @@ public class DbCommandAttributeTests
         var spName = "test_sp_all";
         var useSnake = DbParamsCase.SnakeCase;
         var nonQueryVal = false; // Test explicit false for NonQuery
-        var dataSourceVal = "MyKey";
 
         // Act
         var attribute = new DbCommandAttribute(
             sp: spName,
             sql: null,
             paramsCase: useSnake,
-            nonQuery: nonQueryVal,
-            dataSource: dataSourceVal); // New parameter
+            nonQuery: nonQueryVal);
 
         // Assert
         Assert.Equal(spName, attribute.Sp);
         Assert.Null(attribute.Sql);
         Assert.Equal(DbParamsCase.SnakeCase, attribute.ParamsCase);
         Assert.Equal(nonQueryVal, attribute.NonQuery);
-        Assert.Equal(dataSourceVal, attribute.DataSource); // New assertion
     }
 
+    // Removed: Constructor_AllParamsIncludingNonQuery_SetsAllPropertiesCorrectly (merged logic into updated AllParametersProvided)
+
     [Fact]
-    public void Constructor_DataSourceProvided_SetsDataSourceCorrectly()
+    public void Constructor_BothSpAndSqlProvided_ThrowsArgumentException()
     {
         // Arrange
-        var dataSourceVal = "TestDataSource";
+        var spName = "test_sp";
+        var sqlQuery = "SELECT * FROM Test";
 
-        // Act
-        var attribute = new DbCommandAttribute(dataSource: dataSourceVal);
-
-        // Assert
-        Assert.Equal(dataSourceVal, attribute.DataSource);
-        // Assert other defaults
-        Assert.Null(attribute.Sp);
-        Assert.Null(attribute.Sql);
-        Assert.Equal(DbParamsCase.Unset, attribute.ParamsCase);
-        Assert.False(attribute.NonQuery);
-    }
-
-    [Fact]
-    public void Constructor_DefaultValues_DataSourceIsNull() // Explicit test for default DataSource
-    {
-        // Act
-        var attribute = new DbCommandAttribute();
-
-        // Assert
-        Assert.Null(attribute.DataSource);
+        // Act & Assert
+        var exception = Assert.Throws<ArgumentException>(() => new DbCommandAttribute(sp: spName, sql: sqlQuery));
+        Assert.Contains("Cannot provide both 'sp' and 'sql' parameters.", exception.Message);
     }
 
     [Theory]
@@ -136,25 +117,22 @@ public class DbCommandAttributeTests
     [InlineData("some_value")]
     public void Constructor_SpOrSqlCanBeNullOrWhitespaceIfTheOtherIsNot(string? value)
     {
-        // Test with default NonQuery = false (as per original class design before potential prior edits)
+        // Test with default NonQuery = true
         var attr1 = new DbCommandAttribute(sp: value, sql: null);
         Assert.Equal(value, attr1.Sp);
         Assert.Null(attr1.Sql);
-        Assert.False(attr1.NonQuery); // Assuming default is false
-        Assert.Null(attr1.DataSource);
+        Assert.True(attr1.NonQuery);
 
         var attr2 = new DbCommandAttribute(sp: null, sql: value);
         Assert.Null(attr2.Sp);
         Assert.Equal(value, attr2.Sql);
-        Assert.False(attr2.NonQuery); // Assuming default is false
-        Assert.Null(attr2.DataSource);
+        Assert.True(attr2.NonQuery);
 
-        // Test with explicit NonQuery = true
-        var attr3 = new DbCommandAttribute(sp: value, sql: null, nonQuery: true);
+        // Test with explicit NonQuery = false
+        var attr3 = new DbCommandAttribute(sp: value, sql: null, nonQuery: false);
         Assert.Equal(value, attr3.Sp);
         Assert.Null(attr3.Sql);
-        Assert.True(attr3.NonQuery); // Explicitly true
-        Assert.Null(attr3.DataSource);
+        Assert.False(attr3.NonQuery);
     }
 
     [Fact]
@@ -163,7 +141,6 @@ public class DbCommandAttributeTests
         var attribute = new DbCommandAttribute(sp: null, sql: null);
         Assert.Null(attribute.Sp);
         Assert.Null(attribute.Sql);
-        Assert.Null(attribute.DataSource);
     }
 
     [Fact]
@@ -172,7 +149,6 @@ public class DbCommandAttributeTests
         var attribute = new DbCommandAttribute(sp: "", sql: null);
         Assert.Equal("", attribute.Sp);
         Assert.Null(attribute.Sql);
-        Assert.False(attribute.NonQuery); // Assuming default is false
-        Assert.Null(attribute.DataSource);
+        Assert.True(attribute.NonQuery);
     }
 }

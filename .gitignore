@@ -408,10 +408,3 @@ output-*/*
 
 # Source Generator Generated Code
 **/Generated/
-
-**/._bin
-**/._obj
-
-# macOS metadata files
-.DS_Store
-._*

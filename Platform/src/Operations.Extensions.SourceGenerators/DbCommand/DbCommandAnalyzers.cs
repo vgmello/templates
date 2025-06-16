@@ -1,23 +1,24 @@
 // Copyright (c) ABCDEG. All rights reserved.
 
-using Operations.Extensions.Abstractions.Dapper;
+using Microsoft.CodeAnalysis;
 
 namespace Operations.Extensions.SourceGenerators.DbCommand;
 
 internal static class DbCommandAnalyzers
 {
     private static readonly DiagnosticDescriptor NonQueryWithGenericResultWarning = new(
-        id: "DB_COMMAND_GEN001",
+        id: "DBCOMMANDGEN001",
         title: "NonQuery attribute used with generic ICommand<TResult>",
         messageFormat:
         "DbCommandAttribute's NonQuery property is true for command '{0}' which implements ICommand<{1}>. " +
-        "NoQuery are only valid for ICommand<int>.",
+        "NoQuery are only valid for ICommand<int> or ICommand<long>. " +
+        "The generated handler will execute the DbConnection extensions that returns a value (Query or ExecuteScalar).",
         category: "DbCommandSourceGenerator",
         DiagnosticSeverity.Warning,
         isEnabledByDefault: true);
 
     private static readonly DiagnosticDescriptor CommandMissingInterfaceError = new(
-        id: "DB_COMMAND_GEN002",
+        id: "DBCOMMANDGEN002",
         title: "Command missing ICommand<TResult> interface",
         messageFormat:
         "Class '{0}' is decorated with DbCommandAttribute specifying 'sp' or 'sql' for handler generation, " +
@@ -26,24 +27,16 @@ internal static class DbCommandAnalyzers
         DiagnosticSeverity.Error,
         isEnabledByDefault: true);
 
-    private static readonly DiagnosticDescriptor SpAndSqlPassedInDbCommandError = new(
-        id: "DB_COMMAND_GEN003",
-        title: "Both Sp and Sql properties specified in DbCommandAttribute",
-        messageFormat: "Class '{0}' has both 'Sp' and 'Sql' properties specified in DbCommandAttribute. These properties are mutually exclusive - specify either a stored procedure name or SQL query text, but not both.",
-        category: "DbCommandSourceGenerator",
-        DiagnosticSeverity.Error,
-        isEnabledByDefault: true);
-
     /// <summary>
-    ///     If <see cref="DbCommandTypeInfo.ResultTypeInfo" /> is null, it means ICommand&lt;TResult&gt; was not found.
+    ///     If <see cref="DbCommandResultTypeInfo" /> is null, it means ICommand&lt;TResult&gt; was not found.
     ///     An error diagnostic DBCOMMANDGEN002 will be logged by ExtractTypeInfo and reported by Initialize's output action.
     ///     Generation should be skipped by the check in Initialize's RegisterSourceOutput action.
     /// </summary>
     public static void ExecuteMissingInterfaceAnalyzer(INamedTypeSymbol typeSymbol,
-        DbCommandTypeInfo.ResultTypeInfo? resultTypeInfo, DbCommandAttribute dbCommandAttribute, List<Diagnostic> diagnostics)
+        DbCommandResultTypeInfo? commandResultTypeInfo, DbCommandAttributes dbCommandAttributeValues, List<Diagnostic> diagnostics)
     {
-        if (resultTypeInfo is null && (!string.IsNullOrWhiteSpace(dbCommandAttribute.Sp) ||
-                                       !string.IsNullOrWhiteSpace(dbCommandAttribute.Sql)))
+        if (commandResultTypeInfo is null && (!string.IsNullOrWhiteSpace(dbCommandAttributeValues.Sp) ||
+                                              !string.IsNullOrWhiteSpace(dbCommandAttributeValues.Sql)))
         {
             var typeLocation = typeSymbol.Locations.FirstOrDefault() ?? Location.None;
             var diagnostic = Diagnostic.Create(CommandMissingInterfaceError, typeLocation, typeSymbol.Name);
@@ -53,33 +46,16 @@ internal static class DbCommandAnalyzers
     }
 
     /// <summary>
-    ///     If DbCommand attribute's NonQuery property is true, the command must implement ICommand&lt;int&gt;
+    ///     If DbCommand attribute's NonQuery property is true, the command must implement ICommand&lt;int&gt; or ICommand&lt;long&gt;
     /// </summary>
     public static void ExecuteNonQueryWithNonIntegralResultAnalyzer(INamedTypeSymbol typeSymbol,
-        DbCommandTypeInfo.ResultTypeInfo? resultTypeInfo, DbCommandAttribute dbCommandAttribute, List<Diagnostic> diagnostics)
+        DbCommandResultTypeInfo? commandResultTypeInfo, DbCommandAttributes dbCommandAttributeValues, List<Diagnostic> diagnostics)
     {
-        if (dbCommandAttribute.NonQuery && resultTypeInfo?.TypeName != nameof(Int32))
+        if (dbCommandAttributeValues.NonQuery && commandResultTypeInfo?.IsIntegralType != true)
         {
             var typeLocation = typeSymbol.Locations.FirstOrDefault() ?? Location.None;
             var diagnostic = Diagnostic.Create(NonQueryWithGenericResultWarning,
-                typeLocation, typeSymbol.Name, resultTypeInfo?.TypeName ?? "null");
-
-            diagnostics.Add(diagnostic);
-        }
-    }
-
-    /// <summary>
-    ///     Validates that the DbCommand attribute has either Sp or Sql specified, but not both.
-    ///     Adds a DB_COMMAND_GEN003 error diagnostic if both Sp and Sql properties are provided,
-    ///     as these are mutually exclusive options for specifying the database command.
-    /// </summary>
-    public static void ExecuteSpAndSqlAnalyzer(INamedTypeSymbol typeSymbol,
-        DbCommandAttribute dbCommandAttribute, List<Diagnostic> diagnostics)
-    {
-        if (!string.IsNullOrWhiteSpace(dbCommandAttribute.Sp) && !string.IsNullOrWhiteSpace(dbCommandAttribute.Sql))
-        {
-            var typeLocation = typeSymbol.Locations.FirstOrDefault() ?? Location.None;
-            var diagnostic = Diagnostic.Create(SpAndSqlPassedInDbCommandError, typeLocation, typeSymbol.Name);
+                typeLocation, typeSymbol.Name, commandResultTypeInfo?.Name ?? "null");
 
             diagnostics.Add(diagnostic);
         }

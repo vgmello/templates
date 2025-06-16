@@ -1,7 +1,7 @@
 // Copyright (c) ABCDEG. All rights reserved.
 
-using Operations.Extensions.Abstractions.Messaging;
 using System.Diagnostics;
+using Operations.Extensions.Messaging;
 using Wolverine;
 
 namespace Operations.ServiceDefaults.Messaging.Middlewares;

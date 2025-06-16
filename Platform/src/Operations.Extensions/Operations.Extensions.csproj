@@ -9,11 +9,8 @@
         <PackageReference Include="OneOf"/>
         <PackageReference Include="OneOf.SourceGenerator"/>
         <PackageReference Include="Dapper"/>
+        <PackageReference Include="Npgsql"/>
         <PackageReference Include="WolverineFx"/>
-    </ItemGroup>
-
-    <ItemGroup>
-        <ProjectReference Include="..\Operations.Extensions.Abstractions\Operations.Extensions.Abstractions.csproj"/>
     </ItemGroup>
 
 </Project>

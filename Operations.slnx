@@ -28,7 +28,6 @@
     <Project Path="Billing\test\Billing.Tests\Billing.Tests.csproj" Type="Classic C#" />
   </Folder>
   <Folder Name="/Platform/">
-    <Project Path="Platform\src\Operations.Extensions.Abstractions\Operations.Extensions.Abstractions.csproj" Type="Classic C#" />
     <Project Path="Platform\src\Operations.Extensions.SourceGenerators\Operations.Extensions.SourceGenerators.csproj" Type="Classic C#" />
     <Project Path="Platform\src\Operations.Extensions\Operations.Extensions.csproj" Type="Classic C#" />
     <Project Path="Platform\src\Operations.ServiceDefaults.Api\Operations.ServiceDefaults.Api.csproj" Type="Classic C#" />
@@ -46,7 +45,6 @@
     <File Path="Operations.slnx.DotSettings" />
     <File Path=".gitignore" />
     <File Path="Directory.Packages.props" />
-    <File Path="README.md" />
   </Folder>
   <Folder Name="/Solution Items/.http/">
     <File Path=".http\Accounting.Api.http" />

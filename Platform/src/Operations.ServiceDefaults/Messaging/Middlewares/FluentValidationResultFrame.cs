@@ -4,7 +4,7 @@ using JasperFx.CodeGeneration;
 using JasperFx.CodeGeneration.Frames;
 using JasperFx.CodeGeneration.Model;
 using Operations.Extensions;
-using Operations.Extensions.Abstractions.Messaging;
+using Operations.Extensions.Messaging;
 using Wolverine.Runtime;
 using Wolverine.Runtime.Handlers;
 
