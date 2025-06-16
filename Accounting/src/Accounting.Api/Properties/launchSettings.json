@@ -6,13 +6,13 @@
       "dotnetRunMessages": true,
       "launchBrowser": true,
       "launchUrl": "scalar",
-      "applicationUrl": "http://localhost:5237;http://localhost:5238;",
+      "applicationUrl": "http://localhost:5051;http://localhost:4051;",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development",
         "Kestrel__Endpoints__Http__Protocols": "Http1",
-        "Kestrel__Endpoints__Http__Url": "http://+:5237",
+        "Kestrel__Endpoints__Http__Url": "http://+:5051",
         "Kestrel__Endpoints__Grpc__Protocols": "Http2",
-        "Kestrel__Endpoints__Grpc__Url": "http://+:5238"
+        "Kestrel__Endpoints__Grpc__Url": "http://+:4051"
       }
     },
     "https": {
@@ -20,7 +20,7 @@
       "dotnetRunMessages": true,
       "launchBrowser": true,
       "launchUrl": "scalar",
-      "applicationUrl": "https://localhost:7297;",
+      "applicationUrl": "https://localhost:7051;",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       }

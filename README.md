@@ -126,6 +126,17 @@ dotnet run
 - **Aspire Dashboard**: http://localhost:15000
 - **Domain APIs**: Available through Aspire dashboard
 - **Swagger UI**: Links provided in Aspire dashboard
+### Port Assignment Pattern
+Services use incrementing local ports:
+- **AppHosts**: HTTPS 17050 / HTTP 15050
+- **Accounting API**: 7051 HTTPS / 5051 HTTP / 4051 gRPC
+- **Accounting BackOffice**: 7052 HTTPS / 5052 HTTP
+- **Accounting Orleans**: 7053 HTTPS / 5053 HTTP
+- **Billing API**: 7054 HTTPS / 5054 HTTP / 4054 gRPC
+- **Billing BackOffice**: 7055 HTTPS / 5055 HTTP
+- **Billing Orleans**: 7056 HTTPS / 5056 HTTP
+- **Resource Service**: 7050 HTTPS / 5050 HTTP
+- **OTLP Endpoint**: 4317 HTTPS / 4318 HTTP
 
 ---
 
@@ -190,9 +201,9 @@ docker-compose up --build
 ```
 
 ### 4. Verify Manual Setup
-- **Billing API**: http://localhost:5001/swagger
-- **Accounting API**: http://localhost:5002/swagger
-- **Health Checks**: http://localhost:5001/health, http://localhost:5002/health
+- **Billing API**: http://localhost:5054/swagger
+- **Accounting API**: http://localhost:5051/swagger
+- **Health Checks**: http://localhost:5054/health, http://localhost:5051/health
 
 ---
 
@@ -209,12 +220,12 @@ Test the APIs with the included HTTP files:
 Or use curl:
 ```bash
 # Create a cashier
-curl -X POST http://localhost:5001/cashiers \
+curl -X POST http://localhost:5054/cashiers \
   -H "Content-Type: application/json" \
   -d '{"name": "Test Cashier", "currencyCode": "USD"}'
 
 # Create a ledger
-curl -X POST http://localhost:5002/ledgers \
+curl -X POST http://localhost:5051/ledgers \
   -H "Content-Type: application/json" \
   -d '{"name": "Test Ledger", "type": "Asset"}'
 ```
