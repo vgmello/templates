@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+option csharp_namespace = "Accounting.Ledgers.Grpc.Models";
+
+package accounting.ledgers;
+
+message Ledger {
+  string ledgerId = 1;
+  string clientId = 2;
+  int32 ledgerType = 3;
+}

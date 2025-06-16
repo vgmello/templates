@@ -1,0 +1,54 @@
+﻿<Solution>
+  <Folder Name="/Accounting/">
+    <Project Path="Accounting\src\Accounting.Api\Accounting.Api.csproj" Type="Classic C#" />
+    <Project Path="Accounting\src\Accounting.AppHost\Accounting.AppHost.csproj" Type="Classic C#" />
+    <Project Path="Accounting\src\Accounting.BackOffice.Orleans\Accounting.BackOffice.Orleans.csproj" Type="Classic C#" />
+    <Project Path="Accounting\src\Accounting.BackOffice\Accounting.BackOffice.csproj" Type="Classic C#" />
+    <Project Path="Accounting\src\Accounting.Contracts\Accounting.Contracts.csproj" Type="Classic C#" />
+    <Project Path="Accounting\src\Accounting\Accounting.csproj" Type="Classic C#" />
+  </Folder>
+  <Folder Name="/Accounting/Infra/">
+    <Project Path="Accounting\infra\Accounting.Database\Accounting.Database.csproj" Type="Classic C#" />
+  </Folder>
+  <Folder Name="/Accounting/Tests/">
+    <Project Path="Accounting\test\Accounting.Tests\Accounting.Tests.csproj" Type="Classic C#" />
+  </Folder>
+  <Folder Name="/Billing/">
+    <Project Path="Billing\src\Billing.Api\Billing.Api.csproj" Type="Classic C#" />
+    <Project Path="Billing\src\Billing.AppHost\Billing.AppHost.csproj" Type="Classic C#" />
+    <Project Path="Billing\src\Billing.BackOffice.Orleans\Billing.BackOffice.Orleans.csproj" Type="Classic C#" />
+    <Project Path="Billing\src\Billing.BackOffice\Billing.BackOffice.csproj" Type="Classic C#" />
+    <Project Path="Billing\src\Billing.Contracts\Billing.Contracts.csproj" Type="Classic C#" />
+    <Project Path="Billing\src\Billing\Billing.csproj" Type="Classic C#" />
+  </Folder>
+  <Folder Name="/Billing/Infra/">
+    <Project Path="Billing\infra\Billing.Database\Billing.Database.csproj" Type="Classic C#" />
+  </Folder>
+  <Folder Name="/Billing/Tests/">
+    <Project Path="Billing\test\Billing.Tests\Billing.Tests.csproj" Type="Classic C#" />
+  </Folder>
+  <Folder Name="/Platform/">
+    <Project Path="Platform\src\Operations.Extensions.Abstractions\Operations.Extensions.Abstractions.csproj" Type="Classic C#" />
+    <Project Path="Platform\src\Operations.Extensions.SourceGenerators\Operations.Extensions.SourceGenerators.csproj" Type="Classic C#" />
+    <Project Path="Platform\src\Operations.Extensions\Operations.Extensions.csproj" Type="Classic C#" />
+    <Project Path="Platform\src\Operations.ServiceDefaults.Api\Operations.ServiceDefaults.Api.csproj" Type="Classic C#" />
+    <Project Path="Platform\src\Operations.ServiceDefaults\Operations.ServiceDefaults.csproj" Type="Classic C#" />
+  </Folder>
+  <Folder Name="/Platform/Tests/">
+    <Project Path="Platform\test\Operations.Extensions.Tests\Operations.Extensions.Tests.csproj" Type="Classic C#" />
+  </Folder>
+  <Folder Name="/Solution Items/">
+    <File Path="compose.yaml" />
+    <File Path="Directory.Build.props" />
+    <File Path="Operations.ruleset" />
+    <File Path=".dockerignore" />
+    <File Path=".editorconfig" />
+    <File Path="Operations.slnx.DotSettings" />
+    <File Path=".gitignore" />
+    <File Path="Directory.Packages.props" />
+  </Folder>
+  <Folder Name="/Solution Items/.http/">
+    <File Path=".http\Accounting.Api.http" />
+    <File Path=".http\Billing.Api.http" />
+  </Folder>
+</Solution>

@@ -1,0 +1,109 @@
+// Copyright (c) ABCDEG. All rights reserved.
+
+namespace Operations.Extensions.Abstractions.Dapper;
+
+/// <summary>
+///     Attribute to define database command properties and behavior for a class.
+///     Triggers generation of a ToDbParams() method. If 'sp' or 'sql' is provided,
+///     also triggers generation of a command handler method.
+/// </summary>
+[AttributeUsage(AttributeTargets.Class, Inherited = false)]
+public sealed class DbCommandAttribute : Attribute
+{
+    /// <summary>
+    ///     Initializes a new instance of the <see cref="DbCommandAttribute" /> class.
+    /// </summary>
+    /// <param name="sp">The name of the stored procedure. Mutually exclusive with <paramref name="sql" />.</param>
+    /// <param name="sql">The SQL query text. Mutually exclusive with <paramref name="sp" />.</param>
+    /// <param name="paramsCase">DB params case</param>
+    /// <param name="nonQuery">
+    ///     Indicates the nature of the command, with its primary effect on commands implementing ICommand&lt;int&gt;.
+    ///     Default is true.
+    ///     <para>
+    ///         If true: For ICommand&lt;int&gt;, the generated handler uses ExecuteAsync (rows affected). For other ICommand&lt;TResult&gt;, a
+    ///         diagnostic may be issued.
+    ///         If false: For ICommand&lt;int&gt;, the generated handler uses ExecuteScalarAsync&lt;int&gt;. For other ICommand&lt;TResult&gt;, a
+    ///         query is performed.
+    ///     </para>
+    /// </param>
+    /// <param name="dataSource">Indicates which datasource to use, which when provided a keyed service will be resolved</param>
+    public DbCommandAttribute(
+        string? sp = null,
+        string? sql = null,
+        DbParamsCase paramsCase = DbParamsCase.Unset,
+        bool nonQuery = false,
+        string? dataSource = null)
+    {
+        Sp = sp;
+        Sql = sql;
+        ParamsCase = paramsCase;
+        NonQuery = nonQuery;
+        DataSource = dataSource;
+    }
+
+    /// <summary>
+    ///     If set, a command handler will be generated using this stored procedure.
+    /// </summary>
+    public string? Sp { get; }
+
+    /// <summary>
+    ///     If set, a command handler will be generated using this SQL query.
+    /// </summary>
+    public string? Sql { get; }
+
+    /// <summary>
+    ///     Specifies how property names are converted to database parameter names in the generated ToDbParams() method.
+    ///     <para>
+    ///     - <see cref="DbParamsCase.Unset"/>: Uses the global default specified by the DbCommandDefaultParamCase MSBuild property
+    ///     </para>
+    ///     <para>
+    ///     - <see cref="DbParamsCase.None"/>: Uses property names as-is without any conversion
+    ///     </para>
+    ///     <para>
+    ///     - <see cref="DbParamsCase.SnakeCase"/>: Converts property names to snake_case (e.g., FirstName -> first_name)
+    ///     </para>
+    ///     <para>
+    ///     Individual properties can override this behavior using the [Column("custom_name")] attribute.
+    ///     </para>
+    /// </summary>
+    public DbParamsCase ParamsCase { get; }
+
+    /// <summary>
+    ///     Indicates the nature of the command. This flag primarily influences behavior for ICommand&lt;int/long&gt;.
+    ///     <para>
+    ///         If true:<br />
+    ///         - For ICommand&lt;int/long&gt;: The generated handler will use Dapper's ExecuteAsync (expecting rows affected).<br />
+    ///         - For ICommand&lt;TResult&gt; where TResult is not int: A warning will be issued by the source generator,
+    ///         as using NonQuery=true with a command expecting a specific data structure is atypical. The handler will default to execute
+    ///         a Query or QueryFirstOrDefault call and return default(TResult).
+    ///     </para>
+    ///     <para>
+    ///         If false:<br />
+    ///         - For ICommand&lt;int&gt;: The generated handler will use Dapper's ExecuteScalarAsync&lt;int&gt; (expecting a scalar integer query
+    ///         result).<br />
+    ///         - For ICommand&lt;TResult&gt; where TResult is not int: The handler will perform a query (e.g., QueryFirstOrDefault or
+    ///         Query).
+    ///     </para>
+    /// </summary>
+    public bool NonQuery { get; }
+
+    /// <summary>
+    ///     Gets the data source key.
+    /// </summary>
+    public string? DataSource { get; }
+}
+
+public enum DbParamsCase
+{
+    Unset = -1,
+
+    /// <summary>
+    ///     Use the property names as-is (default).
+    /// </summary>
+    None = 0,
+
+    /// <summary>
+    ///     Convert property names to snake_case.
+    /// </summary>
+    SnakeCase = 1
+}

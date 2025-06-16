@@ -1,0 +1,39 @@
+<Project>
+    <PropertyGroup>
+        <TargetFramework>net9.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <EnableNETAnalyzers>true</EnableNETAnalyzers>
+        <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+        <CodeAnalysisRuleSet>..\..\..\Operations.ruleset</CodeAnalysisRuleSet>
+        <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+        <NoWarn>$(NoWarn);CS1591</NoWarn>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="SonarAnalyzer.CSharp" developmentDependency="true">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+    </ItemGroup>
+
+    <ItemGroup>
+        <Content Include="..\..\..\.dockerignore" Condition="Exists('Dockerfile')">
+            <Link>.dockerignore</Link>
+        </Content>
+    </ItemGroup>
+
+    <!-- Import settings for Operations.Extensions.SourceGenerators, applying to non-Platform projects -->
+    <Import Project="Platform/src/Operations.Extensions.SourceGenerators/Operations.Extensions.SourceGenerators.props"
+            Condition="!$(MSBuildProjectName.StartsWith('Operations'))"/>
+
+    <!-- Import settings for Operations.Extensions, applying to non-Platform projects -->
+    <PropertyGroup>
+        <_ProjectFileContent>$([System.IO.File]::ReadAllText('$(MSBuildProjectFullPath)'))</_ProjectFileContent>
+        <_HasOperationsExtensionsRef>$(_ProjectFileContent.Contains('Operations.Extensions.csproj'))</_HasOperationsExtensionsRef>
+    </PropertyGroup>
+
+    <Import Project="Platform/src/Operations.Extensions/Operations.Extensions.props"
+            Condition="!$(MSBuildProjectName.StartsWith('Operations')) and '$(_HasOperationsExtensionsRef)' == 'True'"/>
+
+</Project>

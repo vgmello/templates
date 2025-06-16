@@ -1,0 +1,27 @@
+@Billing_Api = http://localhost:5079
+@Billing_Orleans = https://localhost:7241/
+
+### Create Cashier
+POST {{Billing_Api}}/Cashiers/
+Accept: application/json
+Content-Type: application/json
+
+{
+    "name": "John Doe"
+}
+
+### Get Cashiers
+GET {{Billing_Api}}/Cashiers/
+Accept: application/json
+
+### Get Cashiers
+GET {{Billing_Api}}/Cashiers/fake-error
+Accept: application/json
+
+### Orleans - Pay Invoce
+POST {{Billing_Orleans}}/invoices/518034ad-8ec7-434d-95e1-cca8170a8743/pay?amount=10
+
+### Orleans - Pay Invoce
+GET {{Billing_Orleans}}/status
+
+100.0
