@@ -8,5 +8,5 @@
         <Using Include="Operations.Extensions.Messaging"/>
         <Using Include="Wolverine"/>
     </ItemGroup>
-    
+
 </Project>
