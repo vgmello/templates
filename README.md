@@ -125,18 +125,22 @@ dotnet run
 **Access Points:**
 - **Aspire Dashboard**: http://localhost:15000
 - **Domain APIs**: Available through Aspire dashboard
-- **Swagger UI**: Links provided in Aspire dashboard
+- **API UI**: Links provided in Aspire dashboard
 ### Port Assignment Pattern
-Services use incrementing local ports:
-- **AppHosts**: HTTPS 17050 / HTTP 15050
-- **Accounting API**: 7051 HTTPS / 5051 HTTP / 4051 gRPC
-- **Accounting BackOffice**: 7052 HTTPS / 5052 HTTP
-- **Accounting Orleans**: 7053 HTTPS / 5053 HTTP
-- **Billing API**: 7054 HTTPS / 5054 HTTP / 4054 gRPC
-- **Billing BackOffice**: 7055 HTTPS / 5055 HTTP
-- **Billing Orleans**: 7056 HTTPS / 5056 HTTP
-- **Resource Service**: 7050 HTTPS / 5050 HTTP
-- **OTLP Endpoint**: 4317 HTTPS / 4318 HTTP
+Services use domain-based port prefixes with specific port types:
+
+**Port Types:**
+- **70XX**: HTTPS web traffic (secure APIs, dashboards)
+- **50XX**: HTTP web traffic (regular APIs, web endpoints)
+- **40XX**: gRPC inter-service communication
+- **170XX**: .NET Aspire dashboard (HTTPS)
+- **150XX**: .NET Aspire dashboard (HTTP)
+
+**Domain Services (XX = domain suffix):**
+- **Accounting (50)**: API 7051/5051/4051, BackOffice 7052/5052, AppHost 17050/15050, Resource 7050/5050
+- **Billing (60)**: API 7061/5061/4061, BackOffice 7062/5062, AppHost 17060/15060, Resource 7060/5060
+- **Operations (70)**: AppHost 17070/15070, Resource 7070/5070
+- **Shared**: OTLP 4317/4318
 
 ---
 
@@ -201,9 +205,9 @@ docker-compose up --build
 ```
 
 ### 4. Verify Manual Setup
-- **Billing API**: http://localhost:5054/swagger
+- **Billing API**: http://localhost:5061/swagger
 - **Accounting API**: http://localhost:5051/swagger
-- **Health Checks**: http://localhost:5054/health, http://localhost:5051/health
+- **Health Checks**: http://localhost:5061/health, http://localhost:5051/health
 
 ---
 
@@ -220,7 +224,7 @@ Test the APIs with the included HTTP files:
 Or use curl:
 ```bash
 # Create a cashier
-curl -X POST http://localhost:5054/cashiers \
+curl -X POST http://localhost:5061/cashiers \
   -H "Content-Type: application/json" \
   -d '{"name": "Test Cashier", "currencyCode": "USD"}'
 
