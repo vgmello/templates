@@ -10,7 +10,7 @@ namespace Operations.Extensions.SourceGenerators.DbCommand;
 [Generator]
 public class DbCommandSourceGenerator : IIncrementalGenerator
 {
-    private static readonly string DbParamsProviderInterfaceFullName = typeof(IDbParamsProvider).FullName!;
+    private static readonly string DbParamsProviderInterfaceFullName = "Operations.Extensions.Abstractions.Dapper.IDbParamsProvider";
 
     public const string DbCommandDefaultParamCase = nameof(DbCommandDefaultParamCase);
 
@@ -22,19 +22,16 @@ public class DbCommandSourceGenerator : IIncrementalGenerator
         var commandTypes = context.SyntaxProvider
             .ForAttributeWithMetadataName(
                 fullyQualifiedMetadataName: SourceGenDbCommandTypeInfo.DbCommandAttributeFullName,
-                predicate: static (_, _) => true, // all types with the attribute
-                transform: static (ctx, _) => ctx)
+                predicate: static (_, _) => true,
+                transform: static (ctx, _) => ctx.TargetSymbol as INamedTypeSymbol)
+            .Where(static typeInfo => typeInfo is not null)
             .Combine(defaultParamCaseProvider)
-            .Select((enrichedCtx, _) =>
+            .Select((combinedValues, _) =>
             {
-                var (ctx, defaultParamCase) = enrichedCtx;
+                var (namedTypeSymbol, dbParamsCase) = combinedValues;
 
-                if (ctx.TargetSymbol is not INamedTypeSymbol typeSymbol)
-                    return null;
-
-                return new SourceGenDbCommandTypeInfo(typeSymbol, defaultParamCase);
-            })
-            .Where(static typeInfo => typeInfo is not null);
+                return new SourceGenDbCommandTypeInfo(namedTypeSymbol!, dbParamsCase);
+            });
 
         context.RegisterSourceOutput(commandTypes, static (spc, dbCommandTypeInfo) =>
         {
@@ -94,7 +91,7 @@ public class DbCommandSourceGenerator : IIncrementalGenerator
                 sb.AppendLine($"            {prop.ParameterName} = this.{prop.PropertyName},");
             }
 
-            var lastProp = properties[properties.Count - 1];
+            var lastProp = properties[^1];
             sb.AppendLine($"            {lastProp.ParameterName} = this.{lastProp.PropertyName}");
 
             sb.AppendLine("        };");
@@ -112,7 +109,7 @@ public class DbCommandSourceGenerator : IIncrementalGenerator
     {
         if (string.IsNullOrWhiteSpace(dbCommandTypeInfo.DbCommandAttribute.Sp) &&
             string.IsNullOrWhiteSpace(dbCommandTypeInfo.DbCommandAttribute.Sql))
-            return; // No handler if Sp or Sql is not provided
+            return; // No handler needed if Sp or Sql is not provided
 
         var returnTypeDeclaration = dbCommandTypeInfo.ResultType is null
             ? "global::System.Threading.Tasks.Task"
@@ -123,9 +120,6 @@ public class DbCommandSourceGenerator : IIncrementalGenerator
         var sourceBuilder = new StringBuilder();
 
         AppendFileHeader(sourceBuilder);
-
-        sourceBuilder.AppendLine("using Dapper;");
-
         AppendNamespace(sourceBuilder, dbCommandTypeInfo.Namespace);
 
         if (dbCommandTypeInfo.IsNestedType)
@@ -145,7 +139,7 @@ public class DbCommandSourceGenerator : IIncrementalGenerator
             : $"[global::Microsoft.Extensions.DependencyInjection.FromKeyedServicesAttribute(\"{dataSourceKey}\")] global::System.Data.Common.DbDataSource datasource";
 
         sourceBuilder.AppendLine(
-            $"    public static async {returnTypeDeclaration} HandleAsync({dbCommandTypeInfo.QualifiedTypeName} command, {dataSourceParameterDeclaration}, global::System.Threading.CancellationToken cancellationToken = default)");
+            $"    public static async {returnTypeDeclaration} HandleAsync(global::{dbCommandTypeInfo.QualifiedTypeName} command, {dataSourceParameterDeclaration}, global::System.Threading.CancellationToken cancellationToken = default)");
         sourceBuilder.AppendLine("    {");
         sourceBuilder.AppendLine("        await using var connection = await datasource.OpenConnectionAsync(cancellationToken);");
         sourceBuilder.AppendLine("        var dbParams = command.ToDbParams();");
@@ -172,7 +166,7 @@ public class DbCommandSourceGenerator : IIncrementalGenerator
             ? "System.Data.CommandType.Text"
             : "System.Data.CommandType.StoredProcedure";
 
-        var commandDefinitionCall = $"new global::Dapper.CommandDefinition(\"{commandText}\", dbParams, commandType: {commandType}, " +
+        var commandDefinitionCall = $"new global::Dapper.CommandDefinition(\"{commandText}\", dbParams, commandType: global::{commandType}, " +
                                     "cancellationToken: cancellationToken)";
 
         var methodCall = CreateMethodDapperCall(resultTypeInfo, commandAttributesValues);

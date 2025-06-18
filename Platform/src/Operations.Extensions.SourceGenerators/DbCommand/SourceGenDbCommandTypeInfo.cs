@@ -1,10 +1,10 @@
 // Copyright (c) ABCDEG. All rights reserved.
 
 using Operations.Extensions.Abstractions.Dapper;
+using Operations.Extensions.Abstractions.Extensions;
 using Operations.Extensions.Abstractions.Messaging;
 using Operations.Extensions.SourceGenerators.Extensions;
 using System.Collections.Immutable;
-using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Operations.Extensions.SourceGenerators.DbCommand;
 
@@ -13,8 +13,6 @@ internal class SourceGenDbCommandTypeInfo : DbCommandTypeInfo
     internal static string DbCommandAttributeFullName { get; } = typeof(DbCommandAttribute).FullName!;
 
     private static string CommandInterfaceFullName { get; } = $"{typeof(ICommand<>).Namespace}.ICommand<TResult>";
-
-    private static string ColumnAttributeFullName { get; } = typeof(ColumnAttribute).FullName!;
 
     public SourceGenDbCommandTypeInfo(INamedTypeSymbol typeSymbol, DbParamsCase defaultDbParamsCase) :
         base(
@@ -92,15 +90,33 @@ internal class SourceGenDbCommandTypeInfo : DbCommandTypeInfo
     private static ImmutableArray<PropertyInfo> GetDbCommandObjProperties(
         INamedTypeSymbol typeSymbol, DbParamsCase paramsCase, DbParamsCase defaultDbParamsCase)
     {
-        return typeSymbol.GetMembers()
-            .OfType<IPropertySymbol>()
-            .Where(prop => prop is { DeclaredAccessibility: Accessibility.Public, IsStatic: false, GetMethod: not null })
-            .Select(prop => new PropertyInfo(prop.Name, GetParameterNameFromProperty(prop, paramsCase, defaultDbParamsCase)))
-            .ToImmutableArray();
+        Dictionary<string, PropertyInfo> primaryProperties;
 
-        static string GetParameterNameFromProperty(IPropertySymbol prop, DbParamsCase paramsCase, DbParamsCase defaultParamsCase)
+        if (typeSymbol.IsRecord)
         {
-            var columnNameAttribute = prop.GetAttribute(ColumnAttributeFullName);
+            var primaryConstructor = typeSymbol.Constructors.FirstOrDefault(c => c.IsPrimaryConstructor());
+            primaryProperties = primaryConstructor?.Parameters
+                .Select(p => new PropertyInfo(p.Name, GetParameterNameFromProperty(p, paramsCase, defaultDbParamsCase)))
+                .ToDictionary(p => p.PropertyName, p => p) ?? [];
+        }
+        else
+        {
+            primaryProperties = [];
+        }
+
+        var normalProps = typeSymbol.GetMembers()
+            .OfType<IPropertySymbol>()
+            .Where(p => !primaryProperties.ContainsKey(p.Name))
+            .Where(p => p is { DeclaredAccessibility: Accessibility.Public, IsStatic: false, GetMethod: not null })
+            .Select(p => new PropertyInfo(p.Name, GetParameterNameFromProperty(p, paramsCase, defaultDbParamsCase)));
+
+        return primaryProperties.Values.Concat(normalProps).ToImmutableArray();
+
+        static string GetParameterNameFromProperty(ISymbol prop, DbParamsCase paramsCase, DbParamsCase defaultParamsCase)
+        {
+            var columnNameAttribute = prop.GetAttributes()
+                .FirstOrDefault(a => a.AttributeClass?.Name.Contains(nameof(ColumnAttribute)) == true);
+
             var customColumnName = columnNameAttribute?.GetConstructorArgument<string>(index: 0);
 
             if (customColumnName is not null)

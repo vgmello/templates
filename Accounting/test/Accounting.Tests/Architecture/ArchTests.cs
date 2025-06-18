@@ -1,7 +1,6 @@
 // Copyright (c) ABCDEG. All rights reserved.
 
 using NetArchTest.Rules;
-using Shouldly;
 
 namespace Accounting.Tests.Architecture;
 

@@ -1,0 +1,43 @@
+<Project>
+    <PropertyGroup Condition="'$(IsTestProject)' == 'true'">
+        <IsPackable>false</IsPackable>
+        <OutputType>Exe</OutputType>
+        <EnableDefaultContentItems>false</EnableDefaultContentItems>
+    </PropertyGroup>
+
+    <ItemGroup Condition="'$(IsTestProject)' == 'true'">
+        <Content Include="xunit.runner.json" CopyToOutputDirectory="PreserveNewest"/>
+    </ItemGroup>
+
+    <ItemGroup Condition="'$(IsTestProject)' == 'true'">
+        <PackageReference Include="coverlet.collector">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+        <PackageReference Include="Microsoft.NET.Test.Sdk"/>
+        <PackageReference Include="Shouldly"/>
+        <PackageReference Include="xunit.v3"/>
+        <PackageReference Include="xunit.runner.visualstudio"/>
+    </ItemGroup>
+
+    <ItemGroup Condition="'$(IsTestProject)' == 'true'">
+        <Using Include="Xunit"/>
+        <Using Include="Shouldly"/>
+    </ItemGroup>
+
+    <!-- The following lines are a hack to support the .props while those projects are not NuGet packages -->
+
+    <!-- Import settings for Operations.Extensions.SourceGenerators, applying to non-Platform projects -->
+    <Import Project="Platform/src/Operations.Extensions.SourceGenerators/Operations.Extensions.SourceGenerators.props"
+            Condition="!$(MSBuildProjectName.StartsWith('Operations'))"/>
+
+    <!-- Import settings for Operations.Extensions, applying to non-Platform projects -->
+    <PropertyGroup>
+        <_ProjectFileContent>$([System.IO.File]::ReadAllText('$(MSBuildProjectFullPath)'))</_ProjectFileContent>
+        <_HasOperationsExtensionsRef>$([System.Text.RegularExpressions.Regex]::IsMatch('$(_ProjectFileContent)', 'Operations\.Extensions|Operations\.ServiceDefaults'))</_HasOperationsExtensionsRef>
+    </PropertyGroup>
+
+    <Import Project="Platform/src/Operations.Extensions/Operations.Extensions.props"
+            Condition="!$(MSBuildProjectName.StartsWith('Operations')) and '$(_HasOperationsExtensionsRef)' == 'True'"/>
+
+</Project>

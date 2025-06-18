@@ -1,5 +1,17 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
+    <PropertyGroup>
+        <PackageId>$(AssemblyName)</PackageId>
+        <PackageVersion>$(Version)</PackageVersion>
+        <PackageTags>extensions</PackageTags>
+        <IncludeSource>true</IncludeSource>
+        <Authors>ABCDEG</Authors>
+        <Company>ABCDEG</Company>
+        <Copyright>Copyright (c) ABCDEG. All rights reserved.</Copyright>
+        <RepositoryUrl>https://github.com/ABCDEG/templates</RepositoryUrl>
+        <RepositoryType>git</RepositoryType>
+    </PropertyGroup>
+
     <ItemGroup>
         <None Include="Operations.Extensions.props" Pack="true" PackagePath="build/"/>
     </ItemGroup>

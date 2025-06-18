@@ -35,6 +35,7 @@
     <Project Path="Platform\src\Operations.ServiceDefaults\Operations.ServiceDefaults.csproj" Type="Classic C#" />
   </Folder>
   <Folder Name="/Platform/Tests/">
+    <Project Path="Platform\test\Operations.Extensions.SourceGenerators.Tests\Operations.Extensions.SourceGenerators.Tests.csproj" Type="Classic C#" />
     <Project Path="Platform\test\Operations.Extensions.Tests\Operations.Extensions.Tests.csproj" Type="Classic C#" />
   </Folder>
   <Folder Name="/Solution Items/">
@@ -47,6 +48,7 @@
     <File Path=".gitignore" />
     <File Path="Directory.Packages.props" />
     <File Path="README.md" />
+    <File Path="Directory.Build.targets" />
   </Folder>
   <Folder Name="/Solution Items/.http/">
     <File Path=".http\Accounting.Api.http" />

@@ -1,11 +1,13 @@
 // Copyright (c) ABCDEG. All rights reserved.
 
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Collections.Immutable;
+using System.Runtime.CompilerServices;
 
 namespace Operations.Extensions.SourceGenerators.Extensions;
 
-public static class SourceGeneratorExtensions
+internal static class SourceGeneratorExtensions
 {
     private static SymbolDisplayFormat FullyQualifiedFormatNoGlobal { get; } =
         new(
@@ -70,6 +72,20 @@ public static class SourceGeneratorExtensions
             return string.Empty;
 
         return $"<{string.Join(", ", typeArguments.Select(ta => ta.GetQualifiedName(withGlobalNamespace: true)))}>";
+    }
+
+    public static bool IsPrimaryConstructor(this IMethodSymbol constructor)
+    {
+        var isCloneConstructor = constructor.Parameters.Length == 1 &&
+                                 SymbolEqualityComparer.Default.Equals(constructor.Parameters[0].Type, constructor.ContainingType);
+
+        return !isCloneConstructor && constructor is { IsImplicitlyDeclared: false, Parameters.Length: > 0 }
+                                   && constructor.GetAttribute(typeof(CompilerGeneratedAttribute).FullName ?? string.Empty) is null
+                                   && constructor.ContainingType.DeclaringSyntaxReferences.Any(sr =>
+                                       sr.GetSyntax() is RecordDeclarationSyntax
+                                       {
+                                           ParameterList.Parameters.Count: > 0
+                                       });
     }
 
     /// <summary>

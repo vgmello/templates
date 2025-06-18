@@ -7,49 +7,40 @@ namespace Operations.Extensions.Abstractions.Dapper;
 ///     Triggers generation of a ToDbParams() method. If 'sp' or 'sql' is provided,
 ///     also triggers generation of a command handler method.
 /// </summary>
+/// <remarks>
+///     Initializes a new instance of the <see cref="DbCommandAttribute" /> class.
+/// </remarks>
+/// <param name="sp">The name of the stored procedure. Mutually exclusive with <paramref name="sql" />.</param>
+/// <param name="sql">The SQL query text. Mutually exclusive with <paramref name="sp" />.</param>
+/// <param name="paramsCase">DB params case</param>
+/// <param name="nonQuery">
+///     Indicates the nature of the command, with its primary effect on commands implementing ICommand&lt;int&gt;.
+///     Default is true.
+///     <para>
+///         If true: For ICommand&lt;int&gt;, the generated handler uses ExecuteAsync (rows affected). For other ICommand&lt;TResult&gt;, a
+///         diagnostic may be issued.
+///         If false: For ICommand&lt;int&gt;, the generated handler uses ExecuteScalarAsync&lt;int&gt;. For other ICommand&lt;TResult&gt;, a
+///         query is performed.
+///     </para>
+/// </param>
+/// <param name="dataSource">Indicates which datasource to use, which when provided a keyed service will be resolved</param>
 [AttributeUsage(AttributeTargets.Class, Inherited = false)]
-public sealed class DbCommandAttribute : Attribute
+public sealed class DbCommandAttribute(
+    string? sp = null,
+    string? sql = null,
+    DbParamsCase paramsCase = DbParamsCase.Unset,
+    bool nonQuery = false,
+    string? dataSource = null) : Attribute
 {
-    /// <summary>
-    ///     Initializes a new instance of the <see cref="DbCommandAttribute" /> class.
-    /// </summary>
-    /// <param name="sp">The name of the stored procedure. Mutually exclusive with <paramref name="sql" />.</param>
-    /// <param name="sql">The SQL query text. Mutually exclusive with <paramref name="sp" />.</param>
-    /// <param name="paramsCase">DB params case</param>
-    /// <param name="nonQuery">
-    ///     Indicates the nature of the command, with its primary effect on commands implementing ICommand&lt;int&gt;.
-    ///     Default is true.
-    ///     <para>
-    ///         If true: For ICommand&lt;int&gt;, the generated handler uses ExecuteAsync (rows affected). For other ICommand&lt;TResult&gt;, a
-    ///         diagnostic may be issued.
-    ///         If false: For ICommand&lt;int&gt;, the generated handler uses ExecuteScalarAsync&lt;int&gt;. For other ICommand&lt;TResult&gt;, a
-    ///         query is performed.
-    ///     </para>
-    /// </param>
-    /// <param name="dataSource">Indicates which datasource to use, which when provided a keyed service will be resolved</param>
-    public DbCommandAttribute(
-        string? sp = null,
-        string? sql = null,
-        DbParamsCase paramsCase = DbParamsCase.Unset,
-        bool nonQuery = false,
-        string? dataSource = null)
-    {
-        Sp = sp;
-        Sql = sql;
-        ParamsCase = paramsCase;
-        NonQuery = nonQuery;
-        DataSource = dataSource;
-    }
-
     /// <summary>
     ///     If set, a command handler will be generated using this stored procedure.
     /// </summary>
-    public string? Sp { get; }
+    public string? Sp { get; } = sp;
 
     /// <summary>
     ///     If set, a command handler will be generated using this SQL query.
     /// </summary>
-    public string? Sql { get; }
+    public string? Sql { get; } = sql;
 
     /// <summary>
     ///     Specifies how property names are converted to database parameter names in the generated ToDbParams() method.
@@ -66,7 +57,7 @@ public sealed class DbCommandAttribute : Attribute
     ///     Individual properties can override this behavior using the [Column("custom_name")] attribute.
     ///     </para>
     /// </summary>
-    public DbParamsCase ParamsCase { get; }
+    public DbParamsCase ParamsCase { get; } = paramsCase;
 
     /// <summary>
     ///     Indicates the nature of the command. This flag primarily influences behavior for ICommand&lt;int/long&gt;.
@@ -85,12 +76,12 @@ public sealed class DbCommandAttribute : Attribute
     ///         Query).
     ///     </para>
     /// </summary>
-    public bool NonQuery { get; }
+    public bool NonQuery { get; } = nonQuery;
 
     /// <summary>
     ///     Gets the data source key.
     /// </summary>
-    public string? DataSource { get; }
+    public string? DataSource { get; } = dataSource;
 }
 
 public enum DbParamsCase

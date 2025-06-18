@@ -3,7 +3,6 @@
 using Accounting.Ledgers.Grpc;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Grpc.Net.Client;
-using Shouldly;
 
 namespace Accounting.Tests.Integration;
 

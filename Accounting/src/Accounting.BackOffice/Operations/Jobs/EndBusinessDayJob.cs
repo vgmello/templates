@@ -1,7 +1,6 @@
 // Copyright (c) ABCDEG. All rights reserved.
 
 using Accounting.Contracts.Operations.IntegrationEvents;
-using Wolverine;
 
 namespace Accounting.BackOffice.Operations.Jobs;
 
