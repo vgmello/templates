@@ -29,14 +29,15 @@ internal static class DbCommandAnalyzers
     private static readonly DiagnosticDescriptor SpAndSqlPassedInDbCommandError = new(
         id: "DB_COMMAND_GEN003",
         title: "Both Sp and Sql properties specified in DbCommandAttribute",
-        messageFormat: "Class '{0}' has both 'Sp' and 'Sql' properties specified in DbCommandAttribute. These properties are mutually exclusive - specify either a stored procedure name or SQL query text, but not both.",
+        messageFormat: "Class '{0}' has both 'Sp' and 'Sql' properties specified in DbCommandAttribute. " +
+                       "These properties are mutually exclusive - specify either a stored procedure name or SQL query text, but not both.",
         category: "DbCommandSourceGenerator",
         DiagnosticSeverity.Error,
         isEnabledByDefault: true);
 
     /// <summary>
     ///     If <see cref="DbCommandTypeInfo.ResultTypeInfo" /> is null, it means ICommand&lt;TResult&gt; was not found.
-    ///     An error diagnostic DBCOMMANDGEN002 will be logged by ExtractTypeInfo and reported by Initialize's output action.
+    ///     An error diagnostic DB_COMMAND_GEN002 will be logged by ExtractTypeInfo and reported by Initialize's output action.
     ///     Generation should be skipped by the check in Initialize's RegisterSourceOutput action.
     /// </summary>
     public static void ExecuteMissingInterfaceAnalyzer(INamedTypeSymbol typeSymbol,

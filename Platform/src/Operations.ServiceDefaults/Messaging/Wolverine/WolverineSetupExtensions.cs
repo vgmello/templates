@@ -37,13 +37,13 @@ public static class WolverineSetupExtensions
             return;
 
         services
+            .ConfigureOptions<ServiceBusOptions.Configurator>()
             .AddOptions<ServiceBusOptions>()
             .BindConfiguration(ServiceBusOptions.SectionName)
             .ValidateOnStart();
 
-        services.ConfigureOptions<ServiceBusOptions.Configurator>();
-
         var serviceBusOptions = configuration.GetSection(ServiceBusOptions.SectionName).Get<ServiceBusOptions>() ?? new ServiceBusOptions();
+        var connectionString = configuration.GetConnectionString(ServiceBusOptions.SectionName);
 
         services.AddWolverine(ExtensionDiscovery.ManualOnly, opts =>
         {
@@ -52,14 +52,15 @@ public static class WolverineSetupExtensions
 
             opts.UseSystemTextJsonForSerialization();
 
-            if (!string.IsNullOrWhiteSpace(serviceBusOptions.ConnectionString))
+            if (!string.IsNullOrWhiteSpace(connectionString))
             {
-                opts.ConfigurePostgresql(serviceBusOptions.ConnectionString);
+                opts.ConfigurePostgresql(connectionString);
                 opts.ConfigureReliableMessaging();
             }
 
             opts.Policies.AddMiddleware(typeof(RequestPerformanceMiddleware));
             opts.Policies.AddMiddleware(typeof(OpenTelemetryInstrumentationMiddleware));
+
             opts.Policies.Add<FluentValidationPolicy>();
 
             configure?.Invoke(opts);

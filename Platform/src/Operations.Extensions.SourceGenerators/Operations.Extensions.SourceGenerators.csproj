@@ -1,13 +1,14 @@
 <Project Sdk="Microsoft.NET.Sdk">
+
     <PropertyGroup>
         <TargetFramework>netstandard2.1</TargetFramework>
         <IsRoslynComponent>true</IsRoslynComponent>
         <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
         <CompilerGeneratedFilesOutputPath>Generated</CompilerGeneratedFilesOutputPath>
-        <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
         <IncludeBuildOutput>false</IncludeBuildOutput>
+        <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
         <LangVersion>Latest</LangVersion>
-        <NoWarn>$(NoWarn);RS1041;RS2007</NoWarn>
+        <NoWarn>$(NoWarn);RS1041;RS2007;RS1036</NoWarn>
     </PropertyGroup>
 
     <PropertyGroup>
@@ -28,10 +29,10 @@
     </ItemGroup>
 
     <ItemGroup>
-        <!-- Used for nuget packaging, uncomment when the nuget is ready -->
-        <!-- Package the generator in the analyzer directory of the nuget package -->
-        <!--        <None Include="$(OutputPath)\$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false"/>-->
-        <!--        <None Include="Operations.Extensions.SourceGenerators.props" Pack="true" PackagePath="build" Visible="false"/>-->
+        <!-- Used for nuget packaging -->
+        <None Include="$(OutputPath)\$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false"/>
+        <None Include="$(ProjectDir)\..\Operations.Extensions.Abstractions\$(OutputPath)\Operations.Extensions.Abstractions.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false"/>
+        <None Include="Operations.Extensions.SourceGenerators.props" Pack="true" PackagePath="build" Visible="false"/>
     </ItemGroup>
 
     <ItemGroup>

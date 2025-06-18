@@ -28,6 +28,11 @@ public static partial class CreateCashierCommandHandler
         IMessageBus messaging,
         CancellationToken cancellationToken)
     {
+        if (command.Name.Contains("error"))
+        {
+            throw new DivideByZeroException("Forced test exception to simulate error scenarios");
+        }
+
         var cashierId = Guid.NewGuid();
 
         var insertCommand = new InsertCashierCommand(cashierId, command.Name, command.Email);

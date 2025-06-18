@@ -1,45 +1,63 @@
 // Copyright (c) ABCDEG. All rights reserved.
 
 using Microsoft.Extensions.Logging;
+using Operations.ServiceDefaults.Messaging.Telemetry;
+using Operations.ServiceDefaults.Messaging.Wolverine;
 using System.Diagnostics;
 using Wolverine;
 
 namespace Operations.ServiceDefaults.Messaging.Middlewares;
 
-// Rule: A value being logged doesn't have an effective way to be converted into a string
-// Reason: Middleware log message
-#pragma warning disable LOGGEN036
-
-public static partial class RequestPerformanceMiddleware
+public partial class RequestPerformanceMiddleware
 {
-    public static long Before(ILogger logger, Envelope envelope)
+    private string _messageTypeName = string.Empty;
+    private long _startedTime;
+    private MessagingMetrics? _messagingMetrics;
+
+    public void Before(ILogger logger, Envelope envelope, MessagingMeterStore meterStore)
     {
-        var startedTime = Stopwatch.GetTimestamp();
+        _messageTypeName = envelope.GetMessageName();
+        _startedTime = Stopwatch.GetTimestamp();
 
-        LogRequestReceived(logger, GetMessageTypeName(envelope), envelope.Message);
+        LogRequestReceived(logger, _messageTypeName, envelope.Message);
 
-        return startedTime;
+        var metricName = envelope.GetMessageName(fullName: true);
+        _messagingMetrics = meterStore.GetOrCreateMetrics(metricName);
+
+        _messagingMetrics.MessageReceived();
     }
 
-    public static void Finally(long startedTime, ILogger logger, Envelope envelope)
+    public void Finally(ILogger logger, Envelope envelope)
     {
-        var elapsedTime = Stopwatch.GetElapsedTime(startedTime);
+        var elapsedTime = Stopwatch.GetElapsedTime(_startedTime);
+        _messagingMetrics?.RecordProcessingTime(elapsedTime);
 
-        LogRequestCompleted(logger, GetMessageTypeName(envelope), elapsedTime.TotalMilliseconds);
+        if (envelope.Failure is null)
+        {
+            LogRequestCompleted(logger, _messageTypeName, elapsedTime);
+        }
+        else
+        {
+            LogRequestFailed(logger, envelope.Failure, _messageTypeName, elapsedTime);
+            _messagingMetrics?.ExceptionHappened(envelope.Failure);
+        }
     }
 
     [LoggerMessage(
         EventId = 1,
-        Level = LogLevel.Debug,
+        Level = LogLevel.Trace,
         Message = "{MessageType} received. Message: {@Message}")]
     private static partial void LogRequestReceived(ILogger logger, string messageType, object? message);
 
     [LoggerMessage(
         EventId = 2,
         Level = LogLevel.Debug,
-        Message = "{MessageType} completed in {MessageExecutionTime:000} ms")]
-    private static partial void LogRequestCompleted(ILogger logger, string messageType, double messageExecutionTime);
+        Message = "{MessageType} completed in {MessageExecutionTime}")]
+    private static partial void LogRequestCompleted(ILogger logger, string messageType, TimeSpan messageExecutionTime);
 
-    private static string GetMessageTypeName(Envelope envelope) =>
-        envelope.Message?.GetType().Name ?? envelope.MessageType ?? envelope.Id.ToString();
+    [LoggerMessage(
+        EventId = 3,
+        Level = LogLevel.Error,
+        Message = "{MessageType} failed after {MessageExecutionTime}")]
+    private static partial void LogRequestFailed(ILogger logger, Exception ex, string messageType, TimeSpan messageExecutionTime);
 }

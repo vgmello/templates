@@ -16,7 +16,7 @@ var pgsql = builder
     .WithLifetime(ContainerLifetime.Persistent);
 
 var database = pgsql.AddDatabase(name: "BillingDb", databaseName: "billing");
-var serviceBusDb = pgsql.AddDatabase(name: "ServiceBusDb", databaseName: "service_bus");
+var serviceBusDb = pgsql.AddDatabase(name: "ServiceBus", databaseName: "service_bus");
 var liquibase = builder.AddLiquibaseMigrations(pgsql, dbPassword);
 
 var storage = builder.AddAzureStorage("billing-azure-storage").RunAsEmulator();

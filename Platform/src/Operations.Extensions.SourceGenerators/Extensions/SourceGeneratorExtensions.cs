@@ -117,4 +117,14 @@ internal static class SourceGeneratorExtensions
             )
         );
     }
+
+    public static string GetFileName(this string fullTypeName, bool isGlobalNamespace)
+    {
+        var fileName = fullTypeName
+            .Replace('.', '_')
+            .Replace('<', '_')
+            .Replace('>', '_');
+
+        return isGlobalNamespace ? $"global_{fileName}" : fileName;
+    }
 }

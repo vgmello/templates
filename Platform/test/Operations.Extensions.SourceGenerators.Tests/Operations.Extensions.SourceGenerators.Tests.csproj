@@ -12,6 +12,7 @@
 
     <ItemGroup>
         <ProjectReference Include="..\..\src\Operations.Extensions.Abstractions\Operations.Extensions.Abstractions.csproj"/>
+        <ProjectReference Include="..\..\src\Operations.Extensions.SourceGenerators\Operations.Extensions.SourceGenerators.csproj"/>
     </ItemGroup>
 
     <ItemGroup>
