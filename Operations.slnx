@@ -1,4 +1,4 @@
-﻿<Solution>
+<Solution>
   <Folder Name="/Accounting/">
     <Project Path="Accounting\src\Accounting.Api\Accounting.Api.csproj" Type="Classic C#" />
     <Project Path="Accounting\src\Accounting.AppHost\Accounting.AppHost.csproj" Type="Classic C#" />
