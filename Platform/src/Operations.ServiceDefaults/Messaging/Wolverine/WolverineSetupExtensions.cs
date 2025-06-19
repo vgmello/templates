@@ -58,10 +58,11 @@ public static class WolverineSetupExtensions
                 opts.ConfigureReliableMessaging();
             }
 
+            opts.Policies.Add<ExceptionHandlingPolicy>();
+            opts.Policies.Add<FluentValidationPolicy>();
+
             opts.Policies.AddMiddleware(typeof(RequestPerformanceMiddleware));
             opts.Policies.AddMiddleware(typeof(OpenTelemetryInstrumentationMiddleware));
-
-            opts.Policies.Add<FluentValidationPolicy>();
 
             configure?.Invoke(opts);
 
