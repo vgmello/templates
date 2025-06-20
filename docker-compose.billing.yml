@@ -65,7 +65,7 @@ services:
       - Kestrel__Endpoints__Http__Protocols=Http1
       - Kestrel__Endpoints__Http__Url=http://+:5061
       - Kestrel__Endpoints__Grpc__Protocols=Http2
-      - Kestrel__Endpoints__Grpc__Url=http://+:406"
+      - Kestrel__Endpoints__Grpc__Url=http://+:4061"
     healthcheck:
       test: [ "CMD-SHELL", "curl -f http://localhost:5061/health/internal || exit 1" ]
       interval: 30s
