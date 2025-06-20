@@ -418,3 +418,5 @@ output-*/*
 
 **/docs/_site/
 **/docs/api/
+
+**/.svelte-kit/
