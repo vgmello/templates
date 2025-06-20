@@ -12,7 +12,7 @@
 	let loading = $state(true);
 	let error = $state(null);
 	
-	$: cashierId = $page.params.id;
+	let cashierId = $derived($page.params.id);
 
 	onMount(async () => {
 		await loadCashier();
