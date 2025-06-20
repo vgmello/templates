@@ -40,8 +40,5 @@ export interface UpdateCashierRequest {
 	currencies?: string[];
 }
 
-export interface ApiRequestOptions extends RequestInit {
-	fetch?: typeof fetch;
-}
 
 export {};

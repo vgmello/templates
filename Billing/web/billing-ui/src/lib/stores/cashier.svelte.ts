@@ -1,4 +1,3 @@
-import { cashierService } from '$lib/api';
 import type { Cashier, CreateCashierRequest, UpdateCashierRequest } from '../../app';
 
 class CashierStore {
@@ -96,14 +95,28 @@ class CashierStore {
 		}
 	}
 
-	async createCashier(cashierData: CreateCashierRequest, fetchFn: typeof fetch = fetch): Promise<Cashier> {
+	async createCashier(cashierData: CreateCashierRequest): Promise<void> {
 		this.#loading = true;
 		this.#error = null;
 		
 		try {
-			const newCashier = await cashierService.createCashier(cashierData, fetchFn);
-			this.#cashiers = [...this.#cashiers, newCashier];
-			return newCashier;
+			// Client-side stores should use form actions instead of direct API calls
+			// This will be handled by the +page.server.ts actions
+			const formData = new FormData();
+			formData.append('name', cashierData.name);
+			formData.append('email', cashierData.email);
+			cashierData.currencies?.forEach(currency => {
+				formData.append('currencies', currency);
+			});
+			
+			const response = await fetch('?/default', {
+				method: 'POST',
+				body: formData
+			});
+			
+			if (!response.ok) {
+				throw new Error('Failed to create cashier');
+			}
 		} catch (error) {
 			this.#error = (error as Error).message || 'Failed to create cashier';
 			console.error('Failed to create cashier:', error);
@@ -113,25 +126,28 @@ class CashierStore {
 		}
 	}
 
-	async updateCashier(id: string, cashierData: UpdateCashierRequest, fetchFn: typeof fetch = fetch): Promise<Cashier> {
+	async updateCashier(id: string, cashierData: UpdateCashierRequest): Promise<void> {
 		this.#loading = true;
 		this.#error = null;
 		
 		try {
-			const updatedCashier = await cashierService.updateCashier(id, cashierData, fetchFn);
+			// Client-side stores should use form actions instead of direct API calls
+			// This will be handled by server actions in the detail page
+			const formData = new FormData();
+			formData.append('name', cashierData.name);
+			formData.append('email', cashierData.email);
+			cashierData.currencies?.forEach(currency => {
+				formData.append('currencies', currency);
+			});
 			
-			// Update in the list
-			const index = this.#cashiers.findIndex(c => c.cashierId === id);
-			if (index !== -1) {
-				this.#cashiers[index] = updatedCashier;
+			const response = await fetch(`/cashiers/${id}?/update`, {
+				method: 'POST',
+				body: formData
+			});
+			
+			if (!response.ok) {
+				throw new Error('Failed to update cashier');
 			}
-			
-			// Update selected cashier if it's the same one
-			if (this.#selectedCashier?.cashierId === id) {
-				this.#selectedCashier = updatedCashier;
-			}
-			
-			return updatedCashier;
 		} catch (error) {
 			this.#error = (error as Error).message || 'Failed to update cashier';
 			console.error('Failed to update cashier:', error);
@@ -141,12 +157,20 @@ class CashierStore {
 		}
 	}
 
-	async deleteCashier(id: string, fetchFn: typeof fetch = fetch): Promise<void> {
+	async deleteCashier(id: string): Promise<void> {
 		this.#loading = true;
 		this.#error = null;
 		
 		try {
-			await cashierService.deleteCashier(id, fetchFn);
+			// Client-side stores should use form actions instead of direct API calls
+			// This will be handled by server actions in the detail page
+			const response = await fetch(`/cashiers/${id}?/delete`, {
+				method: 'POST'
+			});
+			
+			if (!response.ok) {
+				throw new Error('Failed to delete cashier');
+			}
 			
 			// Remove from the list
 			this.#cashiers = this.#cashiers.filter(c => c.cashierId !== id);

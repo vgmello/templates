@@ -421,6 +421,7 @@ output-*/*
 
 **/.svelte-kit/
 **/web/backend/
+**/web/billing-ui/test-results
 **_temp/
 
 CLAUDE.local.md

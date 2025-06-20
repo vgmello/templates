@@ -15,11 +15,11 @@ interface GrpcCallback<T = any> {
 }
 
 interface GrpcClient {
-	getCashiers: (request: {}, callback: GrpcCallback<{ cashiers: Cashier[] }>) => void;
-	getCashier: (request: { cashierId: string }, callback: GrpcCallback<Cashier>) => void;
-	createCashier: (request: CreateCashierRequest, callback: GrpcCallback<Cashier>) => void;
-	updateCashier: (request: { cashierId: string } & UpdateCashierRequest, callback: GrpcCallback<Cashier>) => void;
-	deleteCashier: (request: { cashierId: string }, callback: GrpcCallback<{}>) => void;
+	GetCashiers: (request: { limit?: number, offset?: number }, callback: GrpcCallback<{ cashiers: Cashier[] }>) => void;
+	GetCashier: (request: { id: string }, callback: GrpcCallback<Cashier>) => void;
+	CreateCashier: (request: { name: string, email: string }, callback: GrpcCallback<Cashier>) => void;
+	UpdateCashier: (request: { cashierId: string, name?: string, email?: string }, callback: GrpcCallback<Cashier>) => void;
+	DeleteCashier: (request: { cashierId: string }, callback: GrpcCallback<{}>) => void;
 	close?: () => void;
 }
 
@@ -45,12 +45,6 @@ async function initializeClient(): Promise<GrpcClient> {
 	if (client) return client;
 
 	try {
-		// In development, we might not have the proto file, so we'll mock it
-		if (dev && !env.PROTO_PATH) {
-			console.warn('gRPC proto path not configured, using mock client');
-			return createMockClient();
-		}
-
 		// Load proto definition
 		const packageDefinition = protoLoader.loadSync(PROTO_PATH, {
 			keepCase: true,
@@ -61,10 +55,10 @@ async function initializeClient(): Promise<GrpcClient> {
 		});
 
 		const protoDescriptor = grpc.loadPackageDefinition(packageDefinition) as any;
-		const BillingService = protoDescriptor.billing.BillingService;
+		const CashiersService = protoDescriptor.billing.cashiers.CashiersService;
 
 		// Create client
-		client = new BillingService(
+		client = new CashiersService(
 			`${GRPC_HOST}:${GRPC_PORT}`,
 			grpc.credentials.createInsecure()
 		) as GrpcClient;
@@ -72,128 +66,10 @@ async function initializeClient(): Promise<GrpcClient> {
 		return client;
 	} catch (error) {
 		console.error('Failed to initialize gRPC client:', error);
-		
-		// Fallback to mock client in development
-		if (dev) {
-			console.warn('Falling back to mock gRPC client');
-			return createMockClient();
-		}
-		
 		throw new GrpcError('Failed to initialize gRPC client', grpc.status.UNAVAILABLE, (error as Error).message);
 	}
 }
 
-/**
- * Create a mock client for development/testing
- */
-function createMockClient(): GrpcClient {
-	const mockCashiers: Cashier[] = [
-		{
-			cashierId: "a52757cd-a42f-4fb9-8566-a98c61a71d2a",
-			name: "Test Cashier",
-			email: "test@example.com",
-			cashierPayments: [
-				{ currency: "USD", isActive: true, createdDateUtc: new Date().toISOString() },
-				{ currency: "EUR", isActive: true, createdDateUtc: new Date().toISOString() }
-			],
-			createdDateUtc: new Date().toISOString(),
-			updatedDateUtc: new Date().toISOString(),
-			version: 1
-		},
-		{
-			cashierId: "b52757cd-a42f-4fb9-8566-a98c61a71d2a",
-			name: "John Doe", 
-			email: "john.doe@example.com",
-			cashierPayments: [
-				{ currency: "USD", isActive: true, createdDateUtc: new Date().toISOString() }
-			],
-			createdDateUtc: new Date().toISOString(),
-			updatedDateUtc: new Date().toISOString(),
-			version: 1
-		}
-	];
-
-	return {
-		getCashiers: (request: {}, callback: GrpcCallback<{ cashiers: Cashier[] }>) => {
-			setTimeout(() => {
-				callback(null, { cashiers: mockCashiers });
-			}, 100);
-		},
-		
-		getCashier: (request: { cashierId: string }, callback: GrpcCallback<Cashier>) => {
-			setTimeout(() => {
-				const cashier = mockCashiers.find(c => c.cashierId === request.cashierId);
-				if (cashier) {
-					callback(null, cashier);
-				} else {
-					const error = new Error('Cashier not found') as grpc.ServiceError;
-					error.code = grpc.status.NOT_FOUND;
-					error.details = 'Cashier not found';
-					error.metadata = new grpc.Metadata();
-					callback(error);
-				}
-			}, 100);
-		},
-		
-		createCashier: (request: CreateCashierRequest, callback: GrpcCallback<Cashier>) => {
-			setTimeout(() => {
-				const newCashier: Cashier = {
-					cashierId: crypto.randomUUID(),
-					name: request.name,
-					email: request.email,
-					cashierPayments: request.currencies?.map(currency => ({
-						currency,
-						isActive: true,
-						createdDateUtc: new Date().toISOString()
-					})) || [],
-					createdDateUtc: new Date().toISOString(),
-					updatedDateUtc: new Date().toISOString(),
-					version: 1
-				};
-				mockCashiers.push(newCashier);
-				callback(null, newCashier);
-			}, 200);
-		},
-		
-		updateCashier: (request: { cashierId: string } & UpdateCashierRequest, callback: GrpcCallback<Cashier>) => {
-			setTimeout(() => {
-				const index = mockCashiers.findIndex(c => c.cashierId === request.cashierId);
-				if (index !== -1) {
-					const updatedCashier: Cashier = {
-						...mockCashiers[index],
-						...request,
-						updatedDateUtc: new Date().toISOString(),
-						version: mockCashiers[index].version + 1
-					};
-					mockCashiers[index] = updatedCashier;
-					callback(null, updatedCashier);
-				} else {
-					const error = new Error('Cashier not found') as grpc.ServiceError;
-					error.code = grpc.status.NOT_FOUND;
-					error.details = 'Cashier not found';
-					error.metadata = new grpc.Metadata();
-					callback(error);
-				}
-			}, 200);
-		},
-		
-		deleteCashier: (request: { cashierId: string }, callback: GrpcCallback<{}>) => {
-			setTimeout(() => {
-				const index = mockCashiers.findIndex(c => c.cashierId === request.cashierId);
-				if (index !== -1) {
-					mockCashiers.splice(index, 1);
-					callback(null, {});
-				} else {
-					const error = new Error('Cashier not found') as grpc.ServiceError;
-					error.code = grpc.status.NOT_FOUND;
-					error.details = 'Cashier not found';
-					error.metadata = new grpc.Metadata();
-					callback(error);
-				}
-			}, 200);
-		}
-	};
-}
 
 /**
  * Promisify gRPC call
@@ -220,23 +96,39 @@ function promisifyCall<T>(client: GrpcClient, methodName: keyof GrpcClient, requ
 export const cashierGrpcService = {
 	async getCashiers(): Promise<Cashier[]> {
 		const client = await initializeClient();
-		const response = await promisifyCall<{ cashiers: Cashier[] }>(client, 'getCashiers', {});
+		const response = await promisifyCall<{ cashiers: Cashier[] }>(client, 'GetCashiers', { limit: 100, offset: 0 });
 		return response.cashiers || [];
 	},
 
 	async getCashier(cashierId: string): Promise<Cashier> {
 		const client = await initializeClient();
-		return await promisifyCall<Cashier>(client, 'getCashier', { cashierId });
+		return await promisifyCall<Cashier>(client, 'GetCashier', { id: cashierId });
 	},
 
 	async createCashier(cashierData: CreateCashierRequest): Promise<Cashier> {
 		const client = await initializeClient();
 		const request = {
 			name: cashierData.name,
-			email: cashierData.email,
-			currencies: cashierData.currencies
+			email: cashierData.email
+			// Note: currencies are not supported by the current gRPC service
+			// currencies: cashierData.currencies
 		};
-		return await promisifyCall<Cashier>(client, 'createCashier', request);
+		const grpcCashier = await promisifyCall<any>(client, 'CreateCashier', request);
+		
+		// Transform the gRPC response to match our frontend expectations
+		return {
+			cashierId: grpcCashier.cashierId,
+			name: grpcCashier.name,
+			email: grpcCashier.email,
+			cashierPayments: cashierData.currencies?.map(currency => ({
+				currency,
+				isActive: true,
+				createdDateUtc: new Date().toISOString()
+			})) || [],
+			createdDateUtc: new Date().toISOString(),
+			updatedDateUtc: new Date().toISOString(),
+			version: 1
+		};
 	},
 
 	async updateCashier(cashierId: string, cashierData: UpdateCashierRequest): Promise<Cashier> {
@@ -245,12 +137,12 @@ export const cashierGrpcService = {
 			cashierId,
 			...cashierData
 		};
-		return await promisifyCall<Cashier>(client, 'updateCashier', request);
+		return await promisifyCall<Cashier>(client, 'UpdateCashier', request);
 	},
 
 	async deleteCashier(cashierId: string): Promise<void> {
 		const client = await initializeClient();
-		await promisifyCall<{}>(client, 'deleteCashier', { cashierId });
+		await promisifyCall<{}>(client, 'DeleteCashier', { cashierId });
 	}
 };
 
