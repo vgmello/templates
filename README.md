@@ -164,6 +164,8 @@ dotnet build Operations.slnx
 ### 2. Database Setup
 Set up databases manually using Liquibase:
 
+> Important: The following commands assume your running PosgresSQL DB running on port 5432, has the username `postgres` and password `password@`, adjust if needed, by providing the CLI params `--password` or `--username`
+
 ```bash
 # Billing Database
 cd Billing/infra/Billing.Database/
@@ -176,8 +178,6 @@ cd ../../../Accounting/infra/Accounting.Database/
 liquibase update --defaults-file liquibase.setup.properties
 liquibase update --defaults-file liquibase.servicebus.properties
 liquibase update
-
-cd ../../../  # Return to root
 ```
 
 For detailed database instructions, see [DATABASE_SETUP.md](DATABASE_SETUP.md).

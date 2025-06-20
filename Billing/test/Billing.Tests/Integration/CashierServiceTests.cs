@@ -3,7 +3,6 @@
 using Billing.Cashier.Grpc;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Grpc.Net.Client;
-using Shouldly;
 
 namespace Billing.Tests.Integration;
 

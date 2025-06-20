@@ -1,0 +1,16 @@
+// Copyright (c) ABCDEG. All rights reserved.
+
+namespace Billing.Tests.Integration;
+
+[Collection(nameof(IntegrationTest))]
+public class IntegrationTest
+{
+}
+
+[CollectionDefinition(nameof(IntegrationTest))]
+public class IntegrationTestCollection : ICollectionFixture<BillingApiWebAppFactory>
+{
+    // This class has no code, and is never created. Its purpose is simply
+    // to be the place to apply [CollectionDefinition] and all the
+    // ICollectionFixture<> interfaces.
+}

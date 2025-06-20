@@ -9,6 +9,7 @@ var dbPassword = builder.AddParameter("DbPassword", secret: true);
 
 var pgsql = builder
     .AddPostgres("billing-db", password: dbPassword)
+    .WithImage("postgres", "17-alpine")
     .WithContainerName("billing-db")
     .WithPgAdmin(pgAdmin => pgAdmin
         .WithImage("dpage/pgadmin4", "latest")
@@ -68,6 +69,7 @@ builder
     {
         url.DisplayText = "Documentation";
         url.Url = "/";
-    });
+    })
+    .WithHttpHealthCheck("toc.json");
 
 await builder.Build().RunAsync();

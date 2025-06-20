@@ -22,14 +22,10 @@
     <ItemGroup>
         <Compile Remove="Unit\CashierHandlersTests.cs"/>
         <Compile Remove="Unit\CreateCashierCommandHandlerTests.cs"/>
-        <Compile Remove="Integration\BillingApiWebAppFactory.cs"/>
-        <Compile Remove="Integration\BillingDatabaseFixture.cs"/>
-        <Compile Remove="Integration\CashierServiceTests.cs"/>
-        <Compile Remove="Integration\CreateCashierProcedureTests.cs"/>
+        <Compile Remove="Integration\CashierServiceTests.cs" />
     </ItemGroup>
 
     <ItemGroup>
-        <Folder Include="Integration\"/>
         <Folder Include="Unit\"/>
     </ItemGroup>
 

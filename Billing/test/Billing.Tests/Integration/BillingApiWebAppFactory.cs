@@ -11,20 +11,17 @@ namespace Billing.Tests.Integration;
 
 public class BillingApiWebAppFactory : WebApplicationFactory<Program>, IAsyncLifetime
 {
-    private readonly INetwork _network = new NetworkBuilder()
-        .WithName($"billing-test-{Guid.NewGuid():N}")
-        .Build();
+    private readonly INetwork _network = new NetworkBuilder().Build();
 
     private readonly PostgreSqlContainer _postgres;
 
     public BillingApiWebAppFactory()
     {
         _postgres = new PostgreSqlBuilder()
-            .WithDatabase("billing")
+            .WithImage("postgres:17-alpine")
             .WithUsername("postgres")
             .WithPassword("postgres")
             .WithNetwork(_network)
-            .WithNetworkAliases("postgres")
             .Build();
     }
 
@@ -32,7 +29,7 @@ public class BillingApiWebAppFactory : WebApplicationFactory<Program>, IAsyncLif
     {
         await _network.CreateAsync();
         await _postgres.StartAsync();
-        await RunLiquibaseMigrations();
+        await RunLiquibaseMigrations(_postgres.Name, _network);
     }
 
     public new async ValueTask DisposeAsync()
@@ -49,7 +46,7 @@ public class BillingApiWebAppFactory : WebApplicationFactory<Program>, IAsyncLif
             cfg.AddInMemoryCollection(new Dictionary<string, string?>
             {
                 ["ConnectionStrings:BillingDb"] = _postgres.GetConnectionString(),
-                ["ServiceBus:ConnectionString"] = string.Empty
+                ["ConnectionString:ServiceBus"] = _postgres.GetConnectionString()
             });
         });
 
@@ -69,21 +66,29 @@ public class BillingApiWebAppFactory : WebApplicationFactory<Program>, IAsyncLif
         });
     }
 
-    private async Task RunLiquibaseMigrations()
+    private static async Task RunLiquibaseMigrations(string dbServer, INetwork containerNetwork)
     {
-        // Run Liquibase migrations using the same approach as Aspire
+        dbServer = dbServer.Trim('/');
+        var baseDirectory = Path.GetFullPath("../../../../../");
+
         var liquibaseContainer = new ContainerBuilder()
             .WithImage("liquibase/liquibase:latest")
-            .WithNetwork(_network)
-            .WithBindMount("/workspaces/templates/Billing/infra/Billing.Database/Liquibase", "/liquibase/changelog")
+            .WithNetwork(containerNetwork)
+            .WithBindMount($"{baseDirectory}infra/Billing.Database/Liquibase", "/liquibase/changelog")
             .WithEnvironment("LIQUIBASE_COMMAND_USERNAME", "postgres")
             .WithEnvironment("LIQUIBASE_COMMAND_PASSWORD", "postgres")
             .WithEnvironment("LIQUIBASE_COMMAND_CHANGELOG_FILE", "changelog.xml")
             .WithEnvironment("LIQUIBASE_SEARCH_PATH", "/liquibase/changelog")
             .WithEntrypoint("/bin/sh")
-            .WithCommand("-c",
-                "liquibase --url=jdbc:postgresql://postgres:5432/billing update --changelog-file=billing/changelog.xml")
-            .WithWaitStrategy(Wait.ForUnixContainer().UntilCommandIsCompleted("echo", "ready"))
+            .WithCommand("-c", $"""
+                                liquibase --url=jdbc:postgresql://{dbServer}:5432/postgres update --contexts @setup && \
+                                liquibase --url=jdbc:postgresql://{dbServer}:5432/service_bus update --changelog-file=service_bus/changelog.xml && \
+                                liquibase --url=jdbc:postgresql://{dbServer}:5432/billing update --changelog-file=billing/changelog.xml && \
+                                echo Migration Complete
+                                """)
+            .WithWaitStrategy(
+                Wait.ForUnixContainer()
+                    .UntilMessageIsLogged("Migration Complete", opt => opt.WithTimeout(TimeSpan.FromMinutes(1))))
             .Build();
 
         await liquibaseContainer.StartAsync();
@@ -96,7 +101,6 @@ public class BillingApiWebAppFactory : WebApplicationFactory<Program>, IAsyncLif
             throw new InvalidOperationException($"Liquibase migration failed with exit code {result}. Logs: {logs}");
         }
     }
-
 
     private static void RemoveHostedServices(IServiceCollection services)
     {
