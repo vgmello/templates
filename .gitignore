@@ -421,3 +421,6 @@ output-*/*
 
 **/.svelte-kit/
 **/web/backend/
+**_temp/
+
+CLAUDE.local.md
