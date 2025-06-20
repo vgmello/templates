@@ -114,9 +114,9 @@
 						<Edit class="h-4 w-4" />
 						Edit
 					</Button>
-					<Button variant="destructive" onclick={handleDeleteCashier} class="gap-2">
+					<Button variant="destructive" onclick={handleDeleteCashier} class="gap-2" disabled={deleting}>
 						<Trash2 class="h-4 w-4" />
-						Delete
+						{deleting ? 'Deleting...' : 'Delete'}
 					</Button>
 				</div>
 			{/if}
@@ -233,6 +233,6 @@
 			</div>
 
 		<!-- Hidden delete form -->
-		<form id="delete-form" method="POST" action="?/delete" style="display: none;"></form>
+		<form bind:this={deleteFormRef} method="POST" action="?/delete" use:enhance={handleDeleteEnhance} style="display: none;"></form>
 	</div>
 </div>

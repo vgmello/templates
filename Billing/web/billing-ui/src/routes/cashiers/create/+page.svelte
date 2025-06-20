@@ -38,19 +38,18 @@
 		}
 	});
 
+	// Accessibility announcement state
+	let announceError = $state('');
+
 	$effect(() => {
 		// Scroll to and announce errors for accessibility
 		if (error && errorDiv) {
 			tick().then(() => {
 				errorDiv?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-				// Announce error to screen readers
-				const announcement = document.createElement('div');
-				announcement.setAttribute('aria-live', 'polite');
-				announcement.setAttribute('aria-atomic', 'true');
-				announcement.className = 'sr-only';
-				announcement.textContent = `Error: ${error}`;
-				document.body.appendChild(announcement);
-				setTimeout(() => document.body.removeChild(announcement), 1000);
+				// Announce error to screen readers using reactive state
+				announceError = `Error: ${error}`;
+				// Clear announcement after screen reader picks it up
+				setTimeout(() => announceError = '', 1000);
 			});
 		}
 	});
@@ -255,5 +254,12 @@
 				</div>
 			</form>
 		</Card>
+
+		<!-- Screen reader announcements -->
+		{#if announceError}
+			<div aria-live="polite" aria-atomic="true" class="sr-only">
+				{announceError}
+			</div>
+		{/if}
 	</div>
 </div>
