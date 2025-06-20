@@ -1,7 +1,7 @@
 <script>
 	import { cn } from "$lib/utils.js";
 
-	let { variant = "default", class: className, ...restProps } = $props();
+	let { variant = "default", class: className = "", children, ...restProps } = $props();
 
 	const variants = {
 		default: "border-transparent bg-primary text-primary-foreground hover:bg-primary/80",
@@ -19,5 +19,5 @@
 	)}
 	{...restProps}
 >
-	<slot />
+	{@render children?.()}
 </div>

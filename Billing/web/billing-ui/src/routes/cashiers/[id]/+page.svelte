@@ -4,31 +4,45 @@
 	import Card from "$lib/components/ui/card.svelte";
 	import Badge from "$lib/components/ui/badge.svelte";
 	import Label from "$lib/components/ui/label.svelte";
-	import { cashierService } from "$lib/api.js";
-	import { ArrowLeft, User, Mail, CreditCard, Calendar, Edit, Trash2 } from "lucide-svelte";
+	import { cashierStore } from '$lib/stores/cashier.svelte.js';
+	import { ArrowLeft, User, Mail, CreditCard, Calendar, Edit, Trash2, AlertCircle, Loader2 } from "lucide-svelte";
 
 	let { data } = $props();
-	let cashier = $state(data.cashier);
-	let error = $state(null);
+	
+	// Get cashier from store reactively
+	let cashier = $derived.by(() => {
+		const selected = cashierStore.selectedCashier;
+		if (selected && selected.cashierId === data.cashierId) {
+			return selected;
+		}
+		return cashierStore.getCashierById(data.cashierId);
+	});
+	
+	let loading = $derived.by(() => cashierStore.loading);
+	let storeError = $derived.by(() => cashierStore.error);
+	let deleteError = $state(null);
 
 	function handleGoBack() {
 		goto('/cashiers');
 	}
 
 	function handleEditCashier() {
-		goto(`/cashiers/${cashier.cashierId}/edit`);
+		if (cashier) {
+			goto(`/cashiers/${cashier.cashierId}/edit`);
+		}
 	}
 
 	async function handleDeleteCashier() {
-		if (!confirm('Are you sure you want to delete this cashier? This action cannot be undone.')) {
+		if (!cashier || !confirm('Are you sure you want to delete this cashier? This action cannot be undone.')) {
 			return;
 		}
 
 		try {
-			await cashierService.deleteCashier(cashier.cashierId);
+			deleteError = null;
+			await cashierStore.deleteCashier(cashier.cashierId);
 			goto('/cashiers');
 		} catch (err) {
-			error = err.message;
+			deleteError = err.message || 'Failed to delete cashier';
 			console.error('Failed to delete cashier:', err);
 		}
 	}
@@ -36,6 +50,11 @@
 	function formatDate(dateString) {
 		if (!dateString) return 'Unknown';
 		return new Date(dateString).toLocaleString();
+	}
+
+	function dismissError() {
+		deleteError = null;
+		cashierStore.clearError();
 	}
 </script>
 
@@ -45,40 +64,53 @@
 
 <div class="container mx-auto px-4 py-8">
 	<div class="max-w-4xl mx-auto space-y-6">
+		<!-- Error Banner -->
+		{#if deleteError || storeError}
+			<Card class="p-4 border-destructive bg-destructive/10">
+				<div class="flex items-center gap-3">
+					<AlertCircle class="h-5 w-5 text-destructive" />
+					<div class="flex-1">
+						<p class="text-sm font-medium text-destructive">
+							{deleteError ? 'Error deleting cashier' : 'Error loading cashier'}
+						</p>
+						<p class="text-sm text-destructive/80">{deleteError || storeError}</p>
+					</div>
+					<Button onclick={dismissError} variant="ghost" size="sm">
+						Dismiss
+					</Button>
+				</div>
+			</Card>
+		{/if}
+
 		<!-- Header -->
 		<div class="flex items-center gap-4">
 			<Button variant="ghost" size="icon" onclick={handleGoBack}>
 				<ArrowLeft class="h-4 w-4" />
 			</Button>
 			<div class="flex-1">
-				<h1 class="text-3xl font-bold tracking-tight">Cashier Details</h1>
+				<h1 class="text-3xl font-bold tracking-tight">
+					Cashier Details
+					{#if loading}
+						<Loader2 class="inline h-6 w-6 animate-spin ml-2" />
+					{/if}
+				</h1>
 				<p class="text-muted-foreground">
 					View and manage cashier information.
 				</p>
 			</div>
 			{#if cashier}
 				<div class="flex gap-2">
-					<Button variant="outline" onclick={handleEditCashier} class="gap-2">
+					<Button variant="outline" onclick={handleEditCashier} class="gap-2" disabled={loading}>
 						<Edit class="h-4 w-4" />
 						Edit
 					</Button>
-					<Button variant="destructive" onclick={handleDeleteCashier} class="gap-2">
+					<Button variant="destructive" onclick={handleDeleteCashier} class="gap-2" disabled={loading}>
 						<Trash2 class="h-4 w-4" />
 						Delete
 					</Button>
 				</div>
 			{/if}
 		</div>
-
-		<!-- Error State -->
-		{#if error}
-			<Card class="p-6">
-				<div class="text-center space-y-2">
-					<p class="text-destructive font-medium">Error deleting cashier</p>
-					<p class="text-sm text-muted-foreground">{error}</p>
-				</div>
-			</Card>
-		{/if}
 
 		<!-- Cashier Details -->
 			<div class="grid gap-6 md:grid-cols-2">

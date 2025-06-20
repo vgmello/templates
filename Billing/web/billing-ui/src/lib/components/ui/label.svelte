@@ -1,7 +1,7 @@
 <script>
 	import { cn } from "$lib/utils.js";
 	
-	let { class: className, ...restProps } = $props();
+	let { class: className = "", children, ...restProps } = $props();
 </script>
 
 <label
@@ -11,5 +11,5 @@
 	)}
 	{...restProps}
 >
-	<slot />
+	{@render children?.()}
 </label>

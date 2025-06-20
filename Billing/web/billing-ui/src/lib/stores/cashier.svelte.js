@@ -12,7 +12,7 @@ import { cashierService } from '$lib/api.js';
  */
 
 /**
- * @typedef {Object} CashierStore
+ * @typedef {Object} CashierStoreType
  * @property {Cashier[]} cashiers - Array of all cashiers
  * @property {Cashier | null} selectedCashier - Currently selected cashier
  * @property {boolean} loading - Loading state
@@ -23,11 +23,17 @@ import { cashierService } from '$lib/api.js';
 
 class CashierStore {
 	// Private state
+	/** @type {Cashier[]} */
 	#cashiers = $state([]);
+	/** @type {Cashier | null} */
 	#selectedCashier = $state(null);
+	/** @type {boolean} */
 	#loading = $state(false);
+	/** @type {string | null} */
 	#error = $state(null);
+	/** @type {string} */
 	#searchTerm = $state('');
+	/** @type {string} */
 	#currencyFilter = $state('all');
 
 	// Public getters
@@ -55,55 +61,49 @@ class CashierStore {
 		return this.#currencyFilter;
 	}
 
-	// Computed properties
+	// Computed properties (regular getters, computed in components)
 	get filteredCashiers() {
-		return $derived.by(() => {
-			let filtered = this.#cashiers;
-			
-			// Filter by search term
-			if (this.#searchTerm.trim()) {
-				const term = this.#searchTerm.toLowerCase();
-				filtered = filtered.filter(cashier => 
-					cashier.name.toLowerCase().includes(term) ||
-					cashier.email.toLowerCase().includes(term)
-				);
-			}
-			
-			// Filter by currency
-			if (this.#currencyFilter !== 'all') {
-				filtered = filtered.filter(cashier => 
-					cashier.cashierPayments?.some(payment => 
-						payment.currency === this.#currencyFilter
-					)
-				);
-			}
-			
-			return filtered;
-		});
+		let filtered = this.#cashiers;
+		
+		// Filter by search term
+		if (this.#searchTerm.trim()) {
+			const term = this.#searchTerm.toLowerCase();
+			filtered = filtered.filter(cashier => 
+				cashier.name.toLowerCase().includes(term) ||
+				cashier.email.toLowerCase().includes(term)
+			);
+		}
+		
+		// Filter by currency
+		if (this.#currencyFilter !== 'all') {
+			filtered = filtered.filter(cashier => 
+				cashier.cashierPayments?.some(payment => 
+					payment.currency === this.#currencyFilter
+				)
+			);
+		}
+		
+		return filtered;
 	}
 
 	get totalCashiers() {
-		return $derived(this.#cashiers.length);
+		return this.#cashiers.length;
 	}
 
 	get configuredCashiers() {
-		return $derived(
-			this.#cashiers.filter(cashier => 
-				cashier.cashierPayments && cashier.cashierPayments.length > 0
-			).length
-		);
+		return this.#cashiers.filter(cashier => 
+			cashier.cashierPayments && cashier.cashierPayments.length > 0
+		).length;
 	}
 
 	get availableCurrencies() {
-		return $derived.by(() => {
-			const currencies = new Set();
-			this.#cashiers.forEach(cashier => {
-				cashier.cashierPayments?.forEach(payment => {
-					currencies.add(payment.currency);
-				});
+		const currencies = new Set();
+		this.#cashiers.forEach(cashier => {
+			cashier.cashierPayments?.forEach(payment => {
+				currencies.add(payment.currency);
 			});
-			return Array.from(currencies).sort();
 		});
+		return Array.from(currencies).sort();
 	}
 
 	// Actions

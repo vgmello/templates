@@ -50,15 +50,36 @@
 
 <div class="container mx-auto px-4 py-8">
 	<div class="space-y-6">
+		<!-- Error Banner -->
+		{#if error}
+			<Card class="p-4 border-destructive bg-destructive/10">
+				<div class="flex items-center gap-3">
+					<AlertCircle class="h-5 w-5 text-destructive" />
+					<div class="flex-1">
+						<p class="text-sm font-medium text-destructive">Error loading cashiers</p>
+						<p class="text-sm text-destructive/80">{error}</p>
+					</div>
+					<Button onclick={dismissError} variant="ghost" size="sm">
+						Dismiss
+					</Button>
+				</div>
+			</Card>
+		{/if}
+
 		<!-- Header -->
 		<div class="flex items-center justify-between">
 			<div class="space-y-1">
-				<h1 class="text-3xl font-bold tracking-tight">Cashiers</h1>
+				<h1 class="text-3xl font-bold tracking-tight">
+					Cashiers
+					{#if loading}
+						<Loader2 class="inline h-6 w-6 animate-spin ml-2" />
+					{/if}
+				</h1>
 				<p class="text-muted-foreground">
 					Manage cashiers and their payment configurations. {totalCashiers} total, {configuredCashiers} configured.
 				</p>
 			</div>
-			<Button onclick={handleCreateCashier} class="gap-2">
+			<Button onclick={handleCreateCashier} class="gap-2" disabled={loading}>
 				<Plus class="h-4 w-4" />
 				Add Cashier
 			</Button>
@@ -73,14 +94,16 @@
 						<Input
 							type="text"
 							placeholder="Search cashiers by name or email..."
-							bind:value={searchTerm}
+							value={searchTerm}
+							oninput={handleSearchChange}
 							class="pl-10"
 						/>
 					</div>
 					<div class="flex items-center gap-2">
 						<Filter class="h-4 w-4 text-muted-foreground" />
 						<select 
-							bind:value={currencyFilter}
+							value={currencyFilter}
+							onchange={handleCurrencyFilterChange}
 							class="h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
 						>
 							<option value="all">All Currencies</option>
@@ -120,7 +143,7 @@
 							No cashiers match your current search and filter criteria.
 						</p>
 					</div>
-					<Button onclick={() => { searchTerm = ''; currencyFilter = 'all'; }} variant="outline">
+					<Button onclick={clearFilters} variant="outline">
 						Clear Filters
 					</Button>
 				</div>

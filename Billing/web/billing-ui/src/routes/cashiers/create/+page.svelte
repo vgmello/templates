@@ -7,7 +7,7 @@
 	import Input from "$lib/components/ui/input.svelte";
 	import Label from "$lib/components/ui/label.svelte";
 	import Badge from "$lib/components/ui/badge.svelte";
-	import { cashierService } from "$lib/api.js";
+	import { cashierStore } from '$lib/stores/cashier.svelte.js';
 	import { ArrowLeft, Plus, X } from "lucide-svelte";
 
 	// State
@@ -116,13 +116,16 @@
 				currencies: currencies
 			};
 
-			// In browser context, use global fetch; on server, this won't run
-			await cashierService.createCashier(cashierData, browser ? fetch : undefined);
+			// Use the store to create the cashier
+			await cashierStore.createCashier(cashierData, browser ? fetch : undefined);
+			
+			// Clear form data on success
+			sessionStorage.removeItem('createCashierForm');
 			
 			// Redirect to cashiers list
 			goto('/cashiers');
 		} catch (err) {
-			error = err.message;
+			error = err.message || 'Failed to create cashier';
 			console.error('Failed to create cashier:', err);
 		} finally {
 			loading = false;
