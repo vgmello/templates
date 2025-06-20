@@ -30,6 +30,13 @@
           "obj/**",
           "bin/**"
         ]
+      },
+      {
+        "src": "../",
+        "files": [
+          "README.md"
+        ],
+        "dest": ""
       }
     ],
     "resource": [
@@ -62,7 +69,8 @@
     },
     "fileMetadata": {
       "_enableSearch": {
-        "content/**/*.md": true
+        "content/**/*.md": true,
+        "../README.md": true
       }
     }
   }
