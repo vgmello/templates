@@ -1,17 +1,21 @@
+import type { Cashier, CreateCashierRequest, UpdateCashierRequest, ApiRequestOptions } from '../app';
+
 // Use the proxy configured in vite.config.js
 const API_BASE_URL = '/api';
 
-class ApiError extends Error {
-	constructor(message, status) {
+export class ApiError extends Error {
+	status: number;
+	
+	constructor(message: string, status: number) {
 		super(message);
 		this.status = status;
 	}
 }
 
-async function apiRequest(endpoint, options = {}) {
+async function apiRequest<T = any>(endpoint: string, options: ApiRequestOptions = {}): Promise<T> {
 	const url = `${API_BASE_URL}${endpoint}`;
 	
-	const config = {
+	const config: RequestInit = {
 		headers: {
 			'Content-Type': 'application/json',
 			...options.headers
@@ -33,22 +37,22 @@ async function apiRequest(endpoint, options = {}) {
 			return await response.json();
 		}
 		
-		return await response.text();
+		return await response.text() as T;
 	} catch (error) {
 		if (error instanceof ApiError) {
 			throw error;
 		}
-		throw new ApiError(`Network error: ${error.message}`, 0);
+		throw new ApiError(`Network error: ${(error as Error).message}`, 0);
 	}
 }
 
 export const cashierService = {
-	async getCashiers(fetchFn) {
+	async getCashiers(fetchFn?: typeof fetch): Promise<Cashier[]> {
 		try {
-			return await apiRequest('/cashiers', { fetch: fetchFn });
+			return await apiRequest<Cashier[]>('/cashiers', { fetch: fetchFn });
 		} catch (error) {
 			// If API fails, return mock data for testing
-			console.warn('API failed, using mock data:', error.message);
+			console.warn('API failed, using mock data:', (error as Error).message);
 			return [
 				{
 					cashierId: "a52757cd-a42f-4fb9-8566-a98c61a71d2a",
@@ -77,12 +81,12 @@ export const cashierService = {
 		}
 	},
 
-	async getCashier(id, fetchFn) {
+	async getCashier(id: string, fetchFn?: typeof fetch): Promise<Cashier> {
 		try {
-			return await apiRequest(`/cashiers/${id}`, { fetch: fetchFn });
+			return await apiRequest<Cashier>(`/cashiers/${id}`, { fetch: fetchFn });
 		} catch (error) {
 			// If API fails, return mock data for testing
-			console.warn('API failed, using mock data:', error.message);
+			console.warn('API failed, using mock data:', (error as Error).message);
 			return {
 				cashierId: id,
 				name: "Mock Cashier",
@@ -98,24 +102,24 @@ export const cashierService = {
 		}
 	},
 
-	async createCashier(cashierData, fetchFn) {
-		return apiRequest('/cashiers', {
+	async createCashier(cashierData: CreateCashierRequest, fetchFn?: typeof fetch): Promise<Cashier> {
+		return apiRequest<Cashier>('/cashiers', {
 			method: 'POST',
 			body: JSON.stringify(cashierData),
 			fetch: fetchFn
 		});
 	},
 
-	async updateCashier(id, cashierData, fetchFn) {
-		return apiRequest(`/cashiers/${id}`, {
+	async updateCashier(id: string, cashierData: UpdateCashierRequest, fetchFn?: typeof fetch): Promise<Cashier> {
+		return apiRequest<Cashier>(`/cashiers/${id}`, {
 			method: 'PUT',
 			body: JSON.stringify(cashierData),
 			fetch: fetchFn
 		});
 	},
 
-	async deleteCashier(id, fetchFn) {
-		return apiRequest(`/cashiers/${id}`, {
+	async deleteCashier(id: string, fetchFn?: typeof fetch): Promise<void> {
+		return apiRequest<void>(`/cashiers/${id}`, {
 			method: 'DELETE',
 			fetch: fetchFn
 		});

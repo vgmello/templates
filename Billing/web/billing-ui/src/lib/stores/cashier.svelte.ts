@@ -1,68 +1,42 @@
-import { cashierService } from '$lib/api.js';
-
-/**
- * @typedef {Object} Cashier
- * @property {string} cashierId
- * @property {string} name
- * @property {string} email
- * @property {string} [createdDateUtc]
- * @property {string} [updatedDateUtc]
- * @property {number} [version]
- * @property {Array<{currency: string, isActive?: boolean, createdDateUtc?: string}>} [cashierPayments]
- */
-
-/**
- * @typedef {Object} CashierStoreType
- * @property {Cashier[]} cashiers - Array of all cashiers
- * @property {Cashier | null} selectedCashier - Currently selected cashier
- * @property {boolean} loading - Loading state
- * @property {string | null} error - Error message
- * @property {string} searchTerm - Search filter
- * @property {string} currencyFilter - Currency filter
- */
+import { cashierService } from '$lib/api';
+import type { Cashier, CreateCashierRequest, UpdateCashierRequest } from '../../app';
 
 class CashierStore {
 	// Private state
-	/** @type {Cashier[]} */
-	#cashiers = $state([]);
-	/** @type {Cashier | null} */
-	#selectedCashier = $state(null);
-	/** @type {boolean} */
-	#loading = $state(false);
-	/** @type {string | null} */
-	#error = $state(null);
-	/** @type {string} */
-	#searchTerm = $state('');
-	/** @type {string} */
-	#currencyFilter = $state('all');
+	#cashiers = $state<Cashier[]>([]);
+	#selectedCashier = $state<Cashier | null>(null);
+	#loading = $state<boolean>(false);
+	#error = $state<string | null>(null);
+	#searchTerm = $state<string>('');
+	#currencyFilter = $state<string>('all');
 
 	// Public getters
-	get cashiers() {
+	get cashiers(): Cashier[] {
 		return this.#cashiers;
 	}
 
-	get selectedCashier() {
+	get selectedCashier(): Cashier | null {
 		return this.#selectedCashier;
 	}
 
-	get loading() {
+	get loading(): boolean {
 		return this.#loading;
 	}
 
-	get error() {
+	get error(): string | null {
 		return this.#error;
 	}
 
-	get searchTerm() {
+	get searchTerm(): string {
 		return this.#searchTerm;
 	}
 
-	get currencyFilter() {
+	get currencyFilter(): string {
 		return this.#currencyFilter;
 	}
 
 	// Computed properties (regular getters, computed in components)
-	get filteredCashiers() {
+	get filteredCashiers(): Cashier[] {
 		let filtered = this.#cashiers;
 		
 		// Filter by search term
@@ -86,18 +60,18 @@ class CashierStore {
 		return filtered;
 	}
 
-	get totalCashiers() {
+	get totalCashiers(): number {
 		return this.#cashiers.length;
 	}
 
-	get configuredCashiers() {
+	get configuredCashiers(): number {
 		return this.#cashiers.filter(cashier => 
 			cashier.cashierPayments && cashier.cashierPayments.length > 0
 		).length;
 	}
 
-	get availableCurrencies() {
-		const currencies = new Set();
+	get availableCurrencies(): string[] {
+		const currencies = new Set<string>();
 		this.#cashiers.forEach(cashier => {
 			cashier.cashierPayments?.forEach(payment => {
 				currencies.add(payment.currency);
@@ -107,13 +81,13 @@ class CashierStore {
 	}
 
 	// Actions for initializing from SSR data
-	initializeCashiers(cashiers) {
+	initializeCashiers(cashiers: Cashier[]): void {
 		this.#cashiers = cashiers || [];
 		this.#loading = false;
 		this.#error = null;
 	}
 
-	initializeSelectedCashier(cashier) {
+	initializeSelectedCashier(cashier: Cashier | null): void {
 		this.#selectedCashier = cashier;
 		
 		// Add to cashiers list if not already there
@@ -122,7 +96,7 @@ class CashierStore {
 		}
 	}
 
-	async createCashier(cashierData, fetchFn = fetch) {
+	async createCashier(cashierData: CreateCashierRequest, fetchFn: typeof fetch = fetch): Promise<Cashier> {
 		this.#loading = true;
 		this.#error = null;
 		
@@ -131,7 +105,7 @@ class CashierStore {
 			this.#cashiers = [...this.#cashiers, newCashier];
 			return newCashier;
 		} catch (error) {
-			this.#error = error.message || 'Failed to create cashier';
+			this.#error = (error as Error).message || 'Failed to create cashier';
 			console.error('Failed to create cashier:', error);
 			throw error;
 		} finally {
@@ -139,7 +113,7 @@ class CashierStore {
 		}
 	}
 
-	async updateCashier(id, cashierData, fetchFn = fetch) {
+	async updateCashier(id: string, cashierData: UpdateCashierRequest, fetchFn: typeof fetch = fetch): Promise<Cashier> {
 		this.#loading = true;
 		this.#error = null;
 		
@@ -159,7 +133,7 @@ class CashierStore {
 			
 			return updatedCashier;
 		} catch (error) {
-			this.#error = error.message || 'Failed to update cashier';
+			this.#error = (error as Error).message || 'Failed to update cashier';
 			console.error('Failed to update cashier:', error);
 			throw error;
 		} finally {
@@ -167,7 +141,7 @@ class CashierStore {
 		}
 	}
 
-	async deleteCashier(id, fetchFn = fetch) {
+	async deleteCashier(id: string, fetchFn: typeof fetch = fetch): Promise<void> {
 		this.#loading = true;
 		this.#error = null;
 		
@@ -182,7 +156,7 @@ class CashierStore {
 				this.#selectedCashier = null;
 			}
 		} catch (error) {
-			this.#error = error.message || 'Failed to delete cashier';
+			this.#error = (error as Error).message || 'Failed to delete cashier';
 			console.error('Failed to delete cashier:', error);
 			throw error;
 		} finally {
@@ -191,30 +165,30 @@ class CashierStore {
 	}
 
 	// Filter actions
-	setSearchTerm(term) {
+	setSearchTerm(term: string): void {
 		this.#searchTerm = term;
 	}
 
-	setCurrencyFilter(currency) {
+	setCurrencyFilter(currency: string): void {
 		this.#currencyFilter = currency;
 	}
 
-	clearFilters() {
+	clearFilters(): void {
 		this.#searchTerm = '';
 		this.#currencyFilter = 'all';
 	}
 
 	// Utility actions
-	clearError() {
+	clearError(): void {
 		this.#error = null;
 	}
 
-	clearSelectedCashier() {
+	clearSelectedCashier(): void {
 		this.#selectedCashier = null;
 	}
 
 	// Get cashier by ID from current list
-	getCashierById(id) {
+	getCashierById(id: string): Cashier | null {
 		return this.#cashiers.find(c => c.cashierId === id) || null;
 	}
 }

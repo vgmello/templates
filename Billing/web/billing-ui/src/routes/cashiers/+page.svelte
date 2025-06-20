@@ -6,7 +6,7 @@
 	import Badge from "$lib/components/ui/badge.svelte";
 	import Input from "$lib/components/ui/input.svelte";
 	import { Plus, User, Mail, CreditCard, Search, Filter, AlertCircle } from "lucide-svelte";
-	import { cashierStore } from '$lib/stores/cashier.svelte.js';
+	import { cashierStore } from '$lib/stores/cashier.svelte';
 
 	// Get SSR data
 	let { data } = $props();

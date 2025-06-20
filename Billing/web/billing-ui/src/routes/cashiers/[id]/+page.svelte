@@ -6,7 +6,7 @@
 	import Card from "$lib/components/ui/card.svelte";
 	import Badge from "$lib/components/ui/badge.svelte";
 	import Label from "$lib/components/ui/label.svelte";
-	import { cashierStore } from '$lib/stores/cashier.svelte.js';
+	import { cashierStore } from '$lib/stores/cashier.svelte';
 	import { ArrowLeft, User, Mail, CreditCard, Calendar, Edit, Trash2, AlertCircle } from "lucide-svelte";
 
 	let { data } = $props();

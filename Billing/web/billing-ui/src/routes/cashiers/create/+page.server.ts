@@ -1,8 +1,8 @@
-import { cashierGrpcService } from '$lib/server/grpc-client.js';
+import { cashierGrpcService } from '$lib/server/grpc-client';
 import { fail, redirect } from '@sveltejs/kit';
+import type { Actions } from './$types';
 
-/** @type {import('./$types').Actions} */
-export const actions = {
+export const actions: Actions = {
 	default: async ({ request }) => {
 		const data = await request.formData();
 		const name = data.get('name');
@@ -34,7 +34,7 @@ export const actions = {
 		} catch (err) {
 			console.error('Failed to create cashier:', err);
 			
-			if (err.code === 'ALREADY_EXISTS') {
+			if ((err as any).code === 'ALREADY_EXISTS') {
 				return fail(409, {
 					name,
 					email,
@@ -49,7 +49,7 @@ export const actions = {
 				email,
 				currencies,
 				error: true,
-				message: err.message || 'Failed to create cashier. Please try again.'
+				message: (err as Error).message || 'Failed to create cashier. Please try again.'
 			});
 		}
 	}
