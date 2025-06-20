@@ -15,6 +15,7 @@ export interface CashierPayment {
 	currency: string;
 	isActive: boolean;
 	createdDateUtc: string;
+	description?: string;
 }
 
 export interface Cashier {

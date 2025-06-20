@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
 	import { goto } from '$app/navigation';
 	import { onMount } from 'svelte';
 	import { enhance } from '$app/forms';
@@ -8,6 +8,7 @@
 	import Label from "$lib/components/ui/label.svelte";
 	import { cashierStore } from '$lib/stores/cashier.svelte';
 	import { ArrowLeft, User, Mail, CreditCard, Calendar, Edit, Trash2, AlertCircle } from "lucide-svelte";
+	import type { ActionResult } from '@sveltejs/kit';
 
 	let { data } = $props();
 	
@@ -21,7 +22,7 @@
 	let storeError = $derived.by(() => cashierStore.error);
 	
 	// Form references and state
-	let deleteFormRef = $state();
+	let deleteFormRef: HTMLFormElement | undefined = $state();
 	let deleteError = $state(null);
 	let deleting = $state(false);
 
@@ -51,7 +52,7 @@
 		deleting = true;
 		deleteError = null;
 		
-		return async ({ result, update }) => {
+		return async ({ result, update }: { result: ActionResult; update: () => Promise<void> }) => {
 			deleting = false;
 			
 			if (result.type === 'error') {
@@ -62,7 +63,7 @@
 		};
 	}
 
-	function formatDate(dateString) {
+	function formatDate(dateString: string | undefined): string {
 		if (!dateString) return 'Unknown';
 		return new Date(dateString).toLocaleString();
 	}

@@ -1,12 +1,12 @@
 /**
  * Test helper functions for Playwright tests
  */
+import type { Page } from '@playwright/test';
 
 /**
  * Wait for cashier data to load on the page
- * @param {import('@playwright/test').Page} page 
  */
-export async function waitForCashiersToLoad(page) {
+export async function waitForCashiersToLoad(page: Page): Promise<void> {
 	await page.waitForLoadState('networkidle');
 	// Wait for either the cashier cards or empty state to appear
 	await Promise.race([
@@ -15,12 +15,16 @@ export async function waitForCashiersToLoad(page) {
 	]);
 }
 
+interface CashierFormData {
+	name?: string;
+	email?: string;
+	currencies?: string[];
+}
+
 /**
  * Fill out the create cashier form with test data
- * @param {import('@playwright/test').Page} page 
- * @param {Object} data 
  */
-export async function fillCashierForm(page, data = {}) {
+export async function fillCashierForm(page: Page, data: CashierFormData = {}): Promise<void> {
 	const {
 		name = 'Test Cashier',
 		email = 'test@example.com',
@@ -42,9 +46,8 @@ export async function fillCashierForm(page, data = {}) {
 
 /**
  * Navigate through the complete cashier workflow
- * @param {import('@playwright/test').Page} page 
  */
-export async function completeCashierWorkflow(page) {
+export async function completeCashierWorkflow(page: Page): Promise<Page> {
 	// Start at home
 	await page.goto('/');
 	
@@ -61,12 +64,12 @@ export async function completeCashierWorkflow(page) {
 	return page;
 }
 
+type ViewportType = 'mobile' | 'tablet' | 'desktop';
+
 /**
  * Check if the page has the expected responsive layout
- * @param {import('@playwright/test').Page} page 
- * @param {'mobile' | 'tablet' | 'desktop'} viewport 
  */
-export async function checkResponsiveLayout(page, viewport = 'desktop') {
+export async function checkResponsiveLayout(page: Page, viewport: ViewportType = 'desktop'): Promise<Page> {
 	const viewportSizes = {
 		mobile: { width: 375, height: 667 },
 		tablet: { width: 768, height: 1024 },
@@ -82,12 +85,26 @@ export async function checkResponsiveLayout(page, viewport = 'desktop') {
 	return page;
 }
 
+interface MockData {
+	cashiers?: Array<{
+		cashierId: string;
+		name: string;
+		email: string;
+		cashierPayments: Array<{
+			currency: string;
+			isActive: boolean;
+			createdDateUtc: string;
+		}>;
+		createdDateUtc: string;
+		updatedDateUtc: string;
+		version: number;
+	}>;
+}
+
 /**
  * Mock API responses for testing
- * @param {import('@playwright/test').Page} page 
- * @param {Object} mockData 
  */
-export async function mockApiResponses(page, mockData = {}) {
+export async function mockApiResponses(page: Page, mockData: MockData = {}): Promise<void> {
 	const defaultMockData = {
 		cashiers: [
 			{
@@ -136,9 +153,8 @@ export async function mockApiResponses(page, mockData = {}) {
 
 /**
  * Assert that error handling works correctly
- * @param {import('@playwright/test').Page} page 
  */
-export async function testErrorHandling(page) {
+export async function testErrorHandling(page: Page): Promise<Page> {
 	// Mock API to return error
 	await page.route('**/api/cashiers', async (route) => {
 		await route.fulfill({
@@ -158,23 +174,25 @@ export async function testErrorHandling(page) {
 
 /**
  * Simulate slow network conditions
- * @param {import('@playwright/test').Page} page 
- * @param {number} delay - Delay in milliseconds
  */
-export async function simulateSlowNetwork(page, delay = 2000) {
+export async function simulateSlowNetwork(page: Page, delay: number = 2000): Promise<void> {
 	await page.route('**/api/**', async (route) => {
 		await new Promise(resolve => setTimeout(resolve, delay));
 		await route.continue();
 	});
 }
 
+interface TabSequenceItem {
+	tagName: string;
+	role: string | null;
+}
+
 /**
  * Test keyboard navigation accessibility
- * @param {import('@playwright/test').Page} page 
  */
-export async function testKeyboardNavigation(page) {
+export async function testKeyboardNavigation(page: Page): Promise<TabSequenceItem[]> {
 	// Tab through interactive elements
-	const tabSequence = [];
+	const tabSequence: TabSequenceItem[] = [];
 	
 	for (let i = 0; i < 10; i++) {
 		await page.keyboard.press('Tab');

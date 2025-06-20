@@ -35,7 +35,7 @@
 			<Card 
 				class="p-6 hover:shadow-lg transition-shadow cursor-pointer focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2" 
 				role="gridcell"
-				tabindex="0"
+				tabindex={0}
 				onkeydown={(e) => handleKeydown(e, navigateToCashiers)}
 				onclick={navigateToCashiers}
 				aria-label="Navigate to Cashiers management"

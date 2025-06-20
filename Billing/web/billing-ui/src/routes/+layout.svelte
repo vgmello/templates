@@ -9,7 +9,7 @@
 		stack?: string;
 	}
 
-	function handleError(error: ErrorInfo, reset: () => void) {
+	function handleError(error: unknown, reset: () => void) {
 		console.error('Application error:', error);
 		
 		// You could send error to monitoring service here
@@ -54,7 +54,7 @@
 							<div class="space-y-2">
 								<h2 class="text-lg font-semibold">Something went wrong</h2>
 								<p class="text-sm text-muted-foreground">
-									{error.message || 'An unexpected error occurred'}
+									{(error as ErrorInfo)?.message || 'An unexpected error occurred'}
 								</p>
 							</div>
 							<div class="flex gap-2 justify-center">

@@ -1,9 +1,18 @@
-<script>
+<script lang="ts">
 	import { cn } from "$lib/utils";
 
-	let { variant = "default", class: className = "", children, ...restProps } = $props();
+	type BadgeVariant = 'default' | 'secondary' | 'destructive' | 'outline';
 
-	const variants = {
+	interface BadgeProps {
+		variant?: BadgeVariant;
+		class?: string;
+		children?: import('svelte').Snippet;
+		[key: string]: any;
+	}
+
+	let { variant = "default", class: className = "", children, ...restProps }: BadgeProps = $props();
+
+	const variants: Record<BadgeVariant, string> = {
 		default: "border-transparent bg-primary text-primary-foreground hover:bg-primary/80",
 		secondary: "border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80",
 		destructive: "border-transparent bg-destructive text-destructive-foreground hover:bg-destructive/80",

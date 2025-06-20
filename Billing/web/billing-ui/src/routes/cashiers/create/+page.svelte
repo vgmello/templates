@@ -9,14 +9,15 @@
 	import Label from "$lib/components/ui/label.svelte";
 	import Badge from "$lib/components/ui/badge.svelte";
 	import { ArrowLeft, Plus, X } from "lucide-svelte";
+	import type { ActionResult } from '@sveltejs/kit';
 
 	// Get form data and props
 	let { data, form } = $props();
 	
 	// State
-	let name = $state(form?.name || '');
-	let email = $state(form?.email || '');
-	let currencies = $state(form?.currencies || ['USD']);
+	let name = $state((form?.name as string) || '');
+	let email = $state((form?.email as string) || '');
+	let currencies = $state((form?.currencies as string[]) || ['USD']);
 	let newCurrency = $state('');
 	let loading = $state(false);
 	
@@ -24,7 +25,7 @@
 	let error = $derived(form?.message || null);
 
 	// Element references for focus management
-	let nameInput: HTMLInputElement | undefined = $state();
+	let nameInput: any = $state();
 	let errorDiv: HTMLDivElement | undefined = $state();
 	let formRef: HTMLFormElement | undefined = $state();
 
@@ -34,7 +35,11 @@
 	$effect(() => {
 		// Auto-focus name input when component mounts
 		if (nameInput && !loading) {
-			tick().then(() => nameInput?.focus());
+			tick().then(() => {
+				// Access the underlying HTML input element from the Svelte component
+				const inputElement = nameInput?.getElement?.() || nameInput;
+				inputElement?.focus?.();
+			});
 		}
 	});
 
@@ -92,11 +97,11 @@
 		}
 	}
 
-	function removeCurrency(currencyToRemove) {
+	function removeCurrency(currencyToRemove: string) {
 		currencies = currencies.filter(c => c !== currencyToRemove);
 	}
 
-	function addPredefinedCurrency(currency) {
+	function addPredefinedCurrency(currency: string) {
 		if (!currencies.includes(currency)) {
 			currencies = [...currencies, currency];
 		}
@@ -106,7 +111,7 @@
 	function handleEnhance() {
 		loading = true;
 		
-		return async ({ result, update }) => {
+		return async ({ result, update }: { result: ActionResult; update: () => Promise<void> }) => {
 			loading = false;
 			await update();
 			
