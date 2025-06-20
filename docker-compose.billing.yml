@@ -1,10 +1,8 @@
 services:
-  # PostgreSQL Database
   billing-db:
     image: postgres:17-alpine
     container_name: billing-db
     environment:
-      POSTGRES_DB: postgres
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
     ports:
@@ -12,41 +10,40 @@ services:
     volumes:
       - billing_postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
       interval: 10s
       timeout: 5s
       retries: 5
 
-  # Database migrations
   billing-db-migrations:
-    image: liquibase/liquibase:4.24-alpine
+    image: liquibase/liquibase:4.32-alpine
     container_name: billing-db-migrations
     volumes:
-      - ./Billing/infra/Billing.Database:/liquibase/changelog
+      - ./Billing/infra/Billing.Database:/app
     depends_on:
       billing-db:
         condition: service_healthy
     environment:
       - LIQUIBASE_COMMAND_USERNAME=postgres
       - LIQUIBASE_COMMAND_PASSWORD=postgres
+    working_dir: /app
     entrypoint: /bin/sh
     command:
       - -c
       - |
         echo 'Running database migrations...'
-        
+
         # Step 1: Setup databases
         liquibase update --defaults-file liquibase.setup.properties --url=jdbc:postgresql://billing-db:5432/postgres
-        
+
         # Step 2: Service bus schema
         liquibase update --defaults-file liquibase.service_bus.properties --url=jdbc:postgresql://billing-db:5432/service_bus
-        
+
         # Step 3: Domain schema
         liquibase update --url=jdbc:postgresql://billing-db:5432/billing
-        
+
         echo 'Database migrations completed successfully!'
 
-  # Billing API
   billing-api:
     build:
       context: .
@@ -70,7 +67,7 @@ services:
       - Kestrel__Endpoints__Grpc__Protocols=Http2
       - Kestrel__Endpoints__Grpc__Url=http://+:406"
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:5061/health/internal || exit 1"]
+      test: [ "CMD-SHELL", "curl -f http://localhost:5061/health/internal || exit 1" ]
       interval: 30s
       timeout: 10s
       retries: 3
