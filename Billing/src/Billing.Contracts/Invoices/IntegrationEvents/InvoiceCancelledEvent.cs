@@ -2,6 +2,6 @@
 
 namespace Billing.Contracts.Invoices.IntegrationEvents;
 
-public record InvoicePaidEvent(Guid InvoiceId, decimal AmountPaid, DateTime PaymentDate)
+public record InvoiceCancelledEvent(Guid InvoiceId)
 {
 }

@@ -10,5 +10,10 @@
     <include file="billing/tables/cashier_currencies.sql"/>
     <include file="billing/tables/invoices.sql"/>
     <include file="billing/procedures/create_cashier.sql"/>
+    <include file="billing/procedures/update_cashier.sql"/>
+    <include file="billing/procedures/delete_cashier.sql"/>
+    <include file="billing/procedures/create_invoice.sql"/>
+    <include file="billing/procedures/cancel_invoice.sql"/>
+    <include file="billing/procedures/mark_invoice_as_paid.sql"/>
 
 </databaseChangeLog>

@@ -1,7 +1,9 @@
 // Copyright (c) ABCDEG. All rights reserved.
 
+using Billing.Contracts.Invoices.Models;
+
 namespace Billing.Contracts.Invoices.IntegrationEvents;
 
-public record InvoicePaidEvent(Guid InvoiceId, decimal AmountPaid, DateTime PaymentDate)
+public record InvoiceCreatedEvent(Invoice Invoice)
 {
 }
