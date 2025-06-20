@@ -1,26 +1,29 @@
 <script>
 	import { goto } from '$app/navigation';
+	import { onMount } from 'svelte';
+	import { enhance } from '$app/forms';
 	import Button from "$lib/components/ui/button.svelte";
 	import Card from "$lib/components/ui/card.svelte";
 	import Badge from "$lib/components/ui/badge.svelte";
 	import Label from "$lib/components/ui/label.svelte";
 	import { cashierStore } from '$lib/stores/cashier.svelte.js';
-	import { ArrowLeft, User, Mail, CreditCard, Calendar, Edit, Trash2, AlertCircle, Loader2 } from "lucide-svelte";
+	import { ArrowLeft, User, Mail, CreditCard, Calendar, Edit, Trash2, AlertCircle } from "lucide-svelte";
 
 	let { data } = $props();
 	
-	// Get cashier from store reactively
-	let cashier = $derived.by(() => {
-		const selected = cashierStore.selectedCashier;
-		if (selected && selected.cashierId === data.cashierId) {
-			return selected;
-		}
-		return cashierStore.getCashierById(data.cashierId);
+	// Initialize store with SSR data
+	onMount(() => {
+		cashierStore.initializeSelectedCashier(data.cashier);
 	});
 	
-	let loading = $derived.by(() => cashierStore.loading);
+	// Get cashier from data directly (since it's server-side loaded)
+	let cashier = data.cashier;
 	let storeError = $derived.by(() => cashierStore.error);
+	
+	// Form references and state
+	let deleteFormRef = $state();
 	let deleteError = $state(null);
+	let deleting = $state(false);
 
 	function handleGoBack() {
 		goto('/cashiers');
@@ -32,19 +35,31 @@
 		}
 	}
 
-	async function handleDeleteCashier() {
+
+	function handleDeleteCashier() {
 		if (!cashier || !confirm('Are you sure you want to delete this cashier? This action cannot be undone.')) {
 			return;
 		}
-
-		try {
-			deleteError = null;
-			await cashierStore.deleteCashier(cashier.cashierId);
-			goto('/cashiers');
-		} catch (err) {
-			deleteError = err.message || 'Failed to delete cashier';
-			console.error('Failed to delete cashier:', err);
+		
+		// Submit the delete form using bind:this reference
+		if (deleteFormRef) {
+			deleteFormRef.requestSubmit();
 		}
+	}
+
+	function handleDeleteEnhance() {
+		deleting = true;
+		deleteError = null;
+		
+		return async ({ result, update }) => {
+			deleting = false;
+			
+			if (result.type === 'error') {
+				deleteError = result.error?.message || 'Failed to delete cashier';
+			}
+			
+			await update();
+		};
 	}
 
 	function formatDate(dateString) {
@@ -88,23 +103,18 @@
 				<ArrowLeft class="h-4 w-4" />
 			</Button>
 			<div class="flex-1">
-				<h1 class="text-3xl font-bold tracking-tight">
-					Cashier Details
-					{#if loading}
-						<Loader2 class="inline h-6 w-6 animate-spin ml-2" />
-					{/if}
-				</h1>
+				<h1 class="text-3xl font-bold tracking-tight">Cashier Details</h1>
 				<p class="text-muted-foreground">
 					View and manage cashier information.
 				</p>
 			</div>
 			{#if cashier}
 				<div class="flex gap-2">
-					<Button variant="outline" onclick={handleEditCashier} class="gap-2" disabled={loading}>
+					<Button variant="outline" onclick={handleEditCashier} class="gap-2">
 						<Edit class="h-4 w-4" />
 						Edit
 					</Button>
-					<Button variant="destructive" onclick={handleDeleteCashier} class="gap-2" disabled={loading}>
+					<Button variant="destructive" onclick={handleDeleteCashier} class="gap-2">
 						<Trash2 class="h-4 w-4" />
 						Delete
 					</Button>
@@ -221,5 +231,8 @@
 					</div>
 				</Card>
 			</div>
+
+		<!-- Hidden delete form -->
+		<form id="delete-form" method="POST" action="?/delete" style="display: none;"></form>
 	</div>
 </div>

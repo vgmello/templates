@@ -1,22 +1,27 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { tick } from 'svelte';
-	import { browser } from '$app/environment';
+	import { page } from '$app/stores';
+	import { enhance } from '$app/forms';
 	import Button from "$lib/components/ui/button.svelte";
 	import Card from "$lib/components/ui/card.svelte";
 	import Input from "$lib/components/ui/input.svelte";
 	import Label from "$lib/components/ui/label.svelte";
 	import Badge from "$lib/components/ui/badge.svelte";
-	import { cashierStore } from '$lib/stores/cashier.svelte.js';
 	import { ArrowLeft, Plus, X } from "lucide-svelte";
 
+	// Get form data and props
+	let { data, form } = $props();
+	
 	// State
-	let name = $state('');
-	let email = $state('');
-	let currencies = $state(['USD']);
+	let name = $state(form?.name || '');
+	let email = $state(form?.email || '');
+	let currencies = $state(form?.currencies || ['USD']);
 	let newCurrency = $state('');
 	let loading = $state(false);
-	let error = $state(null);
+	
+	// Form error from server action
+	let error = $derived(form?.message || null);
 
 	// Element references for focus management
 	let nameInput: HTMLInputElement | undefined = $state();
@@ -98,38 +103,19 @@
 		}
 	}
 
-	async function handleSubmit(event) {
-		event.preventDefault();
+	// Form enhancement
+	function handleEnhance() {
+		loading = true;
 		
-		if (!name.trim() || !email.trim() || currencies.length === 0) {
-			error = 'Please fill in all required fields and add at least one currency.';
-			return;
-		}
-
-		try {
-			loading = true;
-			error = null;
-
-			const cashierData = {
-				name: name.trim(),
-				email: email.trim(),
-				currencies: currencies
-			};
-
-			// Use the store to create the cashier
-			await cashierStore.createCashier(cashierData, browser ? fetch : undefined);
-			
-			// Clear form data on success
-			sessionStorage.removeItem('createCashierForm');
-			
-			// Redirect to cashiers list
-			goto('/cashiers');
-		} catch (err) {
-			error = err.message || 'Failed to create cashier';
-			console.error('Failed to create cashier:', err);
-		} finally {
+		return async ({ result, update }) => {
 			loading = false;
-		}
+			await update();
+			
+			// Clear saved form data on success
+			if (result.type === 'redirect') {
+				sessionStorage.removeItem('createCashierForm');
+			}
+		};
 	}
 
 	function handleGoBack() {
@@ -158,7 +144,7 @@
 
 		<!-- Form -->
 		<Card class="p-6">
-			<form bind:this={formRef} onsubmit={handleSubmit} class="space-y-6">
+			<form bind:this={formRef} method="POST" use:enhance={handleEnhance} class="space-y-6">
 				<!-- Basic Information -->
 				<div class="space-y-4">
 					<h3 class="text-lg font-semibold">Basic Information</h3>
@@ -167,6 +153,7 @@
 						<Label for="name">Name *</Label>
 						<Input
 							id="name"
+							name="name"
 							bind:this={nameInput}
 							bind:value={name}
 							placeholder="Enter cashier name"
@@ -179,6 +166,7 @@
 						<Label for="email">Email *</Label>
 						<Input
 							id="email"
+							name="email"
 							type="email"
 							bind:value={email}
 							placeholder="Enter email address"
@@ -197,6 +185,7 @@
 							{#each currencies as currency}
 								<Badge variant="default" class="gap-1">
 									{currency}
+									<input type="hidden" name="currencies" value={currency} />
 									<button
 										type="button"
 										onclick={() => removeCurrency(currency)}

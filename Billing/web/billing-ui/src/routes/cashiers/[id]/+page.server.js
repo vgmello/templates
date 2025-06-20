@@ -1,5 +1,5 @@
 import { cashierGrpcService } from '$lib/server/grpc-client.js';
-import { error } from '@sveltejs/kit';
+import { error, redirect } from '@sveltejs/kit';
 
 /** @type {import('./$types').PageServerLoad} */
 export async function load({ params }) {
@@ -32,3 +32,27 @@ export async function load({ params }) {
 		});
 	}
 }
+
+/** @type {import('./$types').Actions} */
+export const actions = {
+	delete: async ({ params }) => {
+		try {
+			await cashierGrpcService.deleteCashier(params.id);
+			throw redirect(303, '/cashiers');
+		} catch (err) {
+			console.error('Failed to delete cashier:', err);
+			
+			if (err.code === 'NOT_FOUND') {
+				throw error(404, {
+					message: 'Cashier not found',
+					details: `No cashier found with ID: ${params.id}`
+				});
+			}
+			
+			throw error(500, {
+				message: 'Failed to delete cashier',
+				details: err.message
+			});
+		}
+	}
+};

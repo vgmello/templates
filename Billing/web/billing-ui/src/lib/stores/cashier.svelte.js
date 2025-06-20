@@ -106,43 +106,19 @@ class CashierStore {
 		return Array.from(currencies).sort();
 	}
 
-	// Actions
-	async loadCashiers(fetchFn = fetch) {
-		this.#loading = true;
+	// Actions for initializing from SSR data
+	initializeCashiers(cashiers) {
+		this.#cashiers = cashiers || [];
+		this.#loading = false;
 		this.#error = null;
-		
-		try {
-			const cashiers = await cashierService.getCashiers(fetchFn);
-			this.#cashiers = cashiers;
-		} catch (error) {
-			this.#error = error.message || 'Failed to load cashiers';
-			console.error('Failed to load cashiers:', error);
-		} finally {
-			this.#loading = false;
-		}
 	}
 
-	async loadCashier(id, fetchFn = fetch) {
-		this.#loading = true;
-		this.#error = null;
+	initializeSelectedCashier(cashier) {
+		this.#selectedCashier = cashier;
 		
-		try {
-			const cashier = await cashierService.getCashier(id, fetchFn);
-			this.#selectedCashier = cashier;
-			
-			// Update the cashier in the list if it exists
-			const index = this.#cashiers.findIndex(c => c.cashierId === id);
-			if (index !== -1) {
-				this.#cashiers[index] = cashier;
-			}
-			
-			return cashier;
-		} catch (error) {
-			this.#error = error.message || 'Failed to load cashier';
-			console.error('Failed to load cashier:', error);
-			throw error;
-		} finally {
-			this.#loading = false;
+		// Add to cashiers list if not already there
+		if (cashier && !this.#cashiers.find(c => c.cashierId === cashier.cashierId)) {
+			this.#cashiers = [...this.#cashiers, cashier];
 		}
 	}
 

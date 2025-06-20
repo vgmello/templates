@@ -1,20 +1,28 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
+	import { onMount } from 'svelte';
 	import Button from "$lib/components/ui/button.svelte";
 	import Card from "$lib/components/ui/card.svelte";
 	import Badge from "$lib/components/ui/badge.svelte";
 	import Input from "$lib/components/ui/input.svelte";
-	import { Plus, User, Mail, CreditCard, Search, Filter, AlertCircle, Loader2 } from "lucide-svelte";
+	import { Plus, User, Mail, CreditCard, Search, Filter, AlertCircle } from "lucide-svelte";
 	import { cashierStore } from '$lib/stores/cashier.svelte.js';
 
-	// Store reactive values
+	// Get SSR data
+	let { data } = $props();
+
+	// Initialize store with SSR data
+	onMount(() => {
+		cashierStore.initializeCashiers(data.cashiers);
+	});
+
+	// Store reactive values  
 	let searchTerm = $derived.by(() => cashierStore.searchTerm);
 	let currencyFilter = $derived.by(() => cashierStore.currencyFilter);
 	let filteredCashiers = $derived.by(() => cashierStore.filteredCashiers);
 	let totalCashiers = $derived.by(() => cashierStore.totalCashiers);
 	let configuredCashiers = $derived.by(() => cashierStore.configuredCashiers);
 	let availableCurrencies = $derived.by(() => cashierStore.availableCurrencies);
-	let loading = $derived.by(() => cashierStore.loading);
 	let error = $derived.by(() => cashierStore.error);
 
 	function handleCreateCashier() {
@@ -69,17 +77,15 @@
 		<!-- Header -->
 		<div class="flex items-center justify-between">
 			<div class="space-y-1">
-				<h1 class="text-3xl font-bold tracking-tight">
-					Cashiers
-					{#if loading}
-						<Loader2 class="inline h-6 w-6 animate-spin ml-2" />
-					{/if}
-				</h1>
+				<h1 class="text-3xl font-bold tracking-tight">Cashiers</h1>
 				<p class="text-muted-foreground">
 					Manage cashiers and their payment configurations. {totalCashiers} total, {configuredCashiers} configured.
+					{#if data.serviceUnavailable}
+						<span class="text-yellow-600">(Service temporarily unavailable)</span>
+					{/if}
 				</p>
 			</div>
-			<Button onclick={handleCreateCashier} class="gap-2" disabled={loading}>
+			<Button onclick={handleCreateCashier} class="gap-2">
 				<Plus class="h-4 w-4" />
 				Add Cashier
 			</Button>
