@@ -1,10 +1,11 @@
 // Copyright (c) ABCDEG. All rights reserved.
 
 using Billing.Cashier.Commands;
+using Billing.Tests.Integration._Internal;
 using Wolverine;
 using CashierModel = Billing.Contracts.Cashier.Models.Cashier;
 
-namespace Billing.Tests.Integration;
+namespace Billing.Tests.Integration.Cashiers;
 
 public class CreateCashierIntegrationTests(BillingApiWebAppFactory fixture) : IntegrationTest
 {
@@ -14,10 +15,9 @@ public class CreateCashierIntegrationTests(BillingApiWebAppFactory fixture) : In
         // Arrange
         var command = new CreateCashierCommand("Integration Test Cashier", "integration@test.com");
 
-        var messageBux = fixture.Services.GetRequiredService<IMessageBus>();
-
         // Act
-        var handlerResult = await CreateCashierCommandHandler.Handle(command, messageBux, CancellationToken.None);
+        var messageBus = fixture.Services.GetRequiredService<IMessageBus>();
+        var handlerResult = await CreateCashierCommandHandler.Handle(command, messageBus, CancellationToken.None);
         var result = handlerResult.Item1;
         var integrationEvent = handlerResult.Item2;
 

@@ -61,7 +61,7 @@ public static class WolverineSetupExtensions
             opts.Policies.Add<ExceptionHandlingPolicy>();
             opts.Policies.Add<FluentValidationPolicy>();
 
-            opts.Policies.AddMiddleware(typeof(RequestPerformanceMiddleware));
+            opts.Policies.AddMiddleware<RequestPerformanceMiddleware>();
             opts.Policies.AddMiddleware(typeof(OpenTelemetryInstrumentationMiddleware));
 
             configure?.Invoke(opts);
