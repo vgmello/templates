@@ -1,6 +1,5 @@
 <script>
-	import { onMount } from 'svelte';
-	import { page } from '$app/stores';
+	import { goto } from '$app/navigation';
 	import Button from "$lib/components/ui/button.svelte";
 	import Card from "$lib/components/ui/card.svelte";
 	import Badge from "$lib/components/ui/badge.svelte";
@@ -8,45 +7,26 @@
 	import { cashierService } from "$lib/api.js";
 	import { ArrowLeft, User, Mail, CreditCard, Calendar, Edit, Trash2 } from "lucide-svelte";
 
-	let cashier = $state(null);
-	let loading = $state(true);
+	let { data } = $props();
+	let cashier = $state(data.cashier);
 	let error = $state(null);
-	
-	let cashierId = $derived($page.params.id);
 
-	onMount(async () => {
-		await loadCashier();
-	});
-
-	async function loadCashier() {
-		try {
-			loading = true;
-			error = null;
-			cashier = await cashierService.getCashier(cashierId);
-		} catch (err) {
-			error = err.message;
-			console.error('Failed to load cashier:', err);
-		} finally {
-			loading = false;
-		}
+	function handleGoBack() {
+		goto('/cashiers');
 	}
 
-	function goBack() {
-		window.location.href = '/cashiers';
+	function handleEditCashier() {
+		goto(`/cashiers/${cashier.cashierId}/edit`);
 	}
 
-	function editCashier() {
-		window.location.href = `/cashiers/${cashierId}/edit`;
-	}
-
-	async function deleteCashier() {
+	async function handleDeleteCashier() {
 		if (!confirm('Are you sure you want to delete this cashier? This action cannot be undone.')) {
 			return;
 		}
 
 		try {
-			await cashierService.deleteCashier(cashierId);
-			window.location.href = '/cashiers';
+			await cashierService.deleteCashier(cashier.cashierId);
+			goto('/cashiers');
 		} catch (err) {
 			error = err.message;
 			console.error('Failed to delete cashier:', err);
@@ -67,7 +47,7 @@
 	<div class="max-w-4xl mx-auto space-y-6">
 		<!-- Header -->
 		<div class="flex items-center gap-4">
-			<Button variant="ghost" size="icon" onclick={goBack}>
+			<Button variant="ghost" size="icon" onclick={handleGoBack}>
 				<ArrowLeft class="h-4 w-4" />
 			</Button>
 			<div class="flex-1">
@@ -78,11 +58,11 @@
 			</div>
 			{#if cashier}
 				<div class="flex gap-2">
-					<Button variant="outline" onclick={editCashier} class="gap-2">
+					<Button variant="outline" onclick={handleEditCashier} class="gap-2">
 						<Edit class="h-4 w-4" />
 						Edit
 					</Button>
-					<Button variant="destructive" onclick={deleteCashier} class="gap-2">
+					<Button variant="destructive" onclick={handleDeleteCashier} class="gap-2">
 						<Trash2 class="h-4 w-4" />
 						Delete
 					</Button>
@@ -90,31 +70,17 @@
 			{/if}
 		</div>
 
-		<!-- Loading State -->
-		{#if loading}
-			<div class="flex items-center justify-center py-12">
-				<div class="text-center space-y-2">
-					<div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-					<p class="text-sm text-muted-foreground">Loading cashier details...</p>
-				</div>
-			</div>
-		{/if}
-
 		<!-- Error State -->
 		{#if error}
 			<Card class="p-6">
 				<div class="text-center space-y-2">
-					<p class="text-destructive font-medium">Error loading cashier</p>
+					<p class="text-destructive font-medium">Error deleting cashier</p>
 					<p class="text-sm text-muted-foreground">{error}</p>
-					<Button variant="outline" onclick={loadCashier} size="sm">
-						Try Again
-					</Button>
 				</div>
 			</Card>
 		{/if}
 
 		<!-- Cashier Details -->
-		{#if cashier && !loading}
 			<div class="grid gap-6 md:grid-cols-2">
 				<!-- Basic Information -->
 				<Card class="p-6">
@@ -215,7 +181,7 @@
 								<p class="text-sm text-muted-foreground">
 									This cashier doesn't have any payment methods configured yet.
 								</p>
-								<Button variant="outline" size="sm" onclick={editCashier}>
+								<Button variant="outline" size="sm" onclick={handleEditCashier}>
 									Configure Payments
 								</Button>
 							</div>
@@ -223,6 +189,5 @@
 					</div>
 				</Card>
 			</div>
-		{/if}
 	</div>
 </div>

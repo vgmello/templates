@@ -1,7 +1,21 @@
-<script>
+<script lang="ts">
 	import { cn } from "$lib/utils.js";
+	import type { HTMLButtonAttributes } from 'svelte/elements';
 
-	let { variant = "default", size = "default", class: className = "", ...restProps } = $props();
+	interface ButtonProps extends HTMLButtonAttributes {
+		variant?: 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link';
+		size?: 'default' | 'sm' | 'lg' | 'icon';
+		class?: string;
+		children?: import('svelte').Snippet;
+	}
+
+	let { 
+		variant = "default", 
+		size = "default", 
+		class: className = "", 
+		children,
+		...restProps 
+	}: ButtonProps = $props();
 
 	const variants = {
 		default: "bg-primary text-primary-foreground hover:bg-primary/90",
@@ -29,5 +43,5 @@
 	)}
 	{...restProps}
 >
-	<slot />
+	{@render children?.()}
 </button>

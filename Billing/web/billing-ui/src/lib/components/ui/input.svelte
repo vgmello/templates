@@ -1,7 +1,13 @@
-<script>
+<script lang="ts">
 	import { cn } from "$lib/utils.js";
+	import type { HTMLInputAttributes } from 'svelte/elements';
 	
-	let { class: className, type = "text", ...restProps } = $props();
+	interface InputProps extends HTMLInputAttributes {
+		class?: string;
+		type?: string;
+	}
+
+	let { class: className, type = "text", ...restProps }: InputProps = $props();
 </script>
 
 <input

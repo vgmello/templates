@@ -1,4 +1,5 @@
-const API_BASE_URL = 'http://localhost:5061';
+// Use the proxy configured in vite.config.js
+const API_BASE_URL = '/api';
 
 class ApiError extends Error {
 	constructor(message, status) {
@@ -19,7 +20,9 @@ async function apiRequest(endpoint, options = {}) {
 	};
 
 	try {
-		const response = await fetch(url, config);
+		// Use provided fetch function or default to global fetch
+		const fetchFn = options.fetch || fetch;
+		const response = await fetchFn(url, config);
 		
 		if (!response.ok) {
 			throw new ApiError(`API request failed: ${response.statusText}`, response.status);
@@ -40,9 +43,9 @@ async function apiRequest(endpoint, options = {}) {
 }
 
 export const cashierService = {
-	async getCashiers() {
+	async getCashiers(fetchFn) {
 		try {
-			return await apiRequest('/cashiers');
+			return await apiRequest('/cashiers', { fetch: fetchFn });
 		} catch (error) {
 			// If API fails, return mock data for testing
 			console.warn('API failed, using mock data:', error.message);
@@ -74,9 +77,9 @@ export const cashierService = {
 		}
 	},
 
-	async getCashier(id) {
+	async getCashier(id, fetchFn) {
 		try {
-			return await apiRequest(`/cashiers/${id}`);
+			return await apiRequest(`/cashiers/${id}`, { fetch: fetchFn });
 		} catch (error) {
 			// If API fails, return mock data for testing
 			console.warn('API failed, using mock data:', error.message);
@@ -95,23 +98,26 @@ export const cashierService = {
 		}
 	},
 
-	async createCashier(cashierData) {
+	async createCashier(cashierData, fetchFn) {
 		return apiRequest('/cashiers', {
 			method: 'POST',
-			body: JSON.stringify(cashierData)
+			body: JSON.stringify(cashierData),
+			fetch: fetchFn
 		});
 	},
 
-	async updateCashier(id, cashierData) {
+	async updateCashier(id, cashierData, fetchFn) {
 		return apiRequest(`/cashiers/${id}`, {
 			method: 'PUT',
-			body: JSON.stringify(cashierData)
+			body: JSON.stringify(cashierData),
+			fetch: fetchFn
 		});
 	},
 
-	async deleteCashier(id) {
+	async deleteCashier(id, fetchFn) {
 		return apiRequest(`/cashiers/${id}`, {
-			method: 'DELETE'
+			method: 'DELETE',
+			fetch: fetchFn
 		});
 	}
 };

@@ -1,4 +1,7 @@
-<script>
+<script lang="ts">
+	import { goto } from '$app/navigation';
+	import { tick } from 'svelte';
+	import { browser } from '$app/environment';
 	import Button from "$lib/components/ui/button.svelte";
 	import Card from "$lib/components/ui/card.svelte";
 	import Input from "$lib/components/ui/input.svelte";
@@ -7,6 +10,7 @@
 	import { cashierService } from "$lib/api.js";
 	import { ArrowLeft, Plus, X } from "lucide-svelte";
 
+	// State
 	let name = $state('');
 	let email = $state('');
 	let currencies = $state(['USD']);
@@ -14,7 +18,67 @@
 	let loading = $state(false);
 	let error = $state(null);
 
+	// Element references for focus management
+	let nameInput: HTMLInputElement | undefined = $state();
+	let errorDiv: HTMLDivElement | undefined = $state();
+	let formRef: HTMLFormElement | undefined = $state();
+
 	const availableCurrencies = ['USD', 'EUR', 'GBP', 'CAD', 'AUD', 'JPY', 'CNY', 'INR', 'BRL'];
+
+	// Effects for focus management and side effects
+	$effect(() => {
+		// Auto-focus name input when component mounts
+		if (nameInput && !loading) {
+			tick().then(() => nameInput?.focus());
+		}
+	});
+
+	$effect(() => {
+		// Scroll to and announce errors for accessibility
+		if (error && errorDiv) {
+			tick().then(() => {
+				errorDiv?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+				// Announce error to screen readers
+				const announcement = document.createElement('div');
+				announcement.setAttribute('aria-live', 'polite');
+				announcement.setAttribute('aria-atomic', 'true');
+				announcement.className = 'sr-only';
+				announcement.textContent = `Error: ${error}`;
+				document.body.appendChild(announcement);
+				setTimeout(() => document.body.removeChild(announcement), 1000);
+			});
+		}
+	});
+
+	$effect(() => {
+		// Save form data to sessionStorage for recovery
+		if (name || email || currencies.length > 1) {
+			const formData = { name, email, currencies };
+			sessionStorage.setItem('createCashierForm', JSON.stringify(formData));
+		}
+	});
+
+	$effect(() => {
+		// Restore form data on page load
+		const savedData = sessionStorage.getItem('createCashierForm');
+		if (savedData) {
+			try {
+				const { name: savedName, email: savedEmail, currencies: savedCurrencies } = JSON.parse(savedData);
+				if (savedName) name = savedName;
+				if (savedEmail) email = savedEmail;
+				if (savedCurrencies && savedCurrencies.length > 0) currencies = savedCurrencies;
+			} catch (e) {
+				console.warn('Failed to restore form data:', e);
+			}
+		}
+
+		// Clear saved data when form is successfully submitted
+		return () => {
+			if (!error && !loading) {
+				sessionStorage.removeItem('createCashierForm');
+			}
+		};
+	});
 
 	function addCurrency() {
 		const currency = newCurrency.trim().toUpperCase();
@@ -52,10 +116,11 @@
 				currencies: currencies
 			};
 
-			await cashierService.createCashier(cashierData);
+			// In browser context, use global fetch; on server, this won't run
+			await cashierService.createCashier(cashierData, browser ? fetch : undefined);
 			
 			// Redirect to cashiers list
-			window.location.href = '/cashiers';
+			goto('/cashiers');
 		} catch (err) {
 			error = err.message;
 			console.error('Failed to create cashier:', err);
@@ -64,8 +129,8 @@
 		}
 	}
 
-	function goBack() {
-		window.location.href = '/cashiers';
+	function handleGoBack() {
+		goto('/cashiers');
 	}
 </script>
 
@@ -77,7 +142,7 @@
 	<div class="max-w-2xl mx-auto space-y-6">
 		<!-- Header -->
 		<div class="flex items-center gap-4">
-			<Button variant="ghost" size="icon" onclick={goBack}>
+			<Button variant="ghost" size="icon" onclick={handleGoBack}>
 				<ArrowLeft class="h-4 w-4" />
 			</Button>
 			<div class="space-y-1">
@@ -90,7 +155,7 @@
 
 		<!-- Form -->
 		<Card class="p-6">
-			<form onsubmit={handleSubmit} class="space-y-6">
+			<form bind:this={formRef} onsubmit={handleSubmit} class="space-y-6">
 				<!-- Basic Information -->
 				<div class="space-y-4">
 					<h3 class="text-lg font-semibold">Basic Information</h3>
@@ -99,6 +164,7 @@
 						<Label for="name">Name *</Label>
 						<Input
 							id="name"
+							bind:this={nameInput}
 							bind:value={name}
 							placeholder="Enter cashier name"
 							required
@@ -176,7 +242,7 @@
 
 				<!-- Error Message -->
 				{#if error}
-					<div class="p-3 text-sm text-destructive bg-destructive/10 border border-destructive/20 rounded-md">
+					<div bind:this={errorDiv} class="p-3 text-sm text-destructive bg-destructive/10 border border-destructive/20 rounded-md" role="alert" aria-live="polite">
 						{error}
 					</div>
 				{/if}
@@ -191,7 +257,7 @@
 							Create Cashier
 						{/if}
 					</Button>
-					<Button type="button" variant="outline" onclick={goBack} disabled={loading}>
+					<Button type="button" variant="outline" onclick={handleGoBack} disabled={loading}>
 						Cancel
 					</Button>
 				</div>
