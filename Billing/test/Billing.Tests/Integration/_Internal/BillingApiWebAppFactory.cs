@@ -39,9 +39,9 @@ public class BillingApiWebAppFactory : WebApplicationFactory<Program>, IAsyncLif
 
     public new async ValueTask DisposeAsync()
     {
+        await base.DisposeAsync();
         await _postgres.DisposeAsync();
         await _network.DisposeAsync();
-        await base.DisposeAsync();
     }
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
