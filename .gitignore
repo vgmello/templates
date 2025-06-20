@@ -415,3 +415,6 @@ output-*/*
 # macOS metadata files
 .DS_Store
 ._*
+
+**/docs/_site/
+**/docs/api/

@@ -58,4 +58,16 @@ builder
     })
     .WithHttpHealthCheck("/health/internal");
 
+builder
+    .AddContainer("billing-docs", "billing-docfx")
+    .WithDockerfile("../../docs")
+    .WithBindMount("../../", "/app")
+    .WithHttpEndpoint(port: 8850, targetPort: 8080, name: "http")
+    .WithArgs("docs/docfx.json", "--serve", "--hostname=*", "--logLevel=error")
+    .WithUrlForEndpoint("http", url =>
+    {
+        url.DisplayText = "Documentation";
+        url.Url = "/";
+    });
+
 await builder.Build().RunAsync();
