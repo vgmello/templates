@@ -19,7 +19,7 @@
 	
 	// Get cashier from data directly (since it's server-side loaded)
 	let cashier = data.cashier;
-	let storeError = $derived.by(() => cashierStore.error);
+	// Direct access to store error
 	
 	// Form references and state
 	let deleteFormRef: HTMLFormElement | undefined = $state();
@@ -81,7 +81,7 @@
 <div class="container mx-auto px-4 py-8">
 	<div class="max-w-4xl mx-auto space-y-6">
 		<!-- Error Banner -->
-		{#if deleteError || storeError}
+		{#if deleteError || cashierStore.error}
 			<Card class="p-4 border-destructive bg-destructive/10">
 				<div class="flex items-center gap-3">
 					<AlertCircle class="h-5 w-5 text-destructive" />
@@ -89,7 +89,7 @@
 						<p class="text-sm font-medium text-destructive">
 							{deleteError ? 'Error deleting cashier' : 'Error loading cashier'}
 						</p>
-						<p class="text-sm text-destructive/80">{deleteError || storeError}</p>
+						<p class="text-sm text-destructive/80">{deleteError || cashierStore.error}</p>
 					</div>
 					<Button onclick={dismissError} variant="ghost" size="sm">
 						Dismiss

@@ -1,46 +1,21 @@
-import type { Cashier, CreateCashierRequest, UpdateCashierRequest } from '../../app';
+import type { Cashier } from '../../app';
 
 class CashierStore {
-	// Private state
-	#cashiers = $state<Cashier[]>([]);
-	#selectedCashier = $state<Cashier | null>(null);
-	#loading = $state<boolean>(false);
-	#error = $state<string | null>(null);
-	#searchTerm = $state<string>('');
-	#currencyFilter = $state<string>('all');
+	// Public reactive state using class properties
+	cashiers = $state<Cashier[]>([]);
+	selectedCashier = $state<Cashier | null>(null);
+	loading = $state<boolean>(false);
+	error = $state.raw<string | null>(null); // Use $state.raw for non-reactive error messages
+	searchTerm = $state<string>('');
+	currencyFilter = $state<string>('all');
 
-	// Public getters
-	get cashiers(): Cashier[] {
-		return this.#cashiers;
-	}
-
-	get selectedCashier(): Cashier | null {
-		return this.#selectedCashier;
-	}
-
-	get loading(): boolean {
-		return this.#loading;
-	}
-
-	get error(): string | null {
-		return this.#error;
-	}
-
-	get searchTerm(): string {
-		return this.#searchTerm;
-	}
-
-	get currencyFilter(): string {
-		return this.#currencyFilter;
-	}
-
-	// Computed properties (regular getters, computed in components)
-	get filteredCashiers(): Cashier[] {
-		let filtered = this.#cashiers;
+	// Computed properties using $derived runes - Svelte 5 best practice
+	filteredCashiers = $derived.by(() => {
+		let filtered = this.cashiers;
 		
 		// Filter by search term
-		if (this.#searchTerm.trim()) {
-			const term = this.#searchTerm.toLowerCase();
+		if (this.searchTerm.trim()) {
+			const term = this.searchTerm.toLowerCase();
 			filtered = filtered.filter(cashier => 
 				cashier.name.toLowerCase().includes(term) ||
 				cashier.email.toLowerCase().includes(term)
@@ -48,172 +23,115 @@ class CashierStore {
 		}
 		
 		// Filter by currency
-		if (this.#currencyFilter !== 'all') {
+		if (this.currencyFilter !== 'all') {
 			filtered = filtered.filter(cashier => 
 				cashier.cashierPayments?.some(payment => 
-					payment.currency === this.#currencyFilter
+					payment.currency === this.currencyFilter
 				)
 			);
 		}
 		
 		return filtered;
-	}
+	});
 
-	get totalCashiers(): number {
-		return this.#cashiers.length;
-	}
+	totalCashiers = $derived(this.cashiers.length);
 
-	get configuredCashiers(): number {
-		return this.#cashiers.filter(cashier => 
+	configuredCashiers = $derived(
+		this.cashiers.filter(cashier => 
 			cashier.cashierPayments && cashier.cashierPayments.length > 0
-		).length;
-	}
+		).length
+	);
 
-	get availableCurrencies(): string[] {
+	availableCurrencies = $derived.by(() => {
 		const currencies = new Set<string>();
-		this.#cashiers.forEach(cashier => {
+		this.cashiers.forEach(cashier => {
 			cashier.cashierPayments?.forEach(payment => {
 				currencies.add(payment.currency);
 			});
 		});
 		return Array.from(currencies).sort();
-	}
+	});
 
 	// Actions for initializing from SSR data
 	initializeCashiers(cashiers: Cashier[]): void {
-		this.#cashiers = cashiers || [];
-		this.#loading = false;
-		this.#error = null;
+		this.cashiers = $state.snapshot(cashiers || []);
+		this.loading = false;
+		this.error = null;
 	}
 
 	initializeSelectedCashier(cashier: Cashier | null): void {
-		this.#selectedCashier = cashier;
+		this.selectedCashier = cashier;
 		
 		// Add to cashiers list if not already there
-		if (cashier && !this.#cashiers.find(c => c.cashierId === cashier.cashierId)) {
-			this.#cashiers = [...this.#cashiers, cashier];
+		if (cashier) {
+			const currentCashiers = $state.snapshot(this.cashiers);
+			if (!currentCashiers.find(c => c.cashierId === cashier.cashierId)) {
+				this.cashiers = [...currentCashiers, cashier];
+			}
 		}
 	}
 
-	async createCashier(cashierData: CreateCashierRequest): Promise<void> {
-		this.#loading = true;
-		this.#error = null;
+	// Remove server-side operations - these are handled by SvelteKit form actions
+	// Store now focuses on client-side state management only
+	
+	// Method to update store after successful server operations
+	addCashier(newCashier: Cashier): void {
+		const currentCashiers = $state.snapshot(this.cashiers);
+		this.cashiers = [...currentCashiers, newCashier];
+	}
+
+	updateCashierInStore(updatedCashier: Cashier): void {
+		const currentCashiers = $state.snapshot(this.cashiers);
+		const index = currentCashiers.findIndex(c => c.cashierId === updatedCashier.cashierId);
+		if (index !== -1) {
+			currentCashiers[index] = updatedCashier;
+			this.cashiers = [...currentCashiers];
+		}
 		
-		try {
-			// Client-side stores should use form actions instead of direct API calls
-			// This will be handled by the +page.server.ts actions
-			const formData = new FormData();
-			formData.append('name', cashierData.name);
-			formData.append('email', cashierData.email);
-			cashierData.currencies?.forEach(currency => {
-				formData.append('currencies', currency);
-			});
-			
-			const response = await fetch('?/default', {
-				method: 'POST',
-				body: formData
-			});
-			
-			if (!response.ok) {
-				throw new Error('Failed to create cashier');
-			}
-		} catch (error) {
-			this.#error = (error as Error).message || 'Failed to create cashier';
-			console.error('Failed to create cashier:', error);
-			throw error;
-		} finally {
-			this.#loading = false;
+		// Update selected cashier if it's the same one
+		if (this.selectedCashier?.cashierId === updatedCashier.cashierId) {
+			this.selectedCashier = updatedCashier;
 		}
 	}
 
-	async updateCashier(id: string, cashierData: UpdateCashierRequest): Promise<void> {
-		this.#loading = true;
-		this.#error = null;
+	removeCashier(cashierId: string): void {
+		// Remove from the list using snapshot to avoid reactivity cycles
+		const currentCashiers = $state.snapshot(this.cashiers);
+		this.cashiers = currentCashiers.filter(c => c.cashierId !== cashierId);
 		
-		try {
-			// Client-side stores should use form actions instead of direct API calls
-			// This will be handled by server actions in the detail page
-			const formData = new FormData();
-			formData.append('name', cashierData.name);
-			formData.append('email', cashierData.email);
-			cashierData.currencies?.forEach(currency => {
-				formData.append('currencies', currency);
-			});
-			
-			const response = await fetch(`/cashiers/${id}?/update`, {
-				method: 'POST',
-				body: formData
-			});
-			
-			if (!response.ok) {
-				throw new Error('Failed to update cashier');
-			}
-		} catch (error) {
-			this.#error = (error as Error).message || 'Failed to update cashier';
-			console.error('Failed to update cashier:', error);
-			throw error;
-		} finally {
-			this.#loading = false;
+		// Clear selected cashier if it's the same one
+		if (this.selectedCashier?.cashierId === cashierId) {
+			this.selectedCashier = null;
 		}
 	}
 
-	async deleteCashier(id: string): Promise<void> {
-		this.#loading = true;
-		this.#error = null;
-		
-		try {
-			// Client-side stores should use form actions instead of direct API calls
-			// This will be handled by server actions in the detail page
-			const response = await fetch(`/cashiers/${id}?/delete`, {
-				method: 'POST'
-			});
-			
-			if (!response.ok) {
-				throw new Error('Failed to delete cashier');
-			}
-			
-			// Remove from the list
-			this.#cashiers = this.#cashiers.filter(c => c.cashierId !== id);
-			
-			// Clear selected cashier if it's the same one
-			if (this.#selectedCashier?.cashierId === id) {
-				this.#selectedCashier = null;
-			}
-		} catch (error) {
-			this.#error = (error as Error).message || 'Failed to delete cashier';
-			console.error('Failed to delete cashier:', error);
-			throw error;
-		} finally {
-			this.#loading = false;
-		}
-	}
-
-	// Filter actions
+	// Filter actions - now using direct property assignment
 	setSearchTerm(term: string): void {
-		this.#searchTerm = term;
+		this.searchTerm = term;
 	}
 
 	setCurrencyFilter(currency: string): void {
-		this.#currencyFilter = currency;
+		this.currencyFilter = currency;
 	}
 
 	clearFilters(): void {
-		this.#searchTerm = '';
-		this.#currencyFilter = 'all';
+		this.searchTerm = '';
+		this.currencyFilter = 'all';
 	}
 
 	// Utility actions
 	clearError(): void {
-		this.#error = null;
+		this.error = null;
 	}
 
 	clearSelectedCashier(): void {
-		this.#selectedCashier = null;
+		this.selectedCashier = null;
 	}
 
-	// Get cashier by ID from current list
+	// Get cashier by ID from current list using snapshot
 	getCashierById(id: string): Cashier | null {
-		return this.#cashiers.find(c => c.cashierId === id) || null;
+		const cashiers = $state.snapshot(this.cashiers);
+		return cashiers.find(c => c.cashierId === id) || null;
 	}
 }
 

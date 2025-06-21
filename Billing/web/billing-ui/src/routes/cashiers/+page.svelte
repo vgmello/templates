@@ -16,14 +16,8 @@
 		cashierStore.initializeCashiers(data.cashiers);
 	});
 
-	// Store reactive values  
-	let searchTerm = $derived.by(() => cashierStore.searchTerm);
-	let currencyFilter = $derived.by(() => cashierStore.currencyFilter);
-	let filteredCashiers = $derived.by(() => cashierStore.filteredCashiers);
-	let totalCashiers = $derived.by(() => cashierStore.totalCashiers);
-	let configuredCashiers = $derived.by(() => cashierStore.configuredCashiers);
-	let availableCurrencies = $derived.by(() => cashierStore.availableCurrencies);
-	let error = $derived.by(() => cashierStore.error);
+	// Direct access to store properties - they're already reactive
+	// No need to wrap in $derived since the store properties are $state/$derived
 
 	function handleCreateCashier() {
 		goto('/cashiers/create');
@@ -59,13 +53,13 @@
 <div class="container mx-auto px-4 py-8">
 	<div class="space-y-6">
 		<!-- Error Banner -->
-		{#if error}
+		{#if cashierStore.error}
 			<Card class="p-4 border-destructive bg-destructive/10">
 				<div class="flex items-center gap-3">
 					<AlertCircle class="h-5 w-5 text-destructive" />
 					<div class="flex-1">
 						<p class="text-sm font-medium text-destructive">Error loading cashiers</p>
-						<p class="text-sm text-destructive/80">{error}</p>
+						<p class="text-sm text-destructive/80">{cashierStore.error}</p>
 					</div>
 					<Button onclick={dismissError} variant="ghost" size="sm">
 						Dismiss
@@ -79,7 +73,7 @@
 			<div class="space-y-1">
 				<h1 class="text-3xl font-bold tracking-tight">Cashiers</h1>
 				<p class="text-muted-foreground">
-					Manage cashiers and their payment configurations. {totalCashiers} total, {configuredCashiers} configured.
+					Manage cashiers and their payment configurations. {cashierStore.totalCashiers} total, {cashierStore.configuredCashiers} configured.
 					{#if data.serviceUnavailable}
 						<span class="text-yellow-600">(Service temporarily unavailable)</span>
 					{/if}
@@ -92,7 +86,7 @@
 		</div>
 
 		<!-- Search and Filter -->
-		{#if totalCashiers > 0}
+		{#if cashierStore.totalCashiers > 0}
 			<Card class="p-4">
 				<div class="flex flex-col sm:flex-row gap-4">
 					<div class="flex-1 relative">
@@ -100,7 +94,7 @@
 						<Input
 							type="text"
 							placeholder="Search cashiers by name or email..."
-							value={searchTerm}
+							value={cashierStore.searchTerm}
 							oninput={handleSearchChange}
 							class="pl-10"
 						/>
@@ -108,12 +102,12 @@
 					<div class="flex items-center gap-2">
 						<Filter class="h-4 w-4 text-muted-foreground" />
 						<select 
-							value={currencyFilter}
+							value={cashierStore.currencyFilter}
 							onchange={handleCurrencyFilterChange}
 							class="h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
 						>
 							<option value="all">All Currencies</option>
-							{#each availableCurrencies as currency}
+							{#each cashierStore.availableCurrencies as currency}
 								<option value={currency}>{currency}</option>
 							{/each}
 						</select>
@@ -123,7 +117,7 @@
 		{/if}
 
 		<!-- Cashiers Grid -->
-		{#if filteredCashiers.length === 0 && totalCashiers === 0}
+		{#if cashierStore.filteredCashiers.length === 0 && cashierStore.totalCashiers === 0}
 				<Card class="p-12">
 					<div class="text-center space-y-4">
 						<User class="h-12 w-12 mx-auto text-muted-foreground" />
@@ -139,7 +133,7 @@
 						</Button>
 					</div>
 				</Card>
-		{:else if filteredCashiers.length === 0}
+		{:else if cashierStore.filteredCashiers.length === 0}
 			<Card class="p-12">
 				<div class="text-center space-y-4">
 					<Search class="h-12 w-12 mx-auto text-muted-foreground" />
@@ -156,7 +150,7 @@
 			</Card>
 		{:else}
 			<div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-				{#each filteredCashiers as cashier (cashier.cashierId)}
+				{#each cashierStore.filteredCashiers as cashier (cashier.cashierId)}
 					<Card class="p-6 hover:shadow-md transition-shadow cursor-pointer" onclick={() => handleCashierClick(cashier.cashierId)}>
 						<div class="space-y-4">
 							<div class="flex items-start justify-between">
