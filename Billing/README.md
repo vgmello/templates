@@ -106,7 +106,7 @@ Run from the **Billing** folder (not the docs folder):
 docker build -f docs/Dockerfile -t billing-docfx .
 
 # Run the container
-docker run -d -p 8850:8850 --name billing-docs billing-docfx
+docker run -d -p 8119:8080 --name billing-docs billing-docfx
 ```
 
 #### Using Local DocFX
@@ -117,7 +117,7 @@ Run from the **Billing** folder:
 dotnet tool install -g docfx
 
 # Serve documentation (from Billing folder)
-docfx docs/docfx.json --serve -p 8850 -n "*"
+docfx docs/docfx.json --serve -p 8119 -n "*"
 ```
 
 #### Using .NET Aspire
@@ -133,7 +133,7 @@ The documentation will be available in the Aspire dashboard with a direct link.
 ### Accessing the Documentation
 
 Once running, the documentation is available at:
-- **Local**: http://localhost:8850
+- **Local**: http://localhost:8119
 
 ### Important Notes
 
@@ -142,13 +142,13 @@ Once running, the documentation is available at:
 **Correct**:
 ```bash
 cd Billing/
-docfx docs/docfx.json --serve -p 8850 -n "*"
+docfx docs/docfx.json --serve -p 8119 -n "*"
 ```
 
 **Incorrect**:
 ```bash
 cd Billing/docs/
-docfx docfx.json --serve -p 8850 -n "*"  # Won't find source code
+docfx docfx.json --serve -p 8119 -n "*"  # Won't find source code
 ```
 
 ## Development and Testing
@@ -201,7 +201,7 @@ dotnet tool install -g docfx
 docfx docs/docfx.json
 
 # Serve locally
-docfx docs/docfx.json --serve -p 8850 -n "*"
+docfx docs/docfx.json --serve -p 8119 -n "*"
 ```
 
 #### Updating Documentation
@@ -219,7 +219,7 @@ The Material theme is included in `templates/material/` and supports various cus
 
 #### Configuration
 The DocFX configuration is in `docfx.json`:
-- **Port**: 8850 (configurable)
+- **Port**: 8119 (configurable)
 - **Search**: Enabled for all content
 - **API Generation**: Automatic from source code
 - **Git Integration**: Links to contribute and edit pages
@@ -253,7 +253,7 @@ The DocFX configuration is in `docfx.json`:
 docker logs billing-docs
 
 # Check if port is in use
-netstat -tulpn | grep 8850
+netstat -tulpn | grep 8119
 ```
 
 ### Documentation not updating

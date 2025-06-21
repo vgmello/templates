@@ -86,6 +86,60 @@ Multi-database approach with separate databases per service:
 - **Architecture tests** with NetArchTest to enforce layering
 - **Mocking** with NSubstitute, assertions with Shouldly
 
+## Port Configuration
+
+This system uses a structured port allocation pattern optimized for macOS compatibility:
+
+### **Service Port Ranges**
+- **Billing**: 8100-8119 (20 ports)
+- **Accounting**: 8120-8139 (20 ports)  
+- **Operations**: 8140-8159 (20 ports)
+
+### **Port Pattern Within Each Service**
+```
+XX00: Aspire Resource Service (HTTP)
+XX01: Main API (HTTP)
+XX02: Main API (gRPC)
+XX03: BackOffice (HTTP)
+XX04: Orleans (HTTP)
+XX10: Aspire Resource Service (HTTPS)
+XX11: Main API (HTTPS)
+XX13: BackOffice (HTTPS)
+XX14: Orleans (HTTPS)
+XX19: Documentation (last port of range)
+```
+
+### **Aspire Dashboard Ports**
+- **HTTP**: Service base + 10,000 (e.g., 8100 → 18100)
+- **HTTPS**: Service base + 10,010 (e.g., 8100 → 18110)
+
+### **Current Service Ports**
+
+#### **Billing Service (8100-8119)**
+- Aspire Dashboard: 18100 (HTTP), 18110 (HTTPS)
+- Aspire Resource: 8100 (HTTP), 8110 (HTTPS)
+- API: 8101 (HTTP), 8111 (HTTPS), 8102 (gRPC)
+- BackOffice: 8103 (HTTP), 8113 (HTTPS)
+- Orleans: 8104 (HTTP), 8114 (HTTPS)
+- Documentation: 8119
+
+#### **Accounting Service (8120-8139)**
+- Aspire Dashboard: 18120 (HTTP), 18130 (HTTPS)
+- Aspire Resource: 8120 (HTTP), 8130 (HTTPS)
+- API: 8121 (HTTP), 8131 (HTTPS), 8122 (gRPC)
+- BackOffice: 8123 (HTTP), 8133 (HTTPS)
+- Orleans: 8124 (HTTP), 8134 (HTTPS)
+- Documentation: 8139 (reserved)
+
+#### **Operations Service (8140-8159)**
+- Aspire Dashboard: 18140 (HTTP), 18150 (HTTPS)
+- Aspire Resource: 8140 (HTTP), 8150 (HTTPS)
+- Documentation: 8159 (reserved)
+
+### **Shared Services (Standard Ports)**
+- **PostgreSQL**: 5432
+- **OpenTelemetry**: 4317 (HTTPS), 4318 (HTTP)
+
 ## Development Notes
 
 - **Prerequisites**: PostgreSQL running on localhost:5432
