@@ -1,35 +1,29 @@
 // Copyright (c) ABCDEG. All rights reserved.
 
-using Billing.Cashier.Commands;
+using Billing.Cashier.Grpc;
 using Billing.Tests.Integration._Internal;
-using Wolverine;
-using CashierModel = Billing.Contracts.Cashier.Models.Cashier;
 
 namespace Billing.Tests.Integration.Cashiers;
 
 public class CreateCashierIntegrationTests(IntegrationTestFixture fixture) : IntegrationTest
 {
+    private readonly CashiersService.CashiersServiceClient _client = new(fixture.GrpcChannel);
+
     [Fact]
     public async Task CreateCashier_ShouldCreateCashierInDatabase()
     {
         // Arrange
-        var command = new CreateCashierCommand("Integration Test Cashier", "integration@test.com");
+        var request = new CreateCashierRequest
+        {
+            Name = "Integration Test Cashier",
+            Email = "integration@test.com"
+        };
 
         // Act
-        var messageBus = fixture.Services.GetRequiredService<IMessageBus>();
-        var handlerResult = await CreateCashierCommandHandler.Handle(command, messageBus, CancellationToken.None);
-        var result = handlerResult.Item1;
-        var integrationEvent = handlerResult.Item2;
+        var response = await _client.CreateCashierAsync(request, cancellationToken: TestContext.Current.CancellationToken);
 
-        // Assert
-        result.IsT0.ShouldBeTrue();
-
-        var cashier = result.Value.ShouldBeOfType<CashierModel>();
-        cashier.Name.ShouldBe("Integration Test Cashier");
-        cashier.Email.ShouldBe("integration@test.com");
-        cashier.CashierId.ShouldNotBe(Guid.Empty);
-
-        integrationEvent.ShouldNotBeNull();
-        integrationEvent.Cashier.CashierId.ShouldBe(cashier.CashierId);
+        response.Name.ShouldBe("Integration Test Cashier");
+        response.Email.ShouldBe("integration@test.com");
+        Guid.Parse(response.CashierId).ShouldNotBe(Guid.Empty);
     }
 }

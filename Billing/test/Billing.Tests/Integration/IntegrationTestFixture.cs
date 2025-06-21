@@ -4,6 +4,7 @@ using Billing.Tests.Integration._Internal;
 using Billing.Tests.Integration._Internal.Containers;
 using DotNet.Testcontainers.Builders;
 using DotNet.Testcontainers.Networks;
+using Grpc.Net.Client;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Operations.ServiceDefaults.Api;
 using Operations.ServiceDefaults.Messaging.Wolverine;
@@ -23,6 +24,8 @@ public class IntegrationTestFixture : WebApplicationFactory<Program>, IAsyncLife
 
     private readonly PostgreSqlContainer _postgres;
 
+    public GrpcChannel GrpcChannel { get; private set; } = null!;
+
     public IntegrationTestFixture()
     {
         _postgres = new PostgreSqlBuilder()
@@ -40,6 +43,11 @@ public class IntegrationTestFixture : WebApplicationFactory<Program>, IAsyncLife
 
         await using var liquibaseMigrationContainer = new LiquibaseMigrationContainer(_postgres.Name, _network);
         await liquibaseMigrationContainer.StartAsync();
+
+        GrpcChannel = GrpcChannel.ForAddress(Server.BaseAddress, new GrpcChannelOptions
+        {
+            HttpHandler = Server.CreateHandler()
+        });
     }
 
     public new async ValueTask DisposeAsync()

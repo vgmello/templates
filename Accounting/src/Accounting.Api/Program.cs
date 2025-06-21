@@ -1,7 +1,6 @@
 // Copyright (c) ABCDEG. All rights reserved.
 
 using Accounting.Api;
-using JasperFx;
 using Operations.ServiceDefaults;
 using Operations.ServiceDefaults.Api;
 using Operations.ServiceDefaults.HealthChecks;
