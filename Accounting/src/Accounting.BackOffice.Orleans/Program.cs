@@ -31,4 +31,4 @@ app.MapGet("/ledgers/{id:guid}", async (Guid id, IGrainFactory grains) =>
     return Results.Ok(await grain.GetState());
 });
 
-await app.RunAsync();
+await app.RunAsync(args);

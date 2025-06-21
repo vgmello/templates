@@ -1,6 +1,7 @@
 // Copyright (c) ABCDEG. All rights reserved.
 
 using FluentValidation;
+using JasperFx;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
@@ -53,4 +54,28 @@ public static class Extensions
                throw new InvalidOperationException(
                    "Unable to identify entry assembly. Please provide an assembly via the Extensions.AssemblyMarker property.");
     }
+
+    public static Task RunAsync(this WebApplication app, string[] args)
+    {
+        if (args.Length > 0 && WolverineCommands.Contains(args[0]))
+        {
+            return app.RunJasperFxCommands(args);
+        }
+
+        return app.RunAsync();
+    }
+
+    private static readonly HashSet<string> WolverineCommands =
+    [
+        "check-env",
+        "codegen",
+        "db-apply",
+        "db-assert",
+        "db-dump",
+        "db-patch",
+        "describe",
+        "help",
+        "resources",
+        "storage"
+    ];
 }

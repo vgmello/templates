@@ -21,4 +21,4 @@ var app = builder.Build();
 app.ConfigureApiUsingDefaults(requireAuth: false);
 app.MapDefaultHealthCheckEndpoints();
 
-return await app.RunJasperFxCommands(args);
+await app.RunAsync(args);

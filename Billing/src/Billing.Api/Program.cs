@@ -1,6 +1,5 @@
 // Copyright (c) ABCDEG. All rights reserved.
 
-using JasperFx;
 using Operations.ServiceDefaults;
 using Operations.ServiceDefaults.Api;
 using Operations.ServiceDefaults.HealthChecks;
@@ -20,4 +19,4 @@ var app = builder.Build();
 app.ConfigureApiUsingDefaults(requireAuth: false);
 app.MapDefaultHealthCheckEndpoints();
 
-return await app.RunJasperFxCommands(args);
+await app.RunAsync(args);

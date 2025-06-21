@@ -15,4 +15,4 @@ var app = builder.Build();
 
 app.MapDefaultHealthCheckEndpoints();
 
-await app.RunAsync();
+await app.RunAsync(args);

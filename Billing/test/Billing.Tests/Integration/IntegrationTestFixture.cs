@@ -1,24 +1,27 @@
 // Copyright (c) ABCDEG. All rights reserved.
 
+using Billing.Tests.Integration._Internal;
 using Billing.Tests.Integration._Internal.Containers;
 using DotNet.Testcontainers.Builders;
 using DotNet.Testcontainers.Networks;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Operations.ServiceDefaults.Api;
 using Operations.ServiceDefaults.Messaging.Wolverine;
+using Serilog;
+using Serilog.Events;
 using Testcontainers.PostgreSql;
 using Wolverine;
 using Wolverine.Runtime;
 
-namespace Billing.Tests.Integration._Internal;
+namespace Billing.Tests.Integration;
 
-public class BillingApiWebAppFactory : WebApplicationFactory<Program>, IAsyncLifetime
+public class IntegrationTestFixture : WebApplicationFactory<Program>, IAsyncLifetime
 {
     private readonly INetwork _network = new NetworkBuilder().Build();
 
     private readonly PostgreSqlContainer _postgres;
 
-    public BillingApiWebAppFactory()
+    public IntegrationTestFixture()
     {
         _postgres = new PostgreSqlBuilder()
             .WithImage("postgres:17-alpine")
@@ -42,23 +45,23 @@ public class BillingApiWebAppFactory : WebApplicationFactory<Program>, IAsyncLif
         await base.DisposeAsync();
         await _postgres.DisposeAsync();
         await _network.DisposeAsync();
+        await Log.CloseAndFlushAsync();
     }
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
-        builder.ConfigureAppConfiguration((_, cfg) =>
-        {
-            cfg.AddInMemoryCollection(new Dictionary<string, string?>
-            {
-                ["ConnectionStrings:BillingDb"] = _postgres.GetDbConnectionString("billing"),
-                ["ConnectionStrings:ServiceBus"] = _postgres.GetDbConnectionString("service_bus")
-            });
-        });
+        builder.ConfigureLogging(logging => logging.ClearProviders());
+
+        builder.UseSetting("ConnectionStrings:BillingDb", _postgres.GetDbConnectionString("billing"));
+        builder.UseSetting("ConnectionStrings:ServiceBus", _postgres.GetDbConnectionString("service_bus"));
 
         WolverineSetupExtensions.SkipServiceRegistration = true;
 
         builder.ConfigureServices((ctx, services) =>
         {
+            var logger = GetLoggerConfig(nameof(Billing)).CreateLogger();
+            services.AddLogging(logging => logging.AddSerilog(logger));
+
             RemoveHostedServices(services);
 
             services.AddWolverineWithDefaults(ctx.Configuration, opt => opt.ApplicationAssembly = typeof(Program).Assembly);
@@ -71,6 +74,13 @@ public class BillingApiWebAppFactory : WebApplicationFactory<Program>, IAsyncLif
             app.UseEndpoints(endpoints => endpoints.MapGrpcServices(typeof(Program)));
         });
     }
+
+    private static LoggerConfiguration GetLoggerConfig(string logNamespace) =>
+        new LoggerConfiguration()
+            .WriteTo.Sink(new XUnitSink())
+            .MinimumLevel.Warning()
+            .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
+            .MinimumLevel.Override(logNamespace, LogEventLevel.Debug);
 
     private static void RemoveHostedServices(IServiceCollection services)
     {

@@ -7,7 +7,7 @@ using CashierModel = Billing.Contracts.Cashier.Models.Cashier;
 
 namespace Billing.Tests.Integration.Cashiers;
 
-public class CreateCashierIntegrationTests(BillingApiWebAppFactory fixture) : IntegrationTest
+public class CreateCashierIntegrationTests(IntegrationTestFixture fixture) : IntegrationTest
 {
     [Fact]
     public async Task CreateCashier_ShouldCreateCashierInDatabase()
