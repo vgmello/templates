@@ -9,22 +9,23 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Operations.ServiceDefaults.Api;
 using Operations.ServiceDefaults.Messaging.Wolverine;
 using Serilog;
+using Serilog.Core;
 using Serilog.Events;
 using System.Diagnostics.CodeAnalysis;
 using Testcontainers.PostgreSql;
-using Wolverine;
-using Wolverine.Runtime;
 
 namespace Billing.Tests.Integration;
 
 [SuppressMessage("ReSharper", "ClassNeverInstantiated.Global")]
 public class IntegrationTestFixture : WebApplicationFactory<Program>, IAsyncLifetime
 {
-    private readonly INetwork _network = new NetworkBuilder().Build();
+    private readonly INetwork _containerNetwork = new NetworkBuilder().Build();
 
     private readonly PostgreSqlContainer _postgres;
 
     public GrpcChannel GrpcChannel { get; private set; } = null!;
+
+    public ITestOutputHelper? TestOutput { get; set; }
 
     public IntegrationTestFixture()
     {
@@ -32,16 +33,16 @@ public class IntegrationTestFixture : WebApplicationFactory<Program>, IAsyncLife
             .WithImage("postgres:17-alpine")
             .WithUsername("postgres")
             .WithPassword("postgres")
-            .WithNetwork(_network)
+            .WithNetwork(_containerNetwork)
             .Build();
     }
 
     public async ValueTask InitializeAsync()
     {
-        await _network.CreateAsync();
+        await _containerNetwork.CreateAsync();
         await _postgres.StartAsync();
 
-        await using var liquibaseMigrationContainer = new LiquibaseMigrationContainer(_postgres.Name, _network);
+        await using var liquibaseMigrationContainer = new LiquibaseMigrationContainer(_postgres.Name, _containerNetwork);
         await liquibaseMigrationContainer.StartAsync();
 
         GrpcChannel = GrpcChannel.ForAddress(Server.BaseAddress, new GrpcChannelOptions
@@ -54,18 +55,12 @@ public class IntegrationTestFixture : WebApplicationFactory<Program>, IAsyncLife
     {
         await base.DisposeAsync();
         await _postgres.DisposeAsync();
-        await _network.DisposeAsync();
+        await _containerNetwork.DisposeAsync();
         await Log.CloseAndFlushAsync();
     }
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
-        builder.ConfigureLogging(logging =>
-        {
-            logging.ClearProviders();
-            logging.AddSerilog(GetLoggerConfig(nameof(Billing)).CreateLogger());
-        });
-
         builder.UseSetting("ConnectionStrings:BillingDb", _postgres.GetDbConnectionString("billing"));
         builder.UseSetting("ConnectionStrings:ServiceBus", _postgres.GetDbConnectionString("service_bus"));
 
@@ -73,10 +68,14 @@ public class IntegrationTestFixture : WebApplicationFactory<Program>, IAsyncLife
 
         builder.ConfigureServices((ctx, services) =>
         {
-            RemoveHostedServices(services);
+            services.RemoveServices<IHostedService>();
+            services.RemoveServices<ILoggerFactory>();
+
+            services.AddLogging(logging => logging
+                .ClearProviders()
+                .AddSerilog(CreateTestLogger(nameof(Billing))));
 
             services.AddWolverineWithDefaults(ctx.Configuration, opt => opt.ApplicationAssembly = typeof(Program).Assembly);
-            services.AddTransient<IMessageBus>(sp => new MessageBus(sp.GetRequiredService<IWolverineRuntime>()));
         });
 
         builder.Configure(app =>
@@ -86,18 +85,11 @@ public class IntegrationTestFixture : WebApplicationFactory<Program>, IAsyncLife
         });
     }
 
-    private static LoggerConfiguration GetLoggerConfig(string logNamespace) =>
+    private Logger CreateTestLogger(string logNamespace) =>
         new LoggerConfiguration()
-            .WriteTo.Sink(new XUnitSink())
+            .WriteTo.Sink(new XUnitSink(() => TestOutput))
             .MinimumLevel.Warning()
-            .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
-            .MinimumLevel.Override(logNamespace, LogEventLevel.Debug);
-
-    private static void RemoveHostedServices(IServiceCollection services)
-    {
-        var hostedServices = services.Where(d => d.ServiceType == typeof(IHostedService)).ToList();
-
-        foreach (var hostedService in hostedServices)
-            services.Remove(hostedService);
-    }
+            .MinimumLevel.Override(nameof(Microsoft), LogEventLevel.Warning)
+            .MinimumLevel.Override(logNamespace, LogEventLevel.Verbose)
+            .CreateLogger();
 }

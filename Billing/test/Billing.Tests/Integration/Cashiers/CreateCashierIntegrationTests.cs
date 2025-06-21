@@ -5,7 +5,7 @@ using Billing.Tests.Integration._Internal;
 
 namespace Billing.Tests.Integration.Cashiers;
 
-public class CreateCashierIntegrationTests(IntegrationTestFixture fixture) : IntegrationTest
+public class CreateCashierIntegrationTests(IntegrationTestFixture fixture) : IntegrationTest(fixture)
 {
     private readonly CashiersService.CashiersServiceClient _client = new(fixture.GrpcChannel);
 

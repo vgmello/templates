@@ -29,8 +29,7 @@ public static class LoggingSetupExtensions
     public static IHostApplicationBuilder AddLogging(this IHostApplicationBuilder builder)
     {
         builder.Logging.ClearProviders();
-        builder.Services.AddSerilog((services, logger)
-            => ConfigureLogger(logger, builder.Configuration, services), writeToProviders: true);
+        builder.Services.AddSerilog((services, loggerConfig) => ConfigureLogger(loggerConfig, builder.Configuration, services));
 
         return builder;
     }

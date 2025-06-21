@@ -5,6 +5,10 @@ namespace Billing.Tests.Integration._Internal;
 [Collection(nameof(IntegrationTest))]
 public class IntegrationTest
 {
+    protected IntegrationTest(IntegrationTestFixture fixture)
+    {
+        fixture.TestOutput = TestContext.Current.TestOutputHelper;
+    }
 }
 
 [CollectionDefinition(nameof(IntegrationTest))]

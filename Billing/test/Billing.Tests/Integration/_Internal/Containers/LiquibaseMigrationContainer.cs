@@ -10,9 +10,9 @@ public class LiquibaseMigrationContainer : IAsyncDisposable
 {
     private readonly IContainer _liquibaseContainer;
 
-    public LiquibaseMigrationContainer(string dbServer, INetwork containerNetwork)
+    public LiquibaseMigrationContainer(string dbContainerName, INetwork containerNetwork)
     {
-        var dbServerSanitized = dbServer.Trim('/');
+        var dbServerSanitized = dbContainerName.Trim('/');
         var baseDirectory = Path.GetFullPath("../../../../../");
 
         _liquibaseContainer = new ContainerBuilder()
