@@ -15,7 +15,7 @@ public static class GetCashierQueryHandler
         await using var connection = await dataSource.OpenConnectionAsync(cancellationToken);
 
         const string sql = @"
-            SELECT cashier_id, name, email, created_date_utc, updated_date_utc, version
+            SELECT cashier_id AS CashierId, name AS Name, email AS Email, created_date_utc, updated_date_utc, version
             FROM billing.cashiers
             WHERE cashier_id = @CashierId";
 

@@ -22,8 +22,9 @@ public class CreateCashierIntegrationTests(IntegrationTestFixture fixture) : Int
         // Act
         var response = await _client.CreateCashierAsync(request, cancellationToken: TestContext.Current.CancellationToken);
 
-        response.Name.ShouldBe("Integration Test Cashier");
-        response.Email.ShouldBe("integration@test.com");
+        // Assert
+        response.Name.ShouldBe(request.Name);
+        response.Email.ShouldBe(request.Email);
         Guid.Parse(response.CashierId).ShouldNotBe(Guid.Empty);
     }
 }

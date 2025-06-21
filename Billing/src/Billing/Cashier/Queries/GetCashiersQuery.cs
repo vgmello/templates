@@ -25,9 +25,8 @@ public static class GetCashiersQueryHandler
         await using var connection = await dataSource.OpenConnectionAsync(cancellationToken);
 
         var sql = @"
-            SELECT cashier_id, name
+            SELECT cashier_id AS CashierId, name AS Name, email AS Email
             FROM billing.cashiers
-            ORDER BY created_date_utc DESC
             LIMIT @Limit OFFSET @Offset";
 
         var cashiers = await connection.QueryAsync<GetCashiersQuery.Result>(
