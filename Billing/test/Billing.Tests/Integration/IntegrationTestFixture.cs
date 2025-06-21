@@ -9,12 +9,14 @@ using Operations.ServiceDefaults.Api;
 using Operations.ServiceDefaults.Messaging.Wolverine;
 using Serilog;
 using Serilog.Events;
+using System.Diagnostics.CodeAnalysis;
 using Testcontainers.PostgreSql;
 using Wolverine;
 using Wolverine.Runtime;
 
 namespace Billing.Tests.Integration;
 
+[SuppressMessage("ReSharper", "ClassNeverInstantiated.Global")]
 public class IntegrationTestFixture : WebApplicationFactory<Program>, IAsyncLifetime
 {
     private readonly INetwork _network = new NetworkBuilder().Build();
@@ -50,7 +52,11 @@ public class IntegrationTestFixture : WebApplicationFactory<Program>, IAsyncLife
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
-        builder.ConfigureLogging(logging => logging.ClearProviders());
+        builder.ConfigureLogging(logging =>
+        {
+            logging.ClearProviders();
+            logging.AddSerilog(GetLoggerConfig(nameof(Billing)).CreateLogger());
+        });
 
         builder.UseSetting("ConnectionStrings:BillingDb", _postgres.GetDbConnectionString("billing"));
         builder.UseSetting("ConnectionStrings:ServiceBus", _postgres.GetDbConnectionString("service_bus"));
@@ -59,9 +65,6 @@ public class IntegrationTestFixture : WebApplicationFactory<Program>, IAsyncLife
 
         builder.ConfigureServices((ctx, services) =>
         {
-            var logger = GetLoggerConfig(nameof(Billing)).CreateLogger();
-            services.AddLogging(logging => logging.AddSerilog(logger));
-
             RemoveHostedServices(services);
 
             services.AddWolverineWithDefaults(ctx.Configuration, opt => opt.ApplicationAssembly = typeof(Program).Assembly);

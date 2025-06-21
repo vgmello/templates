@@ -9,6 +9,7 @@ using Microsoft.Extensions.Hosting;
 using Operations.ServiceDefaults.Logging;
 using Operations.ServiceDefaults.Messaging.Wolverine;
 using Operations.ServiceDefaults.OpenTelemetry;
+using Serilog;
 using System.Reflection;
 
 namespace Operations.ServiceDefaults;
@@ -30,11 +31,7 @@ public static class Extensions
         builder.AddLogging();
         builder.AddOpenTelemetry();
         builder.AddWolverine();
-
-        builder.Services.AddValidatorsFromAssembly(EntryAssembly);
-
-        foreach (var assembly in DomainAssemblyAttribute.GetDomainAssemblies())
-            builder.Services.AddValidatorsFromAssembly(assembly);
+        builder.AddValidators();
 
         builder.Services.AddHealthChecks();
         builder.Services.AddServiceDiscovery();
@@ -48,6 +45,14 @@ public static class Extensions
         return builder;
     }
 
+    public static void AddValidators(this WebApplicationBuilder builder)
+    {
+        builder.Services.AddValidatorsFromAssembly(EntryAssembly);
+
+        foreach (var assembly in DomainAssemblyAttribute.GetDomainAssemblies())
+            builder.Services.AddValidatorsFromAssembly(assembly);
+    }
+
     private static Assembly GetEntryAssembly()
     {
         return Assembly.GetEntryAssembly() ??
@@ -55,14 +60,27 @@ public static class Extensions
                    "Unable to identify entry assembly. Please provide an assembly via the Extensions.AssemblyMarker property.");
     }
 
-    public static Task RunAsync(this WebApplication app, string[] args)
+    public static async Task RunAsync(this WebApplication app, string[] args)
     {
-        if (args.Length > 0 && WolverineCommands.Contains(args[0]))
+        app.UseInitializationLogger();
+        
+        try
         {
-            return app.RunJasperFxCommands(args);
-        }
+            if (args.Length > 0 && WolverineCommands.Contains(args[0]))
+            {
+                await app.RunJasperFxCommands(args);
+            }
 
-        return app.RunAsync();
+            await app.RunAsync();
+        }
+        catch (Exception e)
+        {
+            Log.Fatal(e, "Application terminated unexpectedly");
+        }
+        finally
+        {
+            await Log.CloseAndFlushAsync();
+        }
     }
 
     private static readonly HashSet<string> WolverineCommands =

@@ -17,10 +17,6 @@ public class CreateCashierIntegrationTests(IntegrationTestFixture fixture) : Int
 
         // Act
         var messageBus = fixture.Services.GetRequiredService<IMessageBus>();
-        var logger = fixture.Services.GetRequiredService<ILogger<CreateCashierIntegrationTests>>();
-
-        logger.LogInformation("Starting CreateCashier command handling...");
-
         var handlerResult = await CreateCashierCommandHandler.Handle(command, messageBus, CancellationToken.None);
         var result = handlerResult.Item1;
         var integrationEvent = handlerResult.Item2;
