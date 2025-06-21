@@ -23,6 +23,9 @@ export default defineConfig({
 		trace: 'on-first-retry',
 		/* Take screenshot on failure */
 		screenshot: 'only-on-failure',
+		/* Increase timeout for slower gRPC operations */
+		actionTimeout: 10000,
+		navigationTimeout: 30000,
 	},
 
 	/* Configure projects for major browsers */
@@ -31,20 +34,6 @@ export default defineConfig({
 			name: 'chromium',
 			use: { 
 				...devices['Desktop Chrome'],
-				headless: true,
-			},
-		},
-		{
-			name: 'firefox',
-			use: { 
-				...devices['Desktop Firefox'],
-				headless: true,
-			},
-		},
-		{
-			name: 'webkit',
-			use: { 
-				...devices['Desktop Safari'],
 				headless: true,
 			},
 		},

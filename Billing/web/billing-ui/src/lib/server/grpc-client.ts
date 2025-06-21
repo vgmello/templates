@@ -6,8 +6,8 @@ import type { Cashier, CreateCashierRequest, UpdateCashierRequest } from '../../
 
 // Configuration
 const GRPC_HOST = env.GRPC_HOST || 'localhost';
-const GRPC_PORT = env.GRPC_PORT || '5061';
-const PROTO_PATH = env.PROTO_PATH || './protos/billing.proto';
+const GRPC_PORT = env.GRPC_PORT || '4061';
+const PROTO_PATH = env.PROTO_PATH || './protos/cashiers.proto';
 
 // gRPC client interface
 interface GrpcCallback<T = any> {
@@ -135,7 +135,8 @@ export const cashierGrpcService = {
 		const client = await initializeClient();
 		const request = {
 			cashierId,
-			...cashierData
+			name: cashierData.name,
+			email: cashierData.email
 		};
 		return await promisifyCall<Cashier>(client, 'UpdateCashier', request);
 	},

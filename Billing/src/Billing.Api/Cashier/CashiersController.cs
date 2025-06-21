@@ -32,6 +32,29 @@ public class CashiersController(IMessageBus bus) : ControllerBase
             errors => BadRequest(new { Errors = errors }));
     }
 
+    [HttpPut("{id:guid}")]
+    public async Task<ActionResult<Contracts.Cashier.Models.Cashier>> UpdateCashier([FromRoute] Guid id, UpdateCashierCommand command)
+    {
+        // Ensure the command has the correct cashier ID from the route
+        var commandWithId = new UpdateCashierCommand(id, command.Name, command.Email);
+        var commandResult = await bus.InvokeCommandAsync(commandWithId);
+
+        return commandResult.Match<ActionResult<Contracts.Cashier.Models.Cashier>>(
+            cashier => Ok(cashier),
+            errors => BadRequest(new { Errors = errors }));
+    }
+
+    [HttpDelete("{id:guid}")]
+    public async Task<ActionResult> DeleteCashier([FromRoute] Guid id)
+    {
+        var command = new DeleteCashierCommand(id);
+        var commandResult = await bus.InvokeCommandAsync(command);
+
+        return commandResult.Match<ActionResult>(
+            success => NoContent(),
+            errors => BadRequest(new { Errors = errors }));
+    }
+
     [HttpGet("fake-error")]
     public Task<ActionResult<Contracts.Cashier.Models.Cashier>> FakeError() => throw new DivideByZeroException("Fake error");
 }
