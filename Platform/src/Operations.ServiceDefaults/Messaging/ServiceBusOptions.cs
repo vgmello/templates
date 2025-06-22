@@ -17,7 +17,7 @@ public class ServiceBusOptions
 
     public string PublicServiceName { get; } = GetServiceName();
 
-    public Uri ServiceUrn { get; private set; } = ServiceUrnError;
+    public Uri ServiceUrn { get; private set; } = null!;
 
     private static string GetServiceName() => Extensions.EntryAssembly.GetName().Name?.Replace('.', '_') ?? string.Empty;
 
@@ -36,7 +36,4 @@ public class ServiceBusOptions
             }
         }
     }
-
-    private static Uri ServiceUrnError =>
-        throw new InvalidOperationException($"{nameof(ServiceBusOptions)}.{nameof(ServiceUrn)} must be set.");
 }
