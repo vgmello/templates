@@ -23,9 +23,7 @@ public static partial class CreateCashierCommandHandler
     [DbCommand(sp: "billing.create_cashier", nonQuery: true)]
     public partial record InsertCashierCommand(Guid CashierId, string Name, string? Email) : ICommand<int>;
 
-    public static async Task<(Result<CashierModel>, CashierCreatedEvent)> Handle(
-        CreateCashierCommand command,
-        IMessageBus messaging,
+    public static async Task<(Result<CashierModel>, CashierCreatedEvent)> Handle(CreateCashierCommand command, IMessageBus messaging,
         CancellationToken cancellationToken)
     {
         if (command.Name.Contains("error"))
@@ -33,7 +31,7 @@ public static partial class CreateCashierCommandHandler
             throw new DivideByZeroException("Forced test exception to simulate error scenarios");
         }
 
-        var cashierId = Guid.NewGuid();
+        var cashierId = Guid.CreateVersion7();
 
         var insertCommand = new InsertCashierCommand(cashierId, command.Name, command.Email);
 
