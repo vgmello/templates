@@ -6,7 +6,7 @@ using Serilog.Formatting.Display;
 
 namespace Billing.Tests.Integration._Internal;
 
-public class XUnitSink : ILogEventSink
+public class XUnitSink(Func<ITestOutputHelper?> testOutputProvider) : ILogEventSink
 {
     private readonly MessageTemplateTextFormatter _messageFormatter = new("[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj} {Exception}");
 
@@ -18,7 +18,7 @@ public class XUnitSink : ILogEventSink
         _messageFormatter.Format(logEvent, stringWriter);
         var logMsg = stringWriter.ToString();
 
-        var output = TestContext.Current.TestOutputHelper;
+        var output = testOutputProvider();
 
         if (output is null)
         {
