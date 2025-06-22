@@ -29,6 +29,7 @@
     <Project Path="Billing\test\Billing.Tests\Billing.Tests.csproj" Type="Classic C#" />
   </Folder>
   <Folder Name="/Platform/">
+    <Project Path="Platform\src\Operations.AppHost\Operations.AppHost.csproj" Type="Classic C#" />
     <Project Path="Platform\src\Operations.Extensions.Abstractions\Operations.Extensions.Abstractions.csproj" Type="Classic C#" />
     <Project Path="Platform\src\Operations.Extensions.SourceGenerators\Operations.Extensions.SourceGenerators.csproj" Type="Classic C#" />
     <Project Path="Platform\src\Operations.Extensions\Operations.Extensions.csproj" Type="Classic C#" />
