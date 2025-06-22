@@ -7,11 +7,18 @@
 
     <ItemGroup>
       <PackageReference Include="Aspire.Npgsql" />
+      <PackageReference Include="WolverineFx" />
+      <PackageReference Include="WolverineFx.Kafka" />
+      <PackageReference Include="WolverineFx.Postgresql" />
+      <PackageReference Include="CloudNative.CloudEvents" />
+      <PackageReference Include="CloudNative.CloudEvents.SystemTextJson" />
     </ItemGroup>
 
     <ItemGroup>
       <ProjectReference Include="..\..\..\Platform\src\Operations.ServiceDefaults\Operations.ServiceDefaults.csproj" />
       <ProjectReference Include="..\Billing\Billing.csproj" />
+      <ProjectReference Include="..\Billing.Contracts\Billing.Contracts.csproj" />
+      <ProjectReference Include="..\..\..\Accounting\src\Accounting.Contracts\Accounting.Contracts.csproj" />
     </ItemGroup>
 
 </Project>

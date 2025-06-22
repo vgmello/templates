@@ -45,6 +45,8 @@
         <PackageReference Include="WolverineFx"/>
         <PackageReference Include="WolverineFx.Kafka"/>
         <PackageReference Include="WolverineFx.Postgresql"/>
+        <PackageReference Include="CloudNative.CloudEvents"/>
+        <PackageReference Include="CloudNative.CloudEvents.SystemTextJson"/>
     </ItemGroup>
 
     <ItemGroup>

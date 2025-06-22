@@ -8,6 +8,11 @@
     <ItemGroup>
         <PackageReference Include="Grpc.AspNetCore"/>
         <PackageReference Include="Riok.Mapperly" />
+        <PackageReference Include="WolverineFx" />
+        <PackageReference Include="WolverineFx.Kafka" />
+        <PackageReference Include="WolverineFx.Postgresql" />
+        <PackageReference Include="CloudNative.CloudEvents" />
+        <PackageReference Include="CloudNative.CloudEvents.SystemTextJson" />
     </ItemGroup>
 
     <ItemGroup>
