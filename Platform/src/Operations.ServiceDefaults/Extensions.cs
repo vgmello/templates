@@ -31,6 +31,7 @@ public static class Extensions
         builder.AddLogging();
         builder.AddOpenTelemetry();
         builder.AddWolverine();
+        builder.AddMessaging();
         builder.AddValidators();
 
         builder.Services.AddHealthChecks();
