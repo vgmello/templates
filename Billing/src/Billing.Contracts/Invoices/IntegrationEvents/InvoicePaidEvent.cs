@@ -2,6 +2,4 @@
 
 namespace Billing.Contracts.Invoices.IntegrationEvents;
 
-public class InvoicePaidEvent
-{
-}
+public record InvoicePaidEvent(Guid InvoiceId, decimal AmountPaid, DateTime PaymentDate);

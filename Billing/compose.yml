@@ -1,0 +1,76 @@
+services:
+  billing-db:
+    image: postgres:17-alpine
+    container_name: billing-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - billing_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  billing-db-migrations:
+    image: liquibase/liquibase:4.32-alpine
+    container_name: billing-db-migrations
+    volumes:
+      - ./infra/Billing.Database:/app
+    depends_on:
+      billing-db:
+        condition: service_healthy
+    environment:
+      - LIQUIBASE_COMMAND_USERNAME=postgres
+      - LIQUIBASE_COMMAND_PASSWORD=postgres
+    working_dir: /app
+    entrypoint: /bin/sh
+    command:
+      - -c
+      - |
+        echo 'Running database migrations...'
+
+        # Step 1: Setup databases
+        liquibase update --defaults-file liquibase.setup.properties --url=jdbc:postgresql://billing-db:5432/postgres
+
+        # Step 2: Service bus schema
+        liquibase update --defaults-file liquibase.service_bus.properties --url=jdbc:postgresql://billing-db:5432/service_bus
+
+        # Step 3: Domain schema
+        liquibase update --url=jdbc:postgresql://billing-db:5432/billing
+
+        echo 'Database migrations completed successfully!'
+
+  billing-api:
+    build:
+      context: .
+      dockerfile: ./src/Billing.Api/Dockerfile
+    container_name: billing-api
+    ports:
+      - "5061:5061"
+      - "4061:4061"
+    depends_on:
+      billing-db:
+        condition: service_healthy
+      billing-db-migrations:
+        condition: service_completed_successfully
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__BillingDb=Host=billing-db;Port=5432;Database=billing;Username=postgres;Password=postgres
+      - ConnectionStrings__ServiceBus=Host=billing-db;Port=5432;Database=service_bus;Username=postgres;Password=postgres
+      - Kestrel__Endpoints__Http__Protocols=Http1
+      - Kestrel__Endpoints__Http__Url=http://+:5061
+      - Kestrel__Endpoints__Grpc__Protocols=Http2
+      - Kestrel__Endpoints__Grpc__Url=http://+:4061
+    healthcheck:
+      test: [ "CMD-SHELL", "curl -f http://localhost:5061/health/internal || exit 1" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+volumes:
+  billing_postgres_data:

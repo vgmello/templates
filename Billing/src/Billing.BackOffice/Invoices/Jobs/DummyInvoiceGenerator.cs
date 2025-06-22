@@ -2,7 +2,7 @@
 
 using Billing.Contracts.Invoices.IntegrationEvents;
 
-namespace Billing.BackOffice.Operations.Jobs;
+namespace Billing.BackOffice.Invoices.Jobs;
 
 public class DummyInvoiceGenerator(IMessageBus bus) : BackgroundService
 {
@@ -10,7 +10,7 @@ public class DummyInvoiceGenerator(IMessageBus bus) : BackgroundService
     {
         while (!stoppingToken.IsCancellationRequested)
         {
-            await bus.PublishAsync(new InvoicePaidEvent());
+            await bus.PublishAsync(new InvoicePaidEvent(Guid.CreateVersion7(), Random.Shared.NextInt64(), DateTime.UtcNow));
 
             await Task.Delay(TimeSpan.FromMinutes(1), stoppingToken);
         }

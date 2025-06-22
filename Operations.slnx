@@ -20,6 +20,7 @@
     <Project Path="Billing\src\Billing.BackOffice\Billing.BackOffice.csproj" Type="Classic C#" />
     <Project Path="Billing\src\Billing.Contracts\Billing.Contracts.csproj" Type="Classic C#" />
     <Project Path="Billing\src\Billing\Billing.csproj" Type="Classic C#" />
+    <File Path="Billing\compose.yml" />
   </Folder>
   <Folder Name="/Billing/Infra/">
     <Project Path="Billing\infra\Billing.Database\Billing.Database.csproj" Type="Classic C#" />
@@ -39,7 +40,6 @@
     <Project Path="Platform\test\Operations.Extensions.Tests\Operations.Extensions.Tests.csproj" Type="Classic C#" />
   </Folder>
   <Folder Name="/Solution Items/">
-    <File Path="compose.yaml" />
     <File Path="Directory.Build.props" />
     <File Path="Operations.ruleset" />
     <File Path=".dockerignore" />

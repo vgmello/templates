@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+option csharp_namespace = "Billing.Cashier.Grpc.Models";
+
+package billing.cashiers;
+
+message Cashier {
+  string cashierId = 1;
+  string name = 2;
+  string email = 3;
+}

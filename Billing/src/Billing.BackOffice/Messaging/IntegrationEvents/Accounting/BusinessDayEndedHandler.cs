@@ -10,12 +10,12 @@ public class BusinessDayEndedHandler(ILogger<BusinessDayEndedHandler> logger, IM
 {
     public async Task Handle(BusinessDayEnded businessDayEnded)
     {
-        logger.LogInformation("Processing business day ended for {BusinessDate} in {Market}/{Region}", 
+        logger.LogInformation("Processing business day ended for {BusinessDate} in {Market}/{Region}",
             businessDayEnded.BusinessDate, businessDayEnded.Market, businessDayEnded.Region);
 
-        var invoiceId = Guid.NewGuid();
-        var customerId = Guid.NewGuid();
-        
+        var invoiceId = Guid.CreateVersion7();
+        var customerId = Guid.CreateVersion7();
+
         await messageBus.PublishAsync(new InvoiceGenerated
         {
             InvoiceId = invoiceId,
@@ -30,7 +30,7 @@ public class BusinessDayEndedHandler(ILogger<BusinessDayEndedHandler> logger, IM
             FinalTotalAmount = 500.75m
         });
 
-        logger.LogInformation("Generated and finalized invoice {InvoiceId} for business day {BusinessDate}", 
+        logger.LogInformation("Generated and finalized invoice {InvoiceId} for business day {BusinessDate}",
             invoiceId, businessDayEnded.BusinessDate);
     }
 }

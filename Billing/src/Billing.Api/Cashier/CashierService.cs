@@ -1,6 +1,7 @@
 // Copyright (c) ABCDEG. All rights reserved.
 
 using Billing.Cashier.Grpc;
+using Google.Protobuf.WellKnownTypes;
 using CashierModel = Billing.Cashier.Grpc.Models.Cashier;
 
 namespace Billing.Api.Cashier;
@@ -34,6 +35,26 @@ public class CashierService(IMessageBus bus) : CashiersService.CashiersServiceBa
 
         return result.Match(
             cashier => cashier.ToGrpc(),
+            errors => throw new RpcException(new Status(StatusCode.InvalidArgument, string.Join("; ", errors))));
+    }
+
+    public override async Task<CashierModel> UpdateCashier(UpdateCashierRequest request, ServerCallContext context)
+    {
+        var command = new UpdateCashierCommand(Guid.Parse(request.CashierId), request.Name, request.Email);
+        var result = await bus.InvokeCommandAsync(command, context.CancellationToken);
+
+        return result.Match(
+            cashier => cashier.ToGrpc(),
+            errors => throw new RpcException(new Status(StatusCode.InvalidArgument, string.Join("; ", errors))));
+    }
+
+    public override async Task<Empty> DeleteCashier(DeleteCashierRequest request, ServerCallContext context)
+    {
+        var command = new DeleteCashierCommand(Guid.Parse(request.CashierId));
+        var result = await bus.InvokeCommandAsync(command, context.CancellationToken);
+
+        return result.Match(
+            _ => new Empty(),
             errors => throw new RpcException(new Status(StatusCode.InvalidArgument, string.Join("; ", errors))));
     }
 }

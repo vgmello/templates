@@ -14,7 +14,7 @@ public class GetCashiersIntegrationTests(IntegrationTestFixture fixture) : Integ
     [Fact]
     public async Task GetCashiers_ShouldReturnCashiers()
     {
-        var dataSource = fixture.Services.GetRequiredService<DbDataSource>();
+        var dataSource = Fixture.Services.GetRequiredService<DbDataSource>();
         var connection = dataSource.CreateConnection();
         await connection.ExecuteAsync("TRUNCATE TABLE billing.cashiers;");
 

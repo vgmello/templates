@@ -12,7 +12,7 @@ public class LedgerServiceTests(AccountingApiWebAppFactory factory) : IClassFixt
     public async Task GetLedger_ReturnsLedger()
     {
         // Arrange
-        var expectedId = Guid.NewGuid();
+        var expectedId = Guid.CreateVersion7();
         var client = CreateClient(factory);
 
         // Act
