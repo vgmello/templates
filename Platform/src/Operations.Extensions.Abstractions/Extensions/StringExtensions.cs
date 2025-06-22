@@ -4,7 +4,11 @@ namespace Operations.Extensions.Abstractions.Extensions;
 
 public static class StringExtensions
 {
-    public static string ToSnakeCase(this string input)
+    public static string ToSnakeCase(this string input) => ToLowerCaseWithSeparator(input, '_');
+
+    public static string ToKebabCase(this string input) => ToLowerCaseWithSeparator(input, '-');
+
+    public static string ToLowerCaseWithSeparator(this string input, char separator)
     {
         if (string.IsNullOrEmpty(input))
             return input;
@@ -38,7 +42,7 @@ public static class StringExtensions
             var prependUnderscore = false;
 
             // Ensure the last char added to result was not already an underscore
-            if (result[resultIndex - 1] != '_')
+            if (result[resultIndex - 1] != separator)
             {
                 var prevChar = sourceSpan[i - 1];
 
@@ -55,7 +59,7 @@ public static class StringExtensions
 
                     // If current char is 'N' in "APIName", prevIn is 'I', nextIn is 'a'.
                     // This means 'N' starts a new word segment.
-                    if (char.IsLower(nextChar) && nextChar != '_')
+                    if (char.IsLower(nextChar) && nextChar != separator)
                     {
                         prependUnderscore = true;
                     }
@@ -64,7 +68,7 @@ public static class StringExtensions
 
             if (prependUnderscore && resultIndex < result.Length)
             {
-                result[resultIndex++] = '_';
+                result[resultIndex++] = separator;
             }
 
             // Add the lowercase version of the current uppercase character

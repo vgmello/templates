@@ -1,6 +1,6 @@
 // Copyright (c) ABCDEG. All rights reserved.
 
-namespace Billing.Tests.Integration;
+namespace Billing.Tests.Integration._Internal.Extensions;
 
 public static class ServiceCollectionExtensions
 {

@@ -1,6 +1,6 @@
 // Copyright (c) ABCDEG. All rights reserved.
 
-namespace Accounting.BackOffice.Orleans.Grains;
+namespace Accounting.BackOffice.Orleans.Ledgers.Grains;
 
 public sealed class LedgerGrain([PersistentState("ledger")] IPersistentState<LedgerState> state) : Grain, ILedgerGrain
 {

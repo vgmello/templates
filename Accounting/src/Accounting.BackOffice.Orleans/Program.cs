@@ -1,7 +1,7 @@
 // Copyright (c) ABCDEG. All rights reserved.
 
-using Accounting.BackOffice.Orleans.Grains;
 using Accounting.BackOffice.Orleans.Infrastructure.Extensions;
+using Accounting.BackOffice.Orleans.Ledgers.Grains;
 using Operations.ServiceDefaults;
 using Operations.ServiceDefaults.HealthChecks;
 

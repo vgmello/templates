@@ -2,7 +2,7 @@
 
 using DotNet.Testcontainers.Containers;
 
-namespace Billing.Tests.Integration._Internal;
+namespace Billing.Tests.Integration._Internal.Extensions;
 
 public static class DatabaseContainerExtensions
 {

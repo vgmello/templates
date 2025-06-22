@@ -2,6 +2,7 @@
 
 using Accounting.Tests.Integration._Internal;
 using Accounting.Tests.Integration._Internal.Containers;
+using Accounting.Tests.Integration._Internal.Extensions;
 using DotNet.Testcontainers.Builders;
 using DotNet.Testcontainers.Networks;
 using Microsoft.AspNetCore.Mvc.Testing;

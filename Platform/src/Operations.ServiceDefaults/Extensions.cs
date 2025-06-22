@@ -63,7 +63,7 @@ public static class Extensions
     public static async Task RunAsync(this WebApplication app, string[] args)
     {
         app.UseInitializationLogger();
-        
+
         try
         {
             if (args.Length > 0 && WolverineCommands.Contains(args[0]))

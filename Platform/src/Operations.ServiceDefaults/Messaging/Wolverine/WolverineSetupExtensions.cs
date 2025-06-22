@@ -4,9 +4,11 @@ using JasperFx.Resources;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Operations.ServiceDefaults.Messaging.CloudEvents;
 using Operations.ServiceDefaults.Messaging.Middlewares;
 using System.Reflection;
 using Wolverine;
+using Wolverine.Kafka;
 using Wolverine.Postgresql;
 using Wolverine.Runtime;
 
@@ -63,6 +65,13 @@ public static class WolverineSetupExtensions
 
             opts.Policies.AddMiddleware<RequestPerformanceMiddleware>();
             opts.Policies.AddMiddleware(typeof(OpenTelemetryInstrumentationMiddleware));
+            opts.Policies.AddMiddleware<CloudEventMiddleware>();
+
+            var kafkaConnectionString = configuration.GetConnectionString("Messaging");
+            if (!string.IsNullOrEmpty(kafkaConnectionString))
+            {
+                opts.UseKafka(kafkaConnectionString);
+            }
 
             configure?.Invoke(opts);
 
@@ -126,4 +135,5 @@ public static class WolverineSetupExtensions
 
         return options;
     }
+
 }

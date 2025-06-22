@@ -7,7 +7,7 @@
 
     <ItemGroup>
         <PackageReference Include="Grpc.AspNetCore"/>
-        <PackageReference Include="Riok.Mapperly" />
+        <PackageReference Include="Riok.Mapperly"/>
     </ItemGroup>
 
     <ItemGroup>
@@ -25,9 +25,9 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Compile Update="Program.Public.cs">
-        <DependentUpon>Program.cs</DependentUpon>
-      </Compile>
+        <Compile Update="Program.Public.cs">
+            <DependentUpon>Program.cs</DependentUpon>
+        </Compile>
     </ItemGroup>
 
 </Project>

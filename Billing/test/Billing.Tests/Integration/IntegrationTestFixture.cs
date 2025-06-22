@@ -2,6 +2,7 @@
 
 using Billing.Tests.Integration._Internal;
 using Billing.Tests.Integration._Internal.Containers;
+using Billing.Tests.Integration._Internal.Extensions;
 using DotNet.Testcontainers.Builders;
 using DotNet.Testcontainers.Networks;
 using Grpc.Net.Client;

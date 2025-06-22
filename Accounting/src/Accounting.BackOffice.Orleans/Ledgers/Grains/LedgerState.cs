@@ -1,6 +1,6 @@
 // Copyright (c) ABCDEG. All rights reserved.
 
-namespace Accounting.BackOffice.Orleans.Grains;
+namespace Accounting.BackOffice.Orleans.Ledgers.Grains;
 
 [GenerateSerializer]
 public sealed class LedgerState

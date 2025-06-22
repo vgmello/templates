@@ -4,7 +4,6 @@ using Billing.Cashier.Grpc;
 using Billing.Tests.Integration._Internal;
 using Dapper;
 using System.Data.Common;
-using System.Transactions;
 
 namespace Billing.Tests.Integration.Cashiers;
 

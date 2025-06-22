@@ -3,6 +3,7 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Operations.Extensions.Abstractions.Extensions;
 using System.ComponentModel.DataAnnotations;
 
 namespace Operations.ServiceDefaults.Messaging;
@@ -14,12 +15,18 @@ public class ServiceBusOptions
     [Required]
     public string ServiceName { get; init; } = GetServiceName();
 
+    public string PublicServiceName { get; } = GetServiceName();
+
+    public Uri ServiceUrn { get; private set; } = ServiceUrnError;
+
     private static string GetServiceName() => Extensions.EntryAssembly.GetName().Name?.Replace('.', '_') ?? string.Empty;
 
     public class Configurator(ILogger<Configurator> logger, IConfiguration config) : IPostConfigureOptions<ServiceBusOptions>
     {
         public void PostConfigure(string? name, ServiceBusOptions options)
         {
+            options.ServiceUrn = new Uri($"urn:{options.PublicServiceName.ToKebabCase()}");
+
             var connectionString = config.GetConnectionString(SectionName);
 
             if (string.IsNullOrWhiteSpace(connectionString))
@@ -29,4 +36,7 @@ public class ServiceBusOptions
             }
         }
     }
+
+    private static Uri ServiceUrnError =>
+        throw new InvalidOperationException($"{nameof(ServiceBusOptions)}.{nameof(ServiceUrn)} must be set.");
 }

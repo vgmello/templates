@@ -8,7 +8,7 @@
     <ItemGroup>
         <PackageReference Include="Grpc.AspNetCore"/>
         <PackageReference Include="Aspire.Npgsql"/>
-        <PackageReference Include="Riok.Mapperly" />
+        <PackageReference Include="Riok.Mapperly"/>
     </ItemGroup>
 
     <ItemGroup>

@@ -1,6 +1,7 @@
 // Copyright (c) ABCDEG. All rights reserved.
 
 using Accounting.Contracts.Operations.IntegrationEvents;
+using Accounting.Ledgers.Events;
 
 namespace Accounting.BackOffice.Operations.Jobs;
 
@@ -10,8 +11,23 @@ public class EndBusinessDayJob(IMessageBus bus) : BackgroundService
     {
         while (!stoppingToken.IsCancellationRequested)
         {
-            await bus.PublishAsync(new BusinessDayEndedEvent());
-            await Task.Delay(TimeSpan.FromSeconds(1), stoppingToken);
+            var businessDate = DateOnly.FromDateTime(DateTime.UtcNow);
+            
+            await bus.PublishAsync(new LedgerBalanceCreated
+            {
+                LedgerId = Guid.NewGuid(),
+                FinalBalance = 1000.50m,
+                AsOfDate = businessDate
+            });
+
+            await bus.PublishAsync(new BusinessDayEnded
+            {
+                BusinessDate = businessDate,
+                Market = "NYSE",
+                Region = "North America"
+            });
+
+            await Task.Delay(TimeSpan.FromMinutes(1), stoppingToken);
         }
     }
 }
