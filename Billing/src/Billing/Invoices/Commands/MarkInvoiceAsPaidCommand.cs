@@ -50,7 +50,13 @@ public static partial class MarkInvoiceAsPaidCommandHandler
             Version = 1 // This should be incremented
         };
 
-        var paidEvent = new InvoicePaidEvent(command.InvoiceId, command.AmountPaid, paymentDate);
+        var paidEvent = new InvoicePaidEvent
+        {
+            TenantId = "some tenant-id",
+            InvoiceId = command.InvoiceId,
+            AmountPaid = command.AmountPaid,
+            PaymentDate = paymentDate
+        };
 
         return (result, paidEvent);
     }

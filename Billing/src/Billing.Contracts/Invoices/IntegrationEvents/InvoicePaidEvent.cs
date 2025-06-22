@@ -2,4 +2,11 @@
 
 namespace Billing.Contracts.Invoices.IntegrationEvents;
 
-public record InvoicePaidEvent(Guid InvoiceId, decimal AmountPaid, DateTime PaymentDate);
+public record InvoicePaidEvent
+{
+    public string TenantId { get; set; } = string.Empty;
+    public Guid InvoiceId { get; set; }
+    public Guid CustomerId { get; set; }
+    public decimal AmountPaid { get; set; }
+    public DateTime PaymentDate { get; set; }
+}

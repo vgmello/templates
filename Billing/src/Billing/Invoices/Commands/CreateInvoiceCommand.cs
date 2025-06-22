@@ -1,7 +1,6 @@
 // Copyright (c) ABCDEG. All rights reserved.
 
 using Billing.Contracts.Invoices.IntegrationEvents;
-using FluentValidation.Results;
 
 namespace Billing.Invoices.Commands;
 

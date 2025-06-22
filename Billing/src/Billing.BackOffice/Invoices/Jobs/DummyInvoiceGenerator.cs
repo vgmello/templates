@@ -10,7 +10,13 @@ public class DummyInvoiceGenerator(IMessageBus bus) : BackgroundService
     {
         while (!stoppingToken.IsCancellationRequested)
         {
-            await bus.PublishAsync(new InvoicePaidEvent(Guid.CreateVersion7(), Random.Shared.NextInt64(), DateTime.UtcNow));
+            await bus.PublishAsync(new InvoicePaidEvent
+            {
+                InvoiceId = Guid.NewGuid(),
+                AmountPaid = Random.Shared.Next(1, 100),
+                CustomerId = Guid.NewGuid(),
+                PaymentDate = DateTime.UtcNow,
+            });
 
             await Task.Delay(TimeSpan.FromMinutes(1), stoppingToken);
         }

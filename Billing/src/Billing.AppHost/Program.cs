@@ -20,7 +20,7 @@ var database = pgsql.AddDatabase(name: "BillingDb", databaseName: "billing");
 var serviceBusDb = pgsql.AddDatabase(name: "ServiceBus", databaseName: "service_bus");
 var liquibase = builder.AddLiquibaseMigrations(pgsql, dbPassword);
 
-var kafka = builder.AddKafka("Messaging");
+var kafka = builder.AddKafka("Messaging").WithKafkaUI();
 
 var storage = builder.AddAzureStorage("billing-azure-storage").RunAsEmulator();
 var clustering = storage.AddTables("OrleansClustering");

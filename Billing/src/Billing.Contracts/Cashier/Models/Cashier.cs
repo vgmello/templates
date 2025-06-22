@@ -4,6 +4,7 @@ namespace Billing.Contracts.Cashier.Models;
 
 public record Cashier
 {
+    public string TenantId { get; set; } = string.Empty;
     public Guid CashierId { get; set; }
 
     public required string Name { get; set; }

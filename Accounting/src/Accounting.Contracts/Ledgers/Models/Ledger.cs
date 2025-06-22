@@ -8,6 +8,8 @@ public record Ledger
 
     public Guid ClientId { get; set; }
 
+    public string TenantId { get; set; } = string.Empty;
+
     public LedgerType LedgerType { get; set; }
 
     public List<LedgerPayment> LedgerPayments { get; set; } = new();

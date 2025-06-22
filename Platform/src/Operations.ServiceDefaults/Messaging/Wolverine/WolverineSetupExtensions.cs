@@ -71,6 +71,13 @@ public static class WolverineSetupExtensions
             if (!string.IsNullOrEmpty(kafkaConnectionString))
             {
                 opts.UseKafka(kafkaConnectionString);
+                
+                // Add Kafka health check
+                services.AddHealthChecks()
+                    .AddKafka(options =>
+                    {
+                        options.BootstrapServers = kafkaConnectionString;
+                    }, name: "kafka", tags: new[] { "messaging", "kafka" });
             }
 
             configure?.Invoke(opts);
