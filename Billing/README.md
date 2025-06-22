@@ -7,31 +7,129 @@ The Billing Service manages cashiers, invoices, and payment processing within th
 The Billing Service is part of a .NET 9 microservices system built using Domain-Driven Design principles. It handles:
 
 - **Cashier Management**: Create and manage cashiers with multi-currency support
-- **Invoice Processing**: Handle invoice lifecycle with Orleans-based stateful processing
+- **Invoice Processing**: Handle invoice lifecycle with Orleans-based stateful processing  
 - **Payment Integration**: Process payments and emit integration events
 - **Cross-Service Integration**: React to business events from other services like Accounting
 
 ## Service Architecture
 
-The Billing service follows the standard microservices structure:
+The Billing service follows the standard microservices structure with clean separation of concerns:
 
-- `Billing.Api` - REST/gRPC endpoints
-- `Billing.BackOffice` - Background jobs and event handlers  
-- `Billing.BackOffice.Orleans` - Stateful invoice processing with Orleans
-- `Billing.Contracts` - Integration events and shared models
-- `Billing` (Core) - Domain logic, commands, queries, entities
-- `Billing.AppHost` - .NET Aspire orchestration
-- `Billing.Tests` - Integration and architecture tests
+```
+Billing/
+├── src/
+│   ├── Billing.Api/                  # REST/gRPC endpoints and controllers
+│   ├── Billing.AppHost/              # .NET Aspire orchestration host
+│   ├── Billing.BackOffice/           # Background jobs and event handlers
+│   ├── Billing.BackOffice.Orleans/   # Orleans grains for stateful processing
+│   ├── Billing.Contracts/            # Integration events and shared models
+│   └── Billing/                      # Core domain logic (commands, queries, entities)
+├── test/
+│   └── Billing.Tests/                # Integration and architecture tests
+├── infra/
+│   └── Billing.Database/             # Liquibase database migrations
+└── docs/                             # DocFX documentation
+```
+
+### Service Components
+
+- **Billing.Api** - REST and gRPC endpoints for cashier and invoice management
+- **Billing.BackOffice** - Background processing service for integration events  
+- **Billing.BackOffice.Orleans** - Stateful invoice processing using Orleans actors
+- **Billing.Contracts** - Shared models and integration events for cross-service communication
+- **Billing** (Core) - Domain entities, commands, queries, and business logic
+- **Billing.AppHost** - .NET Aspire orchestration with service discovery
+- **Billing.Tests** - Comprehensive testing with Testcontainers integration
+
+## Key Features
+
+### Domain-Driven Design
+- **Entities**: Cashier and Invoice domain models with audit trails
+- **Commands**: Create operations with FluentValidation and source generation
+- **Queries**: Paginated retrieval with Dapper integration
+- **Integration Events**: Cross-service communication events
+
+### Technology Stack
+- **.NET 9** with latest C# features
+- **WolverineFx** for CQRS and messaging
+- **Orleans** for stateful invoice processing
+- **PostgreSQL 17** with Liquibase migrations
+- **gRPC** with Protocol Buffers for inter-service communication
+- **Testcontainers** for integration testing with real databases
+
+### Source Generation
+Custom source generators reduce boilerplate with attributes like:
+```csharp
+[DbCommand(sp: "billing.create_cashier", nonQuery: true)]
+public partial record CreateCashierCommand(string Name, string? Email) : ICommand<Guid>;
+```
+
+### Testing Strategy
+- **Unit Tests**: Mock-based testing with NSubstitute
+- **Integration Tests**: End-to-end testing with real PostgreSQL via Testcontainers
+- **Architecture Tests**: NetArchTest enforcement of layering rules
+- **Database Tests**: Direct stored procedure testing
+
+## Port Configuration
+
+The Billing service uses the following port allocation:
+
+### Service Ports (8100-8119)
+- **8101**: Billing.Api (HTTP)
+- **8111**: Billing.Api (HTTPS)
+- **8102**: Billing.Api (gRPC)
+- **8103**: Billing.BackOffice (HTTP)
+- **8113**: Billing.BackOffice (HTTPS)
+- **8104**: Billing.BackOffice.Orleans (HTTP)
+- **8114**: Billing.BackOffice.Orleans (HTTPS)
+- **8119**: Documentation Service
+
+### Aspire Dashboard
+- **18100**: Aspire Dashboard (HTTP)
+- **18110**: Aspire Dashboard (HTTPS)
+- **8100**: Aspire Resource Service (HTTP)
+- **8110**: Aspire Resource Service (HTTPS)
+
+### Shared Services
+- **5432**: PostgreSQL
+- **4317/4318**: OpenTelemetry OTLP
 
 ## Prerequisites
 
 - .NET 9 SDK
-- PostgreSQL running on localhost:5432
+- PostgreSQL running on localhost:5432 (username: `postgres`, password: `password@`)
 - Docker (optional, for containerized deployment)
+- Liquibase CLI (for manual database setup)
 
-## Database Setup
+## Quick Start
 
-The Billing service requires PostgreSQL with specific databases and schemas. Run these commands from the `Billing/infra/Billing.Database/` directory:
+### Option 1: .NET Aspire (Recommended)
+
+The fastest way to get started is using .NET Aspire orchestration:
+
+```bash
+# Run the entire Billing service stack
+cd Billing/src/Billing.AppHost
+dotnet run
+```
+
+This automatically:
+- ✅ Sets up PostgreSQL databases with Liquibase
+- ✅ Starts all services (API, BackOffice, Orleans)
+- ✅ Configures service discovery and dependencies
+- ✅ Provides observability dashboard
+
+**Access Points:**
+- **Aspire Dashboard**: http://localhost:18100
+- **Billing API**: http://localhost:8101/swagger
+- **Documentation**: http://localhost:8119
+
+### Option 2: Manual Setup
+
+For full control over the setup process:
+
+#### 1. Database Setup
+Run these commands from the `Billing/infra/Billing.Database/` directory:
 
 ```bash
 cd Billing/infra/Billing.Database/
@@ -46,39 +144,25 @@ liquibase update --defaults-file liquibase.servicebus.properties
 liquibase update
 ```
 
-## Running the Service
-
-### Local Development with .NET Aspire
-
-The recommended way to run the service locally is using the .NET Aspire AppHost:
+#### 2. Run Individual Services
 
 ```bash
-# Run the entire Billing service stack
-dotnet run --project Billing/src/Billing.AppHost
-```
-
-This will start:
-- Billing.Api (REST/gRPC endpoints)
-- Billing.BackOffice (background processing)
-- Billing.BackOffice.Orleans (stateful invoice processing)
-- All necessary dependencies
-
-### Individual Services
-
-You can also run individual services:
-
-```bash
-# API service
+# Terminal 1 - API service
 dotnet run --project Billing/src/Billing.Api
 
-# Background service
+# Terminal 2 - Background service
 dotnet run --project Billing/src/Billing.BackOffice
 
-# Orleans service
+# Terminal 3 - Orleans service
 dotnet run --project Billing/src/Billing.BackOffice.Orleans
 ```
 
-### Docker Compose
+#### 3. Verify Setup
+- **API Health**: http://localhost:8101/health
+- **Swagger UI**: http://localhost:8101/swagger
+- **gRPC**: Connect to localhost:8102
+
+### Option 3: Docker Compose
 
 For containerized deployment:
 
@@ -86,11 +170,69 @@ For containerized deployment:
 docker-compose up --build
 ```
 
-## Verifying the Setup
+## API Usage
 
-1. **Check API Health**: Navigate to `https://localhost:7001/health` (or the configured port)
-2. **Test gRPC**: Use a gRPC client to connect to the Cashiers service
-3. **Database Verification**: Check that the `billing` and `service_bus` databases exist
+### REST API Examples
+
+```bash
+# Create a cashier
+curl -X POST http://localhost:8101/cashiers \
+  -H "Content-Type: application/json" \
+  -d '{"name": "John Doe", "email": "john@example.com"}'
+
+# Get all cashiers (paginated)
+curl http://localhost:8101/cashiers?pageNumber=1&pageSize=10
+
+# Get specific cashier
+curl http://localhost:8101/cashiers/{id}
+
+# Get invoices
+curl http://localhost:8101/invoices
+```
+
+### gRPC API
+Use the Protocol Buffer definitions in `src/Billing.Api/Cashier/Protos/` for type-safe client generation.
+
+## Database Schema
+
+### Tables
+- **cashiers**: Core cashier information with audit fields
+- **cashier_currencies**: Multi-currency support
+- **invoices**: Invoice management
+
+### Stored Procedures
+- **billing.create_cashier**: Cashier creation with business rules
+
+### Migration Management
+Liquibase handles schema evolution with:
+- **Version Control**: All changes tracked in Git
+- **Rollback Support**: Safe rollback capabilities
+- **Environment Promotion**: Consistent schema across environments
+
+## Development and Testing
+
+### Running Tests
+
+```bash
+# Run all tests
+dotnet test
+
+# Run specific test categories
+dotnet test Billing/test/Billing.Tests --filter Category=Integration
+dotnet test Billing/test/Billing.Tests --filter Category=Unit
+```
+
+### Test Categories
+1. **Unit Tests**: Fast, isolated component tests with mocks
+2. **Integration Tests**: Service-level tests with real PostgreSQL via Testcontainers
+3. **Architecture Tests**: Enforce DDD layering and dependencies
+4. **Database Tests**: Direct stored procedure and database integration testing
+
+### Test Infrastructure
+- **Testcontainers**: Real PostgreSQL 17-alpine for integration tests
+- **WebApplicationFactory**: In-memory test servers for API testing
+- **Liquibase Migration**: Automated database setup in test containers
+- **Docker Networks**: Proper container communication during tests
 
 ## Documentation
 
@@ -106,7 +248,7 @@ Run from the **Billing** folder (not the docs folder):
 docker build -f docs/Dockerfile -t billing-docfx .
 
 # Run the container
-docker run -d -p 8850:8850 --name billing-docs billing-docfx
+docker run -d -p 8119:8080 --name billing-docs billing-docfx
 ```
 
 #### Using Local DocFX
@@ -117,7 +259,7 @@ Run from the **Billing** folder:
 dotnet tool install -g docfx
 
 # Serve documentation (from Billing folder)
-docfx docs/docfx.json --serve -p 8850 -n "*"
+docfx docs/docfx.json --serve -p 8119 -n "*"
 ```
 
 #### Using .NET Aspire
@@ -133,7 +275,21 @@ The documentation will be available in the Aspire dashboard with a direct link.
 ### Accessing the Documentation
 
 Once running, the documentation is available at:
-- **Local**: http://localhost:8850
+- **Local**: http://localhost:8119
+
+### Documentation Structure
+```
+docs/
+├── content/              # Markdown documentation files
+│   ├── architecture.md   # Detailed architectural patterns
+│   ├── api-reference.md  # Complete REST and gRPC API docs
+│   ├── database.md       # Database schema and migrations
+│   └── toc.yml          # Table of contents
+├── templates/            # DocFX Material theme
+├── images/              # Documentation assets
+├── docfx.json          # DocFX configuration
+└── index.md            # Documentation homepage
+```
 
 ### Important Notes
 
@@ -142,136 +298,131 @@ Once running, the documentation is available at:
 **Correct**:
 ```bash
 cd Billing/
-docfx docs/docfx.json --serve -p 8850 -n "*"
+docfx docs/docfx.json --serve -p 8119 -n "*"
 ```
 
 **Incorrect**:
 ```bash
 cd Billing/docs/
-docfx docfx.json --serve -p 8850 -n "*"  # Won't find source code
+docfx docfx.json --serve -p 8119 -n "*"  # Won't find source code
 ```
 
-## Development and Testing
+## Integration Events
 
-### Running Tests
+The Billing service communicates with other services through integration events:
 
-```bash
-# Run all tests
-dotnet test
+### Published Events
+- **CashierCreatedEvent**: Emitted when a new cashier is created
+- **CashierUpdatedEvent**: Emitted when cashier information changes
+- **InvoicePaidEvent**: Emitted when an invoice payment is processed
 
-# Run specific test project
-dotnet test Billing/test/Billing.Tests
-```
+### Consumed Events
+- **BusinessDayEndedEvent**: Reacts to accounting business day operations
 
-### Documentation Development
+## Orleans Integration
 
-#### Prerequisites
-- .NET 9 SDK
-- Docker
-- DocFX (installed automatically in Docker)
+The Billing.BackOffice.Orleans service provides stateful invoice processing:
 
-#### Project Structure
-```
-docs/
-├── content/              # Markdown documentation files
-│   ├── introduction.md
-│   ├── getting-started.md
-│   ├── architecture.md
-│   ├── api-reference.md
-│   ├── database.md
-│   └── toc.yml          # Table of contents
-├── templates/            # DocFX themes
-│   └── material/         # Material theme files
-├── api/                 # Auto-generated API documentation
-├── images/              # Documentation images
-├── docfx.json          # DocFX configuration
-├── index.md            # Documentation homepage
-├── toc.yml             # Root table of contents
-└── Dockerfile          # Container configuration
-```
+### Features
+- **Invoice Grains**: Stateful actors for invoice lifecycle management
+- **3 Replicas**: High availability with Orleans clustering
+- **Direct API**: HTTP endpoints for invoice operations
+- **Orleans Dashboard**: Real-time grain monitoring
 
-#### Building Locally
-If you have DocFX installed locally, run from the **Billing** folder:
+### Invoice Operations
+- **POST** `/invoices/{id}/pay` - Process invoice payment
+- **GET** `/invoices/{id}` - Retrieve invoice state
 
-```bash
-# Install DocFX (if not already installed)
-dotnet tool install -g docfx
+## Monitoring and Observability
 
-# Build documentation
-docfx docs/docfx.json
+### Health Checks
+- **API Health**: `/health` endpoint with dependency checks
+- **Service Dependencies**: Database connectivity validation
+- **Orleans Health**: Grain health monitoring
 
-# Serve locally
-docfx docs/docfx.json --serve -p 8850 -n "*"
-```
+### Logging
+- **Serilog**: Structured logging with correlation IDs
+- **OpenTelemetry**: Distributed tracing across services
+- **Integration**: XUnit sink for test output
 
-#### Updating Documentation
-1. Edit markdown files in the `content/` directory
-2. Update `toc.yml` files if adding new pages
-3. Rebuild the Docker image to see changes
-4. The API documentation is auto-generated from code comments
-
-#### Customizing the Theme
-The Material theme is included in `templates/material/` and supports various customization options:
-- **Logo**: Replace `images/logo.svg` with your logo
-- **Favicon**: Replace `images/favicon.ico` with your favicon
-- **Colors**: Modify theme colors in `docfx.json` globalMetadata
-- **Git Repository**: Update the `_gitContribute` settings for "Edit this page" links
-
-#### Configuration
-The DocFX configuration is in `docfx.json`:
-- **Port**: 8850 (configurable)
-- **Search**: Enabled for all content
-- **API Generation**: Automatic from source code
-- **Git Integration**: Links to contribute and edit pages
-
-### Deployment Options
-
-#### Development (Aspire)
-- Automatically included in Billing.AppHost
-- Integrated with service discovery
-- Available in Aspire dashboard
-
-#### Standalone (Docker)
-- Use `docker-compose.yml` for standalone deployment
-- Includes health checks and restart policies
-- Can be deployed behind a reverse proxy
-
-#### Production
-- Build image in CI/CD pipeline
-- Deploy to container orchestration platform
-- Configure ingress/load balancer for external access
-
-### Monitoring
-- Logs available via Docker logs
-- DocFX built-in server provides basic request logging
+### Metrics
+- **Custom Metrics**: Domain-specific business metrics
+- **Performance**: Database operation timing
+- **Orleans Metrics**: Grain activation and processing metrics
 
 ## Troubleshooting
 
-### Container won't start
+### Common Issues
+
+#### Database Connection Errors
+```bash
+# Check PostgreSQL is running
+netstat -tulpn | grep 5432
+
+# Verify database exists
+psql -h localhost -U postgres -l
+```
+
+#### Port Conflicts
+```bash
+# Check if ports are in use
+netstat -tulpn | grep 8101
+netstat -tulpn | grep 8119
+```
+
+#### Container Issues
 ```bash
 # Check container logs
 docker logs billing-docs
 
-# Check if port is in use
-netstat -tulpn | grep 8850
+# Check container status
+docker ps -a
 ```
 
-### Documentation not updating
+#### Test Failures
+- Ensure Docker is running for Testcontainers
+- Check PostgreSQL is available on localhost:5432
+- Verify Liquibase migrations are current
+
+### Documentation Issues
+
+#### Documentation not updating
 - Rebuild the Docker image after making changes
 - Clear browser cache
 - Check that markdown files are valid
 
-### API documentation missing
+#### API documentation missing
 - Ensure source code has XML documentation comments
 - Check that project references are correct in `docfx.json`
 - Verify build succeeds without errors
 
-### Theme not loading
+#### Theme not loading
 - Check that `docfx.json` references the correct template path
 - Verify theme files are not corrupted
 
 ## Contributing
+
+### Adding New Features
+1. Follow DDD patterns in the core domain
+2. Add integration tests for new functionality
+3. Update documentation in `docs/content/`
+4. Ensure all tests pass
+
+### Documentation Updates
 1. Add new markdown files to `content/` directory
 2. Update table of contents in `toc.yml`
-3. Test changes locally
-4. Update this README if adding new features
+3. Test changes locally with DocFX
+4. Update this README if adding new capabilities
+
+### Database Changes
+1. Create new Liquibase changesets
+2. Test migrations in local environment
+3. Update database documentation
+4. Ensure rollback scripts are available
+
+## Additional Resources
+
+- **[Architecture Documentation](docs/content/architecture.md)** - Detailed design patterns
+- **[API Reference](docs/content/api-reference.md)** - Complete API documentation  
+- **[Database Schema](docs/content/database.md)** - Database design and migrations
+- **[CLAUDE.md](../CLAUDE.md)** - AI assistant development guidance

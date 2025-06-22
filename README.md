@@ -123,24 +123,43 @@ dotnet run
 - ✅ Provides observability dashboard
 
 **Access Points:**
-- **Aspire Dashboard**: http://localhost:15000
-- **Domain APIs**: Available through Aspire dashboard
-- **API UI**: Links provided in Aspire dashboard
+- **Billing Aspire Dashboard**: http://localhost:18100
+- **Accounting Aspire Dashboard**: http://localhost:18120  
+- **Operations Aspire Dashboard**: http://localhost:18140
+- **Domain APIs**: Available through respective Aspire dashboards
+
 ### Port Assignment Pattern
-Services use domain-based port prefixes with specific port types:
 
-**Port Types:**
-- **70XX**: HTTPS web traffic (secure APIs, dashboards)
-- **50XX**: HTTP web traffic (regular APIs, web endpoints)
-- **40XX**: gRPC inter-service communication
-- **170XX**: .NET Aspire dashboard (HTTPS)
-- **150XX**: .NET Aspire dashboard (HTTP)
+The system uses a structured port allocation optimized for macOS compatibility:
 
-**Domain Services (XX = domain suffix):**
-- **Accounting (50)**: API 7051/5051/4051, BackOffice 7052/5052, AppHost 17050/15050, Resource 7050/5050
-- **Billing (60)**: API 7061/5061/4061, BackOffice 7062/5062, AppHost 17060/15060, Resource 7060/5060
-- **Operations (70)**: AppHost 17070/15070, Resource 7070/5070
-- **Shared**: OTLP 4317/4318
+#### **Service Port Ranges**
+- **Billing**: 8100-8119 (20 ports)
+- **Accounting**: 8120-8139 (20 ports)  
+- **Operations**: 8140-8159 (20 ports)
+
+#### **Port Pattern Within Each Service**
+```
+XX00: Aspire Resource Service (HTTP)
+XX01: Main API (HTTP)
+XX02: Main API (gRPC)
+XX03: BackOffice (HTTP)
+XX04: Orleans (HTTP)
+XX10: Aspire Resource Service (HTTPS)
+XX11: Main API (HTTPS)
+XX13: BackOffice (HTTPS)
+XX14: Orleans (HTTPS)
+XX19: Documentation (last port of range)
+```
+
+#### **Aspire Dashboard Ports**
+- **HTTP**: Service base + 10,000 (e.g., 8100 → 18100)
+- **HTTPS**: Service base + 10,010 (e.g., 8100 → 18110)
+
+#### **Service Access Points**
+- **Billing Service**: http://localhost:8101 (API), http://localhost:8119 (Docs)
+- **Accounting Service**: http://localhost:8121 (API), http://localhost:8139 (Docs - reserved)
+- **Operations Service**: http://localhost:8159 (Docs - reserved)
+- **Shared Services**: PostgreSQL (5432), OTLP (4317/4318)
 
 ---
 
@@ -205,9 +224,9 @@ docker-compose up --build
 ```
 
 ### 4. Verify Manual Setup
-- **Billing API**: http://localhost:5061/swagger
-- **Accounting API**: http://localhost:5051/swagger
-- **Health Checks**: http://localhost:5061/health, http://localhost:5051/health
+- **Billing API**: http://localhost:8101/swagger
+- **Accounting API**: http://localhost:8121/swagger
+- **Health Checks**: http://localhost:8101/health, http://localhost:8121/health
 
 ---
 
@@ -224,12 +243,12 @@ Test the APIs with the included HTTP files:
 Or use curl:
 ```bash
 # Create a cashier
-curl -X POST http://localhost:5061/cashiers \
+curl -X POST http://localhost:8101/cashiers \
   -H "Content-Type: application/json" \
   -d '{"name": "Test Cashier", "currencyCode": "USD"}'
 
 # Create a ledger
-curl -X POST http://localhost:5051/ledgers \
+curl -X POST http://localhost:8121/ledgers \
   -H "Content-Type: application/json" \
   -d '{"name": "Test Ledger", "type": "Asset"}'
 ```

@@ -63,7 +63,7 @@ builder
     .AddContainer("billing-docs", "billing-docfx")
     .WithDockerfile("../../docs")
     .WithBindMount("../../", "/app")
-    .WithHttpEndpoint(port: 8850, targetPort: 8080, name: "http")
+    .WithHttpEndpoint(port: 8119, targetPort: 8080, name: "http")
     .WithArgs("docs/docfx.json", "--serve", "--hostname=*", "--logLevel=error")
     .WithUrlForEndpoint("http", url =>
     {
