@@ -150,7 +150,7 @@
 			</Card>
 		{:else}
 			<div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-				{#each cashierStore.filteredCashiers as cashier (cashier.cashierId)}
+				{#each cashierStore.filteredCashiers as cashier, index (`${cashier.cashierId}-${index}`)}
 					<Card class="p-6 hover:shadow-md transition-shadow cursor-pointer" onclick={() => handleCashierClick(cashier.cashierId)}>
 						<div class="space-y-4">
 							<div class="flex items-start justify-between">
