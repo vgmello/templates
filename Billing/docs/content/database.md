@@ -11,7 +11,7 @@ The Billing service uses PostgreSQL with a well-defined schema managed through L
 
 ### Migration Configuration Files
 - `liquibase.properties` - Main domain schema migrations
-- `liquibase.service_bus.properties` - Service bus schema migrations  
+- `liquibase.servicebus.properties` - Service bus schema migrations  
 - `liquibase.setup.properties` - Database setup and initialization
 
 ## Core Tables

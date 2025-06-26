@@ -2,4 +2,4 @@
 
 namespace Billing.Contracts.Cashier.IntegrationEvents;
 
-public record CashierDeletedEvent(Guid CashierId);
+public record CashierUpdated(Guid CashierId);

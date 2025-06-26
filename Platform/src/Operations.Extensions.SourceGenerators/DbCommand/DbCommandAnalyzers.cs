@@ -21,7 +21,7 @@ internal static class DbCommandAnalyzers
         title: "Command missing ICommand<TResult> interface",
         messageFormat:
         "Class '{0}' is decorated with DbCommandAttribute specifying 'sp' or 'sql' for handler generation, " +
-        "but it does not implement ICommand<TResult>. Handler cannot be generated without a result type.",
+        "but it does not implement ICommand<TResult> or IQuery<TResult>. Handler cannot be generated without a result type.",
         category: "DbCommandSourceGenerator",
         DiagnosticSeverity.Error,
         isEnabledByDefault: true);
@@ -36,7 +36,7 @@ internal static class DbCommandAnalyzers
         isEnabledByDefault: true);
 
     /// <summary>
-    ///     If <see cref="DbCommandTypeInfo.ResultTypeInfo" /> is null, it means ICommand&lt;TResult&gt; was not found.
+    ///     If <see cref="DbCommandTypeInfo.ResultTypeInfo" /> is null, it means ICommand/IQuery&lt;TResult&gt; was not found.
     ///     An error diagnostic DB_COMMAND_GEN002 will be logged by ExtractTypeInfo and reported by Initialize's output action.
     ///     Generation should be skipped by the check in Initialize's RegisterSourceOutput action.
     /// </summary>

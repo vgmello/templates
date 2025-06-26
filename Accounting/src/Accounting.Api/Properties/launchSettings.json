@@ -1,12 +1,12 @@
 {
-  "$schema": "http://json.schemastore.org/launchsettings.json",
+  "$schema": "https://json.schemastore.org/launchsettings.json",
   "profiles": {
     "http": {
       "commandName": "Project",
       "dotnetRunMessages": true,
       "launchBrowser": true,
       "launchUrl": "scalar",
-      "applicationUrl": "http://localhost:8121;http://localhost:8122;",
+      "applicationUrl": "http://localhost:8121;",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development",
         "Kestrel__Endpoints__Http__Protocols": "Http1",

@@ -22,7 +22,7 @@ A modern SvelteKit web application for managing the Billing Service cashiers, bu
 
 - Node.js 18+ 
 - npm
-- Billing Service API running on http://localhost:5061
+- Billing Service API running on http://localhost:8101 (HTTP) and localhost:8102 (gRPC)
 
 ## Getting Started
 
@@ -65,7 +65,7 @@ src/
 
 ## API Integration
 
-The app connects to the Billing Service API at `http://localhost:5061`. If the API is unavailable, the app will fall back to mock data for development purposes.
+The app connects to the Billing Service API via gRPC at `localhost:8102`. If the API is unavailable, the app will fall back to mock data for development purposes.
 
 ### Endpoints Used
 

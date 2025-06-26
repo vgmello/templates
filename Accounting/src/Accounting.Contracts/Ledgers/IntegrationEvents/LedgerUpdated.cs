@@ -2,4 +2,6 @@
 
 namespace Accounting.Contracts.Ledgers.IntegrationEvents;
 
-public record LedgerCreatedEvent(Models.Ledger Ledger);
+public record LedgerUpdated(Guid LedgerId)
+{
+}

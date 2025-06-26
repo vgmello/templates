@@ -1,10 +1,10 @@
 // Copyright (c) ABCDEG. All rights reserved.
 
+using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Serilog;
-using Serilog.Events;
 
 namespace Operations.ServiceDefaults.Logging;
 
@@ -15,13 +15,11 @@ public static class LoggingSetupExtensions
     ///     This ensures that any exceptions or log events during host setup are captured and reported.
     ///     See: https://github.com/serilog/serilog-aspnetcore?tab=readme-ov-file#two-stage-initialization
     /// </summary>
-    public static void UseInitializationLogger(this IHost _)
+    public static void UseInitializationLogger(this WebApplication app)
     {
         Log.Logger = new LoggerConfiguration()
-            .MinimumLevel.Information()
-            .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
+            .ReadFrom.Configuration(app.Configuration)
             .Enrich.FromLogContext()
-            .WriteTo.Console()
             .WriteTo.OpenTelemetry()
             .CreateBootstrapLogger();
     }
@@ -34,7 +32,7 @@ public static class LoggingSetupExtensions
         return builder;
     }
 
-    public static LoggerConfiguration ConfigureLogger(
+    public static void ConfigureLogger(
         LoggerConfiguration loggerConfiguration, IConfiguration configuration, IServiceProvider services) =>
         loggerConfiguration
             .ReadFrom.Configuration(configuration)

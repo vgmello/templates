@@ -4,7 +4,7 @@ using Accounting.Contracts.Operations.IntegrationEvents;
 using Billing.Contracts.Invoices.IntegrationEvents;
 using Billing.Invoices.Events;
 
-namespace Billing.BackOffice.Messaging.IntegrationEvents.Accounting;
+namespace Billing.BackOffice.Messaging.AccountingInboxHandler;
 
 public class BusinessDayEndedHandler(ILogger<BusinessDayEndedHandler> logger, IMessageBus messageBus)
 {

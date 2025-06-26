@@ -1,35 +1,25 @@
 // Copyright (c) ABCDEG. All rights reserved.
 
 using Accounting.Ledgers.Grpc;
-using Microsoft.AspNetCore.Mvc.Testing;
-using Grpc.Net.Client;
+using Accounting.Tests.Integration._Internal;
 
 namespace Accounting.Tests.Integration;
 
-public class LedgerServiceTests(AccountingApiWebAppFactory factory) : IClassFixture<AccountingApiWebAppFactory>
+public class LedgerServiceTests(IntegrationTestFixture fixture) : IntegrationTest(fixture)
 {
+    private readonly LedgersService.LedgersServiceClient _client = new(fixture.GrpcChannel);
+
     [Fact]
     public async Task GetLedger_ReturnsLedger()
     {
         // Arrange
         var expectedId = Guid.CreateVersion7();
-        var client = CreateClient(factory);
 
         // Act
-        var response = await client.GetLedgerAsync(new GetLedgerRequest { Id = expectedId.ToString() },
+        var response = await _client.GetLedgerAsync(new GetLedgerRequest { Id = expectedId.ToString() },
             cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
         response.LedgerId.ShouldBe(expectedId.ToString());
-    }
-
-    private static LedgersService.LedgersServiceClient CreateClient(WebApplicationFactory<Program> factory)
-    {
-        var channel = GrpcChannel.ForAddress(factory.Server.BaseAddress, new GrpcChannelOptions
-        {
-            HttpHandler = factory.Server.CreateHandler()
-        });
-
-        return new LedgersService.LedgersServiceClient(channel);
     }
 }

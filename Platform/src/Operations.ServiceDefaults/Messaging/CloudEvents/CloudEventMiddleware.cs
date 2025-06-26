@@ -1,3 +1,5 @@
+// Copyright (c) ABCDEG. All rights reserved.
+
 using CloudNative.CloudEvents;
 using Microsoft.Extensions.Options;
 using Wolverine;

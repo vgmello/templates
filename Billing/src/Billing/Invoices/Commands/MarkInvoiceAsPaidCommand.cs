@@ -20,10 +20,10 @@ public class MarkInvoiceAsPaidValidator : AbstractValidator<MarkInvoiceAsPaidCom
 
 public static partial class MarkInvoiceAsPaidCommandHandler
 {
-    [DbCommand(sp: "billing.mark_invoice_as_paid", nonQuery: true)]
+    [DbCommand(sp: "billing.invoice_mark_paid", nonQuery: true)]
     public partial record MarkInvoiceAsPaidDbCommand(Guid InvoiceId, decimal AmountPaid, DateTime PaymentDate) : ICommand<int>;
 
-    public static async Task<(Result<InvoiceModel>, InvoicePaidEvent?)> Handle(
+    public static async Task<(Result<InvoiceModel>, InvoicePaid?)> Handle(
         MarkInvoiceAsPaidCommand command, IMessageBus messaging, CancellationToken cancellationToken)
     {
         var paymentDate = command.PaymentDate ?? DateTime.UtcNow;
@@ -50,7 +50,7 @@ public static partial class MarkInvoiceAsPaidCommandHandler
             Version = 1 // This should be incremented
         };
 
-        var paidEvent = new InvoicePaidEvent
+        var paidEvent = new InvoicePaid
         {
             TenantId = "some tenant-id",
             InvoiceId = command.InvoiceId,

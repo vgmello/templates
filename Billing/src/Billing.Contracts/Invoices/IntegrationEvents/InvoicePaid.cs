@@ -2,7 +2,7 @@
 
 namespace Billing.Contracts.Invoices.IntegrationEvents;
 
-public record InvoicePaidEvent
+public record InvoicePaid
 {
     public string TenantId { get; set; } = string.Empty;
     public Guid InvoiceId { get; set; }

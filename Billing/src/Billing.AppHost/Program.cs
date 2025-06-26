@@ -13,14 +13,17 @@ var pgsql = builder
     .WithContainerName("billing-db")
     .WithPgAdmin(pgAdmin => pgAdmin
         .WithImage("dpage/pgadmin4", "latest")
-        .WithLifetime(ContainerLifetime.Persistent))
+        .WithLifetime(ContainerLifetime.Persistent)
+        .WithUrlForEndpoint("http", url => url.DisplayText = "PgAdmin (DB Management)"))
     .WithLifetime(ContainerLifetime.Persistent);
 
 var database = pgsql.AddDatabase(name: "BillingDb", databaseName: "billing");
 var serviceBusDb = pgsql.AddDatabase(name: "ServiceBus", databaseName: "service_bus");
 var liquibase = builder.AddLiquibaseMigrations(pgsql, dbPassword);
 
-var kafka = builder.AddKafka("Messaging").WithKafkaUI();
+var kafka = builder
+    .AddKafka("messaging")
+    .WithKafkaUI(r => r.WithUrlForEndpoint("http", url => url.DisplayText = "Kafka UI"));
 
 var storage = builder.AddAzureStorage("billing-azure-storage").RunAsEmulator();
 var clustering = storage.AddTables("OrleansClustering");
@@ -31,14 +34,25 @@ var orleans = builder
     .WithClustering(clustering)
     .WithGrainStorage("Default", grainTables);
 
-builder
+var billingApi = builder
     .AddProject<Projects.Billing_Api>("billing-api")
     .WithEnvironment("ServiceName", "Billing")
+    .WithKestrelLaunchProfileEndpoints()
     .WithReference(database)
     .WithReference(serviceBusDb)
     .WithReference(kafka)
     .WaitForCompletion(liquibase)
     .WithHttpHealthCheck("/health/internal");
+
+builder
+    .AddNpmApp("billing-ui", "../../../Billing/web/billing-ui", "dev")
+    .WithEnvironment("GRPC_HOST", () => billingApi.GetGrpcEndpoint().Host)
+    .WithEnvironment("GRPC_PORT", () => billingApi.GetGrpcEndpoint().Port.ToString())
+    .WithHttpEndpoint(env: "PORT", port: 8105)
+    .WithExternalHttpEndpoints()
+    .WithReference(billingApi)
+    .WaitFor(billingApi)
+    .PublishAsDockerFile();
 
 builder
     .AddProject<Projects.Billing_BackOffice>("billing-backoffice")
@@ -73,11 +87,7 @@ builder
     .WithBindMount("../../", "/app")
     .WithHttpEndpoint(port: 8119, targetPort: 8080, name: "http")
     .WithArgs("docs/docfx.json", "--serve", "--hostname=*", "--logLevel=error")
-    .WithUrlForEndpoint("http", url =>
-    {
-        url.DisplayText = "Documentation";
-        url.Url = "/";
-    })
+    .WithUrlForEndpoint("http", url => url.DisplayText = "App Documentation")
     .WithHttpHealthCheck("toc.json");
 
 await builder.Build().RunAsync();

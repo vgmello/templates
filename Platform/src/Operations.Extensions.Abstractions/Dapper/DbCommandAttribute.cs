@@ -45,16 +45,16 @@ public sealed class DbCommandAttribute(
     /// <summary>
     ///     Specifies how property names are converted to database parameter names in the generated ToDbParams() method.
     ///     <para>
-    ///     - <see cref="DbParamsCase.Unset"/>: Uses the global default specified by the DbCommandDefaultParamCase MSBuild property
+    ///         - <see cref="DbParamsCase.Unset" />: Uses the global default specified by the DbCommandDefaultParamCase MSBuild property
     ///     </para>
     ///     <para>
-    ///     - <see cref="DbParamsCase.None"/>: Uses property names as-is without any conversion
+    ///         - <see cref="DbParamsCase.None" />: Uses property names as-is without any conversion
     ///     </para>
     ///     <para>
-    ///     - <see cref="DbParamsCase.SnakeCase"/>: Converts property names to snake_case (e.g., FirstName -> first_name)
+    ///         - <see cref="DbParamsCase.SnakeCase" />: Converts property names to snake_case (e.g., FirstName -> first_name)
     ///     </para>
     ///     <para>
-    ///     Individual properties can override this behavior using the [Column("custom_name")] attribute.
+    ///         Individual properties can override this behavior using the [Column("custom_name")] attribute.
     ///     </para>
     /// </summary>
     public DbParamsCase ParamsCase { get; } = paramsCase;

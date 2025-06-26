@@ -1,3 +1,5 @@
+// Copyright (c) ABCDEG. All rights reserved.
+
 using Operations.Extensions.Abstractions.Extensions;
 
 namespace Operations.Extensions.Tests.Extensions;

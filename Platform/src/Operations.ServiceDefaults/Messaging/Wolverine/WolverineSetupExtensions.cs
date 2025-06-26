@@ -24,14 +24,14 @@ public static class WolverineSetupExtensions
         {
             builder.AddKeyedNpgsqlDataSource("ServiceBus");
 
-            AddWolverineWithDefaults(builder.Services, builder.Configuration, configure);
+            AddWolverineWithDefaults(builder.Services, builder.Environment, builder.Configuration, configure);
         }
 
         return builder;
     }
 
     public static void AddWolverineWithDefaults(
-        this IServiceCollection services, IConfiguration configuration, Action<WolverineOptions>? configure)
+        this IServiceCollection services, IHostEnvironment env, IConfiguration configuration, Action<WolverineOptions>? configure)
     {
         var wolverineRegistered = services.Any(s => s.ServiceType == typeof(IWolverineRuntime));
 
@@ -44,13 +44,12 @@ public static class WolverineSetupExtensions
             .BindConfiguration(ServiceBusOptions.SectionName)
             .ValidateOnStart();
 
-        var serviceBusOptions = configuration.GetSection(ServiceBusOptions.SectionName).Get<ServiceBusOptions>() ?? new ServiceBusOptions();
         var connectionString = configuration.GetConnectionString(ServiceBusOptions.SectionName);
 
         services.AddWolverine(ExtensionDiscovery.ManualOnly, opts =>
         {
             opts.ApplicationAssembly = Extensions.EntryAssembly;
-            opts.ServiceName = serviceBusOptions.ServiceName;
+            opts.ServiceName = ServiceBusOptions.GetServiceName(env.ApplicationName);
 
             opts.UseSystemTextJsonForSerialization();
 
@@ -68,10 +67,11 @@ public static class WolverineSetupExtensions
             opts.Policies.AddMiddleware<CloudEventMiddleware>();
 
             var kafkaConnectionString = configuration.GetConnectionString("Messaging");
+
             if (!string.IsNullOrEmpty(kafkaConnectionString))
             {
                 opts.UseKafka(kafkaConnectionString);
-                
+
                 // Add Kafka health check
                 services.AddHealthChecks()
                     .AddKafka(options =>
@@ -102,7 +102,10 @@ public static class WolverineSetupExtensions
 
     public static WolverineOptions ConfigurePostgresql(this WolverineOptions options, string connectionString)
     {
-        var persistenceSchema = options.ServiceName.ToLowerInvariant();
+        var persistenceSchema = options.ServiceName
+            .Replace(".", "_")
+            .Replace("-", "_")
+            .ToLowerInvariant();
 
 #pragma warning disable CS0618 // Remove when EnableMessageTransport is implemented by Wolverine
 #pragma warning disable S125 // Remove when EnableMessageTransport is implemented by Wolverine
@@ -142,5 +145,4 @@ public static class WolverineSetupExtensions
 
         return options;
     }
-
 }

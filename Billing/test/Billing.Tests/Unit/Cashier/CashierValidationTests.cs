@@ -1,0 +1,221 @@
+// Copyright (c) ABCDEG. All rights reserved.
+
+using Billing.Cashier.Commands;
+using FluentValidation.TestHelper;
+
+namespace Billing.Tests.Unit.Cashier;
+
+public class CashierValidationTests
+{
+    #region CreateCashierValidator Tests
+
+    [Fact]
+    public void CreateCashierValidator_WithValidData_ShouldNotHaveValidationErrors()
+    {
+        // Arrange
+        var validator = new CreateCustomerValidator();
+        var command = new CreateCashierCommand("John Doe", "john.doe@example.com");
+
+        // Act
+        var result = validator.TestValidate(command);
+
+        // Assert
+        result.ShouldNotHaveAnyValidationErrors();
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void CreateCashierValidator_WithEmptyName_ShouldHaveValidationError(string name)
+    {
+        // Arrange
+        var validator = new CreateCustomerValidator();
+        var command = new CreateCashierCommand(name, "john.doe@example.com");
+
+        // Act
+        var result = validator.TestValidate(command);
+
+        // Assert
+        result.ShouldHaveValidationErrorFor(x => x.Name)
+            .WithErrorMessage("'Name' must not be empty.");
+    }
+
+    [Fact]
+    public void CreateCashierValidator_WithNameTooShort_ShouldHaveValidationError()
+    {
+        // Arrange
+        var validator = new CreateCustomerValidator();
+        var command = new CreateCashierCommand("A", "john.doe@example.com");
+
+        // Act
+        var result = validator.TestValidate(command);
+
+        // Assert
+        result.ShouldHaveValidationErrorFor(x => x.Name)
+            .WithErrorMessage("The length of 'Name' must be at least 2 characters. You entered 1 characters.");
+    }
+
+    [Fact]
+    public void CreateCashierValidator_WithNameTooLong_ShouldHaveValidationError()
+    {
+        // Arrange
+        var validator = new CreateCustomerValidator();
+        var longName = new string('A', 101); // 101 characters
+        var command = new CreateCashierCommand(longName, "john.doe@example.com");
+
+        // Act
+        var result = validator.TestValidate(command);
+
+        // Assert
+        result.ShouldHaveValidationErrorFor(x => x.Name)
+            .WithErrorMessage("The length of 'Name' must be 100 characters or fewer. You entered 101 characters.");
+    }
+
+    [Fact]
+    public void CreateCashierValidator_WithValidNameBoundaries_ShouldNotHaveValidationErrors()
+    {
+        // Arrange
+        var validator = new CreateCustomerValidator();
+
+        var minLengthCommand = new CreateCashierCommand("Jo", "test@example.com"); // 2 characters
+        var maxLengthCommand = new CreateCashierCommand(new string('A', 100), "test@example.com"); // 100 characters
+
+        // Act
+        var minResult = validator.TestValidate(minLengthCommand);
+        var maxResult = validator.TestValidate(maxLengthCommand);
+
+        // Assert
+        minResult.ShouldNotHaveAnyValidationErrors();
+        maxResult.ShouldNotHaveAnyValidationErrors();
+    }
+
+    #endregion
+
+    #region UpdateCashierValidator Tests
+
+    [Fact]
+    public void UpdateCashierValidator_WithValidData_ShouldNotHaveValidationErrors()
+    {
+        // Arrange
+        var validator = new UpdateCashierValidator();
+        var command = new UpdateCashierCommand(Guid.NewGuid(), "John Doe Updated", "john.updated@example.com");
+
+        // Act
+        var result = validator.TestValidate(command);
+
+        // Assert
+        result.ShouldNotHaveAnyValidationErrors();
+    }
+
+    [Fact]
+    public void UpdateCashierValidator_WithEmptyCashierId_ShouldHaveValidationError()
+    {
+        // Arrange
+        var validator = new UpdateCashierValidator();
+        var command = new UpdateCashierCommand(Guid.Empty, "John Doe", "john.doe@example.com");
+
+        // Act
+        var result = validator.TestValidate(command);
+
+        // Assert
+        result.ShouldHaveValidationErrorFor(x => x.CashierId)
+            .WithErrorMessage("'Cashier Id' must not be empty.");
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void UpdateCashierValidator_WithEmptyName_ShouldHaveValidationError(string name)
+    {
+        // Arrange
+        var validator = new UpdateCashierValidator();
+        var command = new UpdateCashierCommand(Guid.NewGuid(), name, "john.doe@example.com");
+
+        // Act
+        var result = validator.TestValidate(command);
+
+        // Assert
+        result.ShouldHaveValidationErrorFor(x => x.Name)
+            .WithErrorMessage("'Name' must not be empty.");
+    }
+
+    [Fact]
+    public void UpdateCashierValidator_WithNameTooShort_ShouldHaveValidationError()
+    {
+        // Arrange
+        var validator = new UpdateCashierValidator();
+        var command = new UpdateCashierCommand(Guid.NewGuid(), "A", "john.doe@example.com");
+
+        // Act
+        var result = validator.TestValidate(command);
+
+        // Assert
+        result.ShouldHaveValidationErrorFor(x => x.Name)
+            .WithErrorMessage("The length of 'Name' must be at least 2 characters. You entered 1 characters.");
+    }
+
+    [Fact]
+    public void UpdateCashierValidator_WithNameTooLong_ShouldHaveValidationError()
+    {
+        // Arrange
+        var validator = new UpdateCashierValidator();
+        var longName = new string('A', 101); // 101 characters
+        var command = new UpdateCashierCommand(Guid.NewGuid(), longName, "john.doe@example.com");
+
+        // Act
+        var result = validator.TestValidate(command);
+
+        // Assert
+        result.ShouldHaveValidationErrorFor(x => x.Name)
+            .WithErrorMessage("The length of 'Name' must be 100 characters or fewer. You entered 101 characters.");
+    }
+
+    [Fact]
+    public void UpdateCashierValidator_WithNullEmail_ShouldNotHaveValidationError()
+    {
+        // Arrange
+        var validator = new UpdateCashierValidator();
+        var command = new UpdateCashierCommand(Guid.NewGuid(), "John Doe", null);
+
+        // Act
+        var result = validator.TestValidate(command);
+
+        // Assert
+        result.ShouldNotHaveValidationErrorFor(x => x.Email);
+    }
+
+    #endregion
+
+    #region DeleteCashierValidator Tests
+
+    [Fact]
+    public void DeleteCashierValidator_WithValidData_ShouldNotHaveValidationErrors()
+    {
+        // Arrange
+        var validator = new DeleteCashierValidator();
+        var command = new DeleteCashierCommand(Guid.NewGuid());
+
+        // Act
+        var result = validator.TestValidate(command);
+
+        // Assert
+        result.ShouldNotHaveAnyValidationErrors();
+    }
+
+    [Fact]
+    public void DeleteCashierValidator_WithEmptyCashierId_ShouldHaveValidationError()
+    {
+        // Arrange
+        var validator = new DeleteCashierValidator();
+        var command = new DeleteCashierCommand(Guid.Empty);
+
+        // Act
+        var result = validator.TestValidate(command);
+
+        // Assert
+        result.ShouldHaveValidationErrorFor(x => x.CashierId)
+            .WithErrorMessage("'Cashier Id' must not be empty.");
+    }
+
+    #endregion
+}

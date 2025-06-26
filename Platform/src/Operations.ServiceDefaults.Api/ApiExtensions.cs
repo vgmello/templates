@@ -4,6 +4,8 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Operations.ServiceDefaults.Api.OpenApi;
+using Operations.ServiceDefaults.Api.OpenApi.Extensions;
 using Scalar.AspNetCore;
 
 namespace Operations.ServiceDefaults.Api;
@@ -15,7 +17,7 @@ public static class ApiExtensions
         builder.Services.AddControllers();
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddProblemDetails();
-        builder.Services.AddOpenApi();
+        builder.Services.AddOpenApiWithXmlDocSupport();
         builder.Services.AddHttpLogging();
 
         builder.Services.AddGrpc();
@@ -52,6 +54,8 @@ public static class ApiExtensions
         {
             app.MapOpenApi();
             app.MapScalarApiReference(options => options.WithTitle($"{app.Environment.ApplicationName} OpenAPI"));
+            app.UseMiddleware<OpenApiCachingMiddleware>();
+
             app.MapGrpcReflectionService();
         }
 

@@ -14,23 +14,29 @@ public record GetCashiersQuery : IQuery<IEnumerable<GetCashiersQuery.Result>>
     [Range(0, int.MaxValue)]
     public int Offset { get; set; } = 0;
 
-    public record Result(Guid CashierId, string Name, string Email);
+    public record Result(Guid TenantId, Guid CashierId, string Name, string Email);
 }
 
-public static class GetCashiersQueryHandler
+/// <summary>
+///     Example of query handler with db query directly in the handler, with DbCommand attr just for snake case conversion.
+/// </summary>
+public static partial class GetCashiersQueryHandler
 {
-    public static async Task<IEnumerable<GetCashiersQuery.Result>> Handle(GetCashiersQuery query,
-        NpgsqlDataSource dataSource, CancellationToken cancellationToken)
+    [DbCommand]
+    private sealed partial record DbCommand(int Limit, int Offset);
+
+    public static async Task<IEnumerable<GetCashiersQuery.Result>> Handle(GetCashiersQuery query, NpgsqlDataSource dataSource,
+        CancellationToken cancellationToken)
     {
         await using var connection = await dataSource.OpenConnectionAsync(cancellationToken);
 
-        var sql = @"
-            SELECT cashier_id AS CashierId, name AS Name, email AS Email
-            FROM billing.cashiers
-            LIMIT @Limit OFFSET @Offset";
+        const string sql = """
+                               SELECT null::uuid as TenantId, cashier_id AS CashierId, name AS Name, email AS Email
+                               FROM billing.cashiers
+                               LIMIT @limit OFFSET @offset
+                           """;
 
-        var cashiers = await connection.QueryAsync<GetCashiersQuery.Result>(
-            sql, new { query.Limit, query.Offset });
+        var cashiers = await connection.QueryAsync<GetCashiersQuery.Result>(sql, new DbCommand(query.Limit, query.Offset).ToDbParams());
 
         return cashiers;
     }

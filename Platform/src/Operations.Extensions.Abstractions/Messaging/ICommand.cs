@@ -7,4 +7,10 @@ namespace Operations.Extensions.Abstractions.Messaging;
 // ReSharper disable UnusedTypeParameter
 #pragma warning disable S2326
 
-public interface ICommand<TResult>;
+public interface ICommand<out TResult>
+{
+    /// <summary>
+    ///     Gets empty result
+    /// </summary>
+    TResult? Empty => default;
+}

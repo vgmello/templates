@@ -9,7 +9,7 @@ using InvoiceModel = Billing.Contracts.Invoices.Models.Invoice;
 public record CreateInvoiceCommand(
     string Name,
     decimal Amount,
-    string? Currency = "USD",
+    string? Currency = "",
     DateTime? DueDate = null,
     Guid? CashierId = null
 ) : ICommand<Result<InvoiceModel>>;
@@ -28,7 +28,7 @@ public class CreateInvoiceValidator : AbstractValidator<CreateInvoiceCommand>
 
 public static partial class CreateInvoiceCommandHandler
 {
-    [DbCommand(sp: "billing.create_invoice", nonQuery: true)]
+    [DbCommand(sp: "billing.invoice_create", nonQuery: true)]
     public partial record InsertInvoiceCommand(
         Guid InvoiceId,
         string Name,

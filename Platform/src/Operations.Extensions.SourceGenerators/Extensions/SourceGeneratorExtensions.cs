@@ -9,14 +9,12 @@ namespace Operations.Extensions.SourceGenerators.Extensions;
 
 internal static class SourceGeneratorExtensions
 {
-    private static SymbolDisplayFormat FullyQualifiedFormatNoGlobal { get; } =
-        new(
-            globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Omitted,
-            typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
-            genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
-            miscellaneousOptions:
-            SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers |
-            SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
+    private static SymbolDisplayFormat FullyQualifiedFormat { get; } = SymbolDisplayFormat
+        .FullyQualifiedFormat
+        .AddMiscellaneousOptions(SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier);
+
+    private static SymbolDisplayFormat FullyQualifiedFormatNoGlobal { get; } = FullyQualifiedFormat
+        .WithGlobalNamespaceStyle(SymbolDisplayGlobalNamespaceStyle.Omitted);
 
     public static T? GetConstructorArgument<T>(this AttributeData attribute, int index)
     {
@@ -48,7 +46,7 @@ internal static class SourceGeneratorExtensions
     }
 
     public static string GetQualifiedName(this ITypeSymbol typeSymbol, bool withGlobalNamespace = false) =>
-        typeSymbol.ToDisplayString(withGlobalNamespace ? SymbolDisplayFormat.FullyQualifiedFormat : FullyQualifiedFormatNoGlobal);
+        typeSymbol.ToDisplayString(withGlobalNamespace ? FullyQualifiedFormat : FullyQualifiedFormatNoGlobal);
 
     public static ImmutableArray<INamedTypeSymbol> GetContainingTypesTree(this ITypeSymbol typeSymbol)
     {

@@ -20,6 +20,19 @@ dotnet test
 docker-compose up --build
 ```
 
+### Docker Build Commands
+```bash
+# Build individual service images
+docker build -t billing-api -f Billing/src/Billing.Api/Dockerfile .
+docker build -t billing-backoffice -f Billing/src/Billing.BackOffice/Dockerfile .
+docker build -t accounting-api -f Accounting/src/Accounting.Api/Dockerfile .
+docker build -t accounting-backoffice -f Accounting/src/Accounting.BackOffice/Dockerfile .
+
+# Run individual containers
+docker run -p 8101:8080 billing-api
+docker run -p 8121:8080 accounting-api
+```
+
 ### Database Setup (Required before first run)
 ```bash
 cd Billing/infra/Billing.Database/
@@ -182,6 +195,93 @@ curl -X POST http://localhost:5061/invoices \
   -d '{"cashierId": "CASHIER_ID", "amount": 100.00, "currency": "USD"}'
 ```
 
+## UI Integration
+
+### **Frontend Architecture**
+- **SvelteKit UI** located at `Billing/web/billing-ui/`
+- **gRPC Communication** with Billing API using `@grpc/grpc-js`
+- **Integrated with Aspire** orchestration for development
+- **Responsive Design** with Tailwind CSS and Lucide icons
+
+### **Aspire Integration**
+```csharp
+// In Billing.AppHost/Program.cs
+var billingUi = builder
+    .AddNpmApp("billing-ui", "../../../Billing/web/billing-ui")
+    .WithReference(billingApi)
+    .WithEnvironment("GRPC_HOST", () => billingApi.GetEndpoint("grpc").Host)
+    .WithEnvironment("GRPC_PORT", () => billingApi.GetEndpoint("grpc").Port.ToString())
+    .WithHttpEndpoint(env: "PORT")
+    .WithExternalHttpEndpoints()
+    .PublishAsDockerFile();
+```
+
+### **UI Development Commands**
+```bash
+# Install UI dependencies
+cd Billing/web/billing-ui && npm install
+
+# Run UI in development mode
+npm run dev
+
+# Build UI for production
+npm run build
+
+# Run UI tests (requires backend to be running - see below)
+npm run test:ui
+
+# Run UI tests with mocked API (standalone, no backend required)
+npm run test:mock
+```
+
+### **Backend Setup for UI Tests**
+UI Playwright tests require the backend gRPC API to be running. The UI tests use the gRPC API only.
+
+```bash
+# Method 1: Run full Aspire orchestration (recommended)
+cd Billing/src/Billing.AppHost
+dotnet run
+
+# Method 2: Run API standalone for testing
+cd Billing/src/Billing.Api
+dotnet run --launch-profile http
+# This runs HTTP on port 8101 and gRPC on port 8102
+
+# Method 3: Using Docker Compose (minimal setup)
+docker compose -f Billing/compose.yml up billing-api -d
+```
+
+**Important:** 
+- All Playwright tests should use `npm run test:ui` as the command prefix
+- Backend must be running on port 8102 (gRPC) for UI tests to pass
+- Use `npm run test:mock` for tests without backend dependency
+
+## Recent Updates
+
+### **Stored Procedures Refactored (2024)**
+- Changed naming pattern from `action_resource` to `resource_action`
+- Updated procedures: `cashier_create`, `cashier_update`, `cashier_delete`, `invoice_create`, `invoice_update`, `invoice_cancel`
+- All C# references updated to match new procedure names
+
+### **OpenAPI Documentation Added**
+- Comprehensive documentation for all controllers with XML summaries
+- Response types and error codes properly documented
+- Tags added for better API organization using Microsoft OpenAPI extensions
+
+### **Result Pattern Implementation**
+- `GetInvoice` query updated to use Result pattern instead of exceptions
+- Uses OneOf library with ValidationFailure for error handling
+- Consistent error handling across query operations
+
+### **Integration Events Refactored**
+- Removed "Event" suffix from all integration events
+- Updated filenames and all references across the codebase
+- Events: `CashierCreated`, `InvoicePaid`, `CashierUpdated`, etc.
+
+### **Cancellation Token Support**
+- Added cancellation tokens to all CashiersController operations
+- Improved async operation handling and cancellation support
+
 ## Development Notes
 
 - **Prerequisites**: PostgreSQL running on localhost:5432
@@ -191,3 +291,8 @@ curl -X POST http://localhost:5061/invoices \
 - **Environment**: .NET 9 with nullable reference types and implicit usings
 
 If you need to download any tools save them on the _temp folder
+# important-instruction-reminders
+ALWAYS do a git pull before starting any work to ensure I'm using the latest version.
+Keep the project documentation (README.md (s)) updated
+Update memory frequently (CLAUDE.md) on how to better navigate this project
+ALWAY Commit and push before output the value 

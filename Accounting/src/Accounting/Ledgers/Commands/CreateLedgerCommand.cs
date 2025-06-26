@@ -21,7 +21,7 @@ public static class CreateLedgerCommandHandler
 {
     public record InsertLedgerCommand(LedgerEntity Ledger) : ICommand<int>;
 
-    public static async Task<(Result<LedgerModel>, LedgerCreatedEvent)> Handle(
+    public static async Task<(Result<LedgerModel>, LedgerCreated)> Handle(
         CreateLedgerCommand command, IMessageContext messaging, CancellationToken cancellationToken)
     {
         var entity = new LedgerEntity
@@ -41,7 +41,7 @@ public static class CreateLedgerCommandHandler
             LedgerType = entity.LedgerType
         };
 
-        return (result, new LedgerCreatedEvent(result));
+        return (result, new LedgerCreated(result));
     }
 
     public static Task<int> Handle(InsertLedgerCommand command, CancellationToken cancellationToken)

@@ -19,7 +19,7 @@ public class CancelInvoiceValidator : AbstractValidator<CancelInvoiceCommand>
 
 public static partial class CancelInvoiceCommandHandler
 {
-    [DbCommand(sp: "billing.cancel_invoice", nonQuery: true)]
+    [DbCommand(sp: "billing.invoice_cancel", nonQuery: true)]
     public partial record CancelInvoiceDbCommand(Guid InvoiceId) : ICommand<int>;
 
     public static async Task<(Result<InvoiceModel>, InvoiceCancelled?)> Handle(CancelInvoiceCommand command, IMessageBus messaging,

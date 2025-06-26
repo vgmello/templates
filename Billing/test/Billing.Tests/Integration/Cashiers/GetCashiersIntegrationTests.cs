@@ -47,6 +47,7 @@ public class GetCashiersIntegrationTests(IntegrationTestFixture fixture) : Integ
 
         response.Cashiers[0].ShouldBe(new Cashier.Grpc.Models.Cashier
         {
+            TenantId = Guid.Empty.ToString(),
             CashierId = createdCashiers[0].CashierId,
             Name = createdCashiers[0].Name,
             Email = createdCashiers[0].Email
@@ -54,6 +55,7 @@ public class GetCashiersIntegrationTests(IntegrationTestFixture fixture) : Integ
 
         response.Cashiers[1].ShouldBe(new Cashier.Grpc.Models.Cashier
         {
+            TenantId = Guid.Empty.ToString(),
             CashierId = createdCashiers[1].CashierId,
             Name = createdCashiers[1].Name,
             Email = createdCashiers[1].Email

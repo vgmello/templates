@@ -17,7 +17,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <Folder Include="Invoices\IntegrationEvents\"/>
+        <Folder Include="Invoices\Messaging\" />
     </ItemGroup>
 
 </Project>

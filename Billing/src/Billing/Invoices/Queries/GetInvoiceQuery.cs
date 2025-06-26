@@ -1,29 +1,27 @@
 // Copyright (c) ABCDEG. All rights reserved.
 
-using Dapper;
-using Npgsql;
+using FluentValidation.Results;
 
 namespace Billing.Invoices.Queries;
 
 using InvoiceModel = Billing.Contracts.Invoices.Models.Invoice;
 
-public record GetInvoiceQuery(Guid Id) : IQuery<InvoiceModel>;
+public record GetInvoiceQuery(Guid Id) : IQuery<Result<InvoiceModel>>;
 
-public static class GetInvoiceQueryHandler
+public static partial class GetInvoiceQueryHwandler
 {
-    public static async Task<InvoiceModel> Handle(GetInvoiceQuery query, NpgsqlDataSource dataSource, CancellationToken cancellationToken)
+    [DbCommand(sp: "billing.invoice_get")]
+    public partial record GetInvoiceDbQuery(Guid InvoiceId) : IQuery<InvoiceModel?>;
+
+    public static async Task<Result<InvoiceModel>> Handle(GetInvoiceQuery query, IMessageBus messaging, CancellationToken cancellationToken)
     {
-        const string sql = """
-                           SELECT invoice_id, name, status, amount, currency, due_date, cashier_id,
-                                  created_date_utc, updated_date_utc, version
-                           FROM billing.invoices
-                           WHERE invoice_id = @Id
-                           """;
+        var dbQuery = new GetInvoiceDbQuery(query.Id);
 
-        await using var connection = await dataSource.OpenConnectionAsync(cancellationToken);
+        var invoice = await messaging.InvokeQueryAsync(dbQuery, cancellationToken);
 
-        var invoice = await connection.QuerySingleOrDefaultAsync<InvoiceModel>(sql, new { query.Id });
+        if (invoice is not null)
+            return invoice;
 
-        return invoice ?? throw new InvalidOperationException($"Invoice with ID {query.Id} not found");
+        return new List<ValidationFailure> { new("Id", "Invoice not found") };
     }
 }

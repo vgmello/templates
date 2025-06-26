@@ -13,6 +13,7 @@ internal class DbCommandTypeInfoSourceGen : DbCommandTypeInfo
     internal static string DbCommandAttributeFullName { get; } = typeof(DbCommandAttribute).FullName!;
 
     private static string CommandInterfaceFullName { get; } = $"{typeof(ICommand<>).Namespace}.ICommand<TResult>";
+    private static string QueryInterfaceFullName { get; } = $"{typeof(IQuery<>).Namespace}.IQuery<TResult>";
 
     public DbCommandTypeInfoSourceGen(INamedTypeSymbol typeSymbol, DbParamsCase defaultDbParamsCase) :
         base(
@@ -63,29 +64,41 @@ internal class DbCommandTypeInfoSourceGen : DbCommandTypeInfo
 
     private static ResultTypeInfo? GetDbCommandResultInfo(INamedTypeSymbol typeSymbol)
     {
-        var iCommandInterface = typeSymbol.AllInterfaces.FirstOrDefault(i =>
-            i.OriginalDefinition.ToDisplayString().StartsWith(CommandInterfaceFullName));
+        var commandInterface = typeSymbol.AllInterfaces.FirstOrDefault(it =>
+            it.OriginalDefinition.ToDisplayString().StartsWith(CommandInterfaceFullName));
 
-        if (iCommandInterface?.TypeArguments[0] is not INamedTypeSymbol commandResultType)
+        if (commandInterface is not null)
+            return GetResultInfo(commandInterface);
+
+        var queryInterface = typeSymbol.AllInterfaces.FirstOrDefault(it =>
+            it.OriginalDefinition.ToDisplayString().StartsWith(QueryInterfaceFullName));
+
+        return queryInterface is not null ? GetResultInfo(queryInterface) : null;
+    }
+
+    private static ResultTypeInfo? GetResultInfo(INamedTypeSymbol messageInterface)
+    {
+        if (messageInterface.TypeArguments[0] is not INamedTypeSymbol resultType)
             return null;
 
-        var commandResultFullTypeName = commandResultType.GetQualifiedName(withGlobalNamespace: true);
-        var genericArgumentResultFullTypeName = commandResultFullTypeName;
+        var resultFullTypeName = resultType.GetQualifiedName(withGlobalNamespace: true);
+
+        var genericArgumentResultFullTypeName = resultFullTypeName;
         var isEnumerableResult = false;
 
-        var implementsIEnumerable = commandResultType.OriginalDefinition.ImplementsIEnumerable();
+        var implementsIEnumerable = resultType.OriginalDefinition.ImplementsIEnumerable();
 
-        if (implementsIEnumerable && commandResultType.TypeArguments.FirstOrDefault() is INamedTypeSymbol enumerableTypeArg)
+        if (implementsIEnumerable && resultType.TypeArguments.FirstOrDefault() is INamedTypeSymbol enumerableTypeArg)
         {
             isEnumerableResult = true;
             genericArgumentResultFullTypeName = enumerableTypeArg.GetQualifiedName(withGlobalNamespace: true);
         }
 
         return new ResultTypeInfo(
-            typeName: commandResultType.Name,
-            qualifiedTypeName: commandResultFullTypeName,
+            typeName: resultType.Name,
+            qualifiedTypeName: resultFullTypeName,
             genericArgumentResultFullTypeName: genericArgumentResultFullTypeName,
-            isIntegralType: commandResultType.IsIntegralType(),
+            isIntegralType: resultType.IsIntegralType(),
             isEnumerableResult: isEnumerableResult);
     }
 

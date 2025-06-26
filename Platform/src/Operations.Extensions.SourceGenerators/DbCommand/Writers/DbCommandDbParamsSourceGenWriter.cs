@@ -17,7 +17,14 @@ internal class DbCommandDbParamsSourceGenWriter : SourceGenBaseWriter
         AppendNamespace(sourceBuilder, dbCommandTypeInfo.Namespace);
         AppendContainingTypeStarts(sourceBuilder, dbCommandTypeInfo.ParentTypes);
 
-        sourceBuilder.AppendLine($"{dbCommandTypeInfo.TypeDeclaration} : global::{DbParamsProviderInterfaceFullName}");
+        var typeDeclaration = dbCommandTypeInfo.TypeDeclaration;
+
+        if (!dbCommandTypeInfo.TypeDeclaration.Contains("abstract") && !dbCommandTypeInfo.TypeDeclaration.Contains("sealed"))
+        {
+            typeDeclaration = $"sealed {dbCommandTypeInfo.TypeDeclaration}";
+        }
+
+        sourceBuilder.AppendLine($"{typeDeclaration} : global::{DbParamsProviderInterfaceFullName}");
         sourceBuilder.AppendLine("{");
 
         GenerateToDbParamsMethod(sourceBuilder, dbCommandTypeInfo);

@@ -53,13 +53,6 @@ public static class Extensions
             builder.Services.AddValidatorsFromAssembly(assembly);
     }
 
-    private static Assembly GetEntryAssembly()
-    {
-        return Assembly.GetEntryAssembly() ??
-               throw new InvalidOperationException(
-                   "Unable to identify entry assembly. Please provide an assembly via the Extensions.AssemblyMarker property.");
-    }
-
     public static async Task RunAsync(this WebApplication app, string[] args)
     {
         app.UseInitializationLogger();
@@ -96,4 +89,11 @@ public static class Extensions
         "resources",
         "storage"
     ];
+
+    private static Assembly GetEntryAssembly()
+    {
+        return Assembly.GetEntryAssembly() ??
+               throw new InvalidOperationException(
+                   "Unable to identify entry assembly. Please provide an assembly via the Extensions.AssemblyMarker property.");
+    }
 }

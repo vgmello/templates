@@ -1,7 +1,7 @@
 --liquibase formatted sql
 
---changeset dev_user:"create mark_invoice_as_paid procedure" runOnChange:true
-CREATE OR REPLACE PROCEDURE billing.mark_invoice_as_paid(
+--changeset dev_user:"create invoice_mark_paid procedure" runOnChange:true
+CREATE OR REPLACE PROCEDURE billing.invoice_mark_paid(
     IN invoice_id uuid,
     IN amount_paid decimal(18,2),
     IN payment_date timestamp with time zone
@@ -12,7 +12,7 @@ BEGIN ATOMIC
     SET status = 'Paid',
         updated_date_utc = timezone('utc', now()),
         version = version + 1
-    WHERE invoices.invoice_id = mark_invoice_as_paid.invoice_id
+    WHERE invoices.invoice_id = invoice_mark_paid.invoice_id
       AND invoices.status NOT IN ('Paid', 'Cancelled')
-      AND invoices.amount <= mark_invoice_as_paid.amount_paid;
+      AND invoices.amount <= invoice_mark_paid.amount_paid;
 END;

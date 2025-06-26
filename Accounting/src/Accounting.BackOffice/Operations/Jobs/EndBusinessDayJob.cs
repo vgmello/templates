@@ -12,7 +12,7 @@ public class EndBusinessDayJob(IMessageBus bus) : BackgroundService
         while (!stoppingToken.IsCancellationRequested)
         {
             var businessDate = DateOnly.FromDateTime(DateTime.UtcNow);
-            
+
             await bus.PublishAsync(new LedgerBalanceCreated
             {
                 LedgerId = Guid.NewGuid(),

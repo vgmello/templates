@@ -33,61 +33,94 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
+  # Aspire Dashboard for Observability
+  aspire-dashboard:
+    image: mcr.microsoft.com/dotnet/aspire-dashboard:9.0
+    container_name: aspire-dashboard
+    ports:
+      - "18100:18080"  # Dashboard HTTP
+      - "4317:4317"    # OTLP gRPC
+      - "4318:4318"    # OTLP HTTP
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - DOTNET_DASHBOARD_OTLP_ENDPOINT_URL=http://localhost:4318
+      - ASPIRE_ALLOW_UNSECURED_TRANSPORT=true
+    restart: unless-stopped
+
   # Application Services
-  accounting:
-    image: accounting
+  accounting-api:
+    image: accounting-api
     build:
       context: .
-      dockerfile: Accounting/Dockerfile
+      dockerfile: Accounting/src/Accounting.Api/Dockerfile
+    ports:
+      - "8121:8080"
+      - "8122:8081"
     depends_on:
       - postgres
       - kafka
+      - aspire-dashboard
     environment:
+      - ASPNETCORE_ENVIRONMENT=Development
       - ConnectionStrings__Messaging=kafka:9092
+      - ConnectionStrings__AccountingDb=Host=postgres;Port=5432;Database=accounting;Username=postgres;Password=postgres
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://aspire-dashboard:4318
+      - OTEL_SERVICE_NAME=accounting-api
 
-  accounting.backend:
-    image: accounting.backend
+  accounting-backoffice:
+    image: accounting-backoffice
     build:
       context: .
-      dockerfile: Accounting.Backend/Dockerfile
+      dockerfile: Accounting/src/Accounting.BackOffice/Dockerfile
+    ports:
+      - "8123:8080"
     depends_on:
       - postgres
       - kafka
+      - aspire-dashboard
     environment:
+      - ASPNETCORE_ENVIRONMENT=Development
       - ConnectionStrings__Messaging=kafka:9092
+      - ConnectionStrings__AccountingDb=Host=postgres;Port=5432;Database=accounting;Username=postgres;Password=postgres
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://aspire-dashboard:4318
+      - OTEL_SERVICE_NAME=accounting-backoffice
 
-  accounting.api:
-    image: accounting.api
+  billing-api:
+    image: billing-api
     build:
       context: .
-      dockerfile: Accounting.Api/Dockerfile
+      dockerfile: Billing/src/Billing.Api/Dockerfile
+    ports:
+      - "8101:8080"
+      - "8102:8081"
     depends_on:
       - postgres
       - kafka
+      - aspire-dashboard
     environment:
+      - ASPNETCORE_ENVIRONMENT=Development
       - ConnectionStrings__Messaging=kafka:9092
+      - ConnectionStrings__BillingDb=Host=postgres;Port=5432;Database=billing;Username=postgres;Password=postgres
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://aspire-dashboard:4318
+      - OTEL_SERVICE_NAME=billing-api
 
-  billing.api:
-    image: billing.api
+  billing-backoffice:
+    image: billing-backoffice
     build:
       context: .
-      dockerfile: Billing.Api/Dockerfile
+      dockerfile: Billing/src/Billing.BackOffice/Dockerfile
+    ports:
+      - "8103:8080"
     depends_on:
       - postgres
       - kafka
+      - aspire-dashboard
     environment:
+      - ASPNETCORE_ENVIRONMENT=Development
       - ConnectionStrings__Messaging=kafka:9092
-
-  billing.backend:
-    image: billing.backend
-    build:
-      context: .
-      dockerfile: Billing.Backend/Dockerfile
-    depends_on:
-      - postgres
-      - kafka
-    environment:
-      - ConnectionStrings__Messaging=kafka:9092
+      - ConnectionStrings__BillingDb=Host=postgres;Port=5432;Database=billing;Username=postgres;Password=postgres
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://aspire-dashboard:4318
+      - OTEL_SERVICE_NAME=billing-backoffice
 
 volumes:
   postgres_data:

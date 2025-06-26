@@ -6,7 +6,7 @@ import type { Cashier, CreateCashierRequest, UpdateCashierRequest } from '../../
 
 // Configuration
 const GRPC_HOST = env.GRPC_HOST || 'localhost';
-const GRPC_PORT = env.GRPC_PORT || '4061';
+const GRPC_PORT = env.GRPC_PORT || '8102';
 const PROTO_PATH = env.PROTO_PATH || './protos/cashiers.proto';
 
 // gRPC client interface

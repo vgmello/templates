@@ -22,10 +22,10 @@ public class UpdateCashierValidator : AbstractValidator<UpdateCashierCommand>
 
 public static partial class UpdateCashierCommandHandler
 {
-    [DbCommand(sp: "billing.update_cashier", nonQuery: true)]
+    [DbCommand(sp: "billing.cashier_update", nonQuery: true)]
     public partial record UpdateCashierDbCommand(Guid CashierId, string Name, string? Email) : ICommand<int>;
 
-    public static async Task<(Result<CashierModel>, CashierUpdatedEvent?)> Handle(UpdateCashierCommand command, IMessageBus messaging,
+    public static async Task<(Result<CashierModel>, CashierUpdated?)> Handle(UpdateCashierCommand command, IMessageBus messaging,
         CancellationToken cancellationToken)
     {
         var updateDbCommand = new UpdateCashierDbCommand(command.CashierId, command.Name, command.Email);
@@ -46,7 +46,7 @@ public static partial class UpdateCashierCommandHandler
             Email = command.Email ?? "Not Updated"
         };
 
-        var updatedEvent = new CashierUpdatedEvent(command.CashierId);
+        var updatedEvent = new CashierUpdated(command.CashierId);
 
         return (result, updatedEvent);
     }

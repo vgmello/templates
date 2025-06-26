@@ -3,11 +3,11 @@
 using Billing.Contracts.Invoices.IntegrationEvents;
 using Billing.Invoices.Commands;
 
-namespace Billing.BackOffice.Messaging.IntegrationEvents.Internal;
+namespace Billing.BackOffice.Messaging.BillingInboxHandler;
 
-public static class PaymentReceivedEventHandler
+public static class PaymentReceivedHandler
 {
-    public static async Task Handle(PaymentReceivedEvent @event, IMessageBus messaging, CancellationToken cancellationToken)
+    public static async Task Handle(PaymentReceived @event, IMessageBus messaging, CancellationToken cancellationToken)
     {
         var markPaidCommand = new MarkInvoiceAsPaidCommand(
             @event.InvoiceId,

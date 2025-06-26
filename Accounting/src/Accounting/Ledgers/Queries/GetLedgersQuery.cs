@@ -13,17 +13,17 @@ public record GetLedgersQuery
     [Range(0, int.MaxValue)]
     public int Offset { get; set; } = 0;
 
-    public record Result(Guid LedgerId, Guid ClientId, LedgerType LedgerType);
+    public record Result(Guid TenantId, Guid LedgerId, Guid ClientId, LedgerType LedgerType);
 }
 
 public static class GetLedgersQueryHandler
 {
-    public static async Task<IEnumerable<GetLedgersQuery.Result>> Handle(GetLedgersQuery query, CancellationToken cancellationToken)
+    public static Task<IEnumerable<GetLedgersQuery.Result>> Handle(GetLedgersQuery query, CancellationToken cancellationToken)
     {
-        return new[]
+        return Task.FromResult<IEnumerable<GetLedgersQuery.Result>>(new[]
         {
-            new GetLedgersQuery.Result(Guid.NewGuid(), Guid.NewGuid(), LedgerType.Cash),
-            new GetLedgersQuery.Result(Guid.NewGuid(), Guid.NewGuid(), LedgerType.Payable)
-        };
+            new GetLedgersQuery.Result(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), LedgerType.Cash),
+            new GetLedgersQuery.Result(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), LedgerType.Payable)
+        });
     }
 }

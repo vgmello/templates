@@ -21,10 +21,10 @@ public static class DependencyInjection
     private static void ConfigureKafkaPublishing(this WolverineOptions opts)
     {
         // Publish Ledger events to Kafka
-        opts.PublishMessage<Accounting.Contracts.Ledgers.IntegrationEvents.LedgerCreatedEvent>()
+        opts.PublishMessage<Accounting.Contracts.Ledgers.IntegrationEvents.LedgerCreated>()
             .ToKafkaTopic(KafkaTopicNamingConvention.Accounting.Ledger.Topic);
 
-        opts.PublishMessage<Accounting.Contracts.Ledgers.IntegrationEvents.LedgerUpdatedEvent>()
+        opts.PublishMessage<Accounting.Contracts.Ledgers.IntegrationEvents.LedgerUpdated>()
             .ToKafkaTopic(KafkaTopicNamingConvention.Accounting.Ledger.Topic);
 
         // Publish Operation events to Kafka

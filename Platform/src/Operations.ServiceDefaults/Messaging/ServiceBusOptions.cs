@@ -1,10 +1,9 @@
 // Copyright (c) ABCDEG. All rights reserved.
 
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Operations.Extensions.Abstractions.Extensions;
-using System.ComponentModel.DataAnnotations;
 
 namespace Operations.ServiceDefaults.Messaging;
 
@@ -12,20 +11,21 @@ public class ServiceBusOptions
 {
     public static string SectionName => "ServiceBus";
 
-    [Required]
-    public string ServiceName { get; init; } = GetServiceName();
-
-    public string PublicServiceName { get; } = GetServiceName();
+    public string PublicServiceName { get; set; } = string.Empty;
 
     public Uri ServiceUrn { get; private set; } = null!;
 
-    private static string GetServiceName() => Extensions.EntryAssembly.GetName().Name?.Replace('.', '_') ?? string.Empty;
+    public static string GetServiceName(string appName) => appName.ToLowerInvariant().Replace('.', '-');
 
-    public class Configurator(ILogger<Configurator> logger, IConfiguration config) : IPostConfigureOptions<ServiceBusOptions>
+    public class Configurator(ILogger<Configurator> logger, IHostEnvironment env, IConfiguration config)
+        : IPostConfigureOptions<ServiceBusOptions>
     {
         public void PostConfigure(string? name, ServiceBusOptions options)
         {
-            options.ServiceUrn = new Uri($"urn:{options.PublicServiceName.ToKebabCase()}");
+            if (options.PublicServiceName.Length == 0)
+                options.PublicServiceName = GetServiceName(env.ApplicationName);
+
+            options.ServiceUrn = new Uri($"urn:{GetServiceName(options.PublicServiceName)}");
 
             var connectionString = config.GetConnectionString(SectionName);
 

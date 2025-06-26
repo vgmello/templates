@@ -76,7 +76,8 @@ public class IntegrationTestFixture : WebApplicationFactory<Program>, IAsyncLife
                 .ClearProviders()
                 .AddSerilog(CreateTestLogger(nameof(Billing))));
 
-            services.AddWolverineWithDefaults(ctx.Configuration, opt => opt.ApplicationAssembly = typeof(Program).Assembly);
+            services.AddWolverineWithDefaults(ctx.HostingEnvironment, ctx.Configuration,
+                opt => opt.ApplicationAssembly = typeof(Program).Assembly);
         });
 
         builder.Configure(app =>

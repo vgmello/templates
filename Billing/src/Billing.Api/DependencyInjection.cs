@@ -23,14 +23,14 @@ public static class DependencyInjection
     private static void ConfigureKafkaPublishing(this WolverineOptions opts)
     {
         // Publish Cashier events to Kafka
-        opts.PublishMessage<Billing.Contracts.Cashier.IntegrationEvents.CashierCreatedEvent>()
+        opts.PublishMessage<Billing.Contracts.Cashier.IntegrationEvents.CashierCreated>()
             .ToKafkaTopic(KafkaTopicNamingConvention.Billing.Cashier.Topic);
 
-        opts.PublishMessage<Billing.Contracts.Cashier.IntegrationEvents.CashierUpdatedEvent>()
+        opts.PublishMessage<Billing.Contracts.Cashier.IntegrationEvents.CashierUpdated>()
             .ToKafkaTopic(KafkaTopicNamingConvention.Billing.Cashier.Topic);
 
         // Publish Invoice events to Kafka
-        opts.PublishMessage<Billing.Contracts.Invoices.IntegrationEvents.InvoicePaidEvent>()
+        opts.PublishMessage<Billing.Contracts.Invoices.IntegrationEvents.InvoicePaid>()
             .ToKafkaTopic(KafkaTopicNamingConvention.Billing.Invoice.Topic);
 
         opts.PublishMessage<Billing.Contracts.Invoices.IntegrationEvents.InvoiceFinalized>()

@@ -1,7 +1,7 @@
 --liquibase formatted sql
 
---changeset dev_user:"create create_cashier procedure" runOnChange:true
-CREATE OR REPLACE PROCEDURE billing.create_cashier(
+--changeset dev_user:"create cashier_create procedure" runOnChange:true
+CREATE OR REPLACE PROCEDURE billing.cashier_create(
     IN cashier_id uuid,
     IN name varchar(100),
     IN email varchar(100)

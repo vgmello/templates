@@ -6,13 +6,14 @@
     "build": "vite build",
     "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
     "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
-    "dev": "vite dev",
+    "dev": "vite dev --host 0.0.0.0",
     "preview": "vite preview",
-    "test": "playwright test",
-    "test:ui": "playwright test --ui",
-    "test:headed": "playwright test --headed",
-    "test:debug": "playwright test --debug",
-    "test:mock": "MOCK_API=true playwright test"
+    "test:ui": "playwright test",
+    "test:ui-mode": "playwright test --ui",
+    "test:ui-headed": "playwright test --headed",
+    "test:ui-debug": "playwright test --debug",
+    "test:ui-mock": "MOCK_API=true playwright test",
+    "test:ui-aspire": "ASPIRE_MODE=true playwright test"
   },
   "devDependencies": {
     "@playwright/test": "^1.53.1",
@@ -32,7 +33,11 @@
     "@grpc/grpc-js": "^1.12.2",
     "@grpc/proto-loader": "^0.7.13",
     "clsx": "^2.1.1",
+    "cookie": "^0.7.2",
     "lucide-svelte": "^0.468.0",
     "tailwind-merge": "^2.5.4"
+  },
+  "overrides": {
+    "cookie": "^0.7.2"
   }
 }

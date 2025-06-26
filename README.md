@@ -220,12 +220,25 @@ dotnet run --project Accounting/src/Accounting.BackOffice
 
 **Option B: Docker Compose**
 ```bash
-docker-compose up --build
+docker compose up --build
+```
+
+**Option C: Individual Docker Builds**
+```bash
+# Build individual service images
+docker build -t billing-api -f Billing/src/Billing.Api/Dockerfile .
+docker build -t billing-backoffice -f Billing/src/Billing.BackOffice/Dockerfile .
+docker build -t accounting-api -f Accounting/src/Accounting.Api/Dockerfile .
+docker build -t accounting-backoffice -f Accounting/src/Accounting.BackOffice/Dockerfile .
+
+# Run individual containers
+docker run -p 8101:8080 billing-api
+docker run -p 8121:8080 accounting-api
 ```
 
 ### 4. Verify Manual Setup
-- **Billing API**: http://localhost:8101/swagger
-- **Accounting API**: http://localhost:8121/swagger
+- **Billing API**: http://localhost:8101/scalar
+- **Accounting API**: http://localhost:8121/scalar
 - **Health Checks**: http://localhost:8101/health, http://localhost:8121/health
 
 ---
@@ -268,6 +281,24 @@ dotnet test Billing/test/Billing.Tests
 dotnet test Accounting/test/Accounting.Tests
 ```
 
+### Docker Commands
+```bash
+# Build all service images
+docker build -t billing-api -f Billing/src/Billing.Api/Dockerfile .
+docker build -t billing-backoffice -f Billing/src/Billing.BackOffice/Dockerfile .
+docker build -t accounting-api -f Accounting/src/Accounting.Api/Dockerfile .
+docker build -t accounting-backoffice -f Accounting/src/Accounting.BackOffice/Dockerfile .
+
+# Run with Docker Compose (full stack)
+docker-compose up --build
+
+# Run individual containers
+docker run -p 8101:8080 --name billing-api billing-api
+docker run -p 8103:8080 --name billing-backoffice billing-backoffice
+docker run -p 8121:8080 --name accounting-api accounting-api
+docker run -p 8123:8080 --name accounting-backoffice accounting-backoffice
+```
+
 ### Database Management
 ```bash
 # Check migration status
@@ -293,11 +324,7 @@ Automatically generates Dapper command handlers and parameter mappers:
 [DbCommand(sp: "create_cashier", nonQuery: true)]
 public partial record CreateCashierCommand(string Name, decimal Balance) : ICommand<int>;
 
-// Generates:
-// - ToDbParams() method implementing IDbParamsProvider
-// - HandleAsync() static method with dependency injection
-// - Parameter case conversion (snake_case support)
-// - Keyed DbDataSource resolution
+// Generates: DB access methods that executes the stored procedure create_cashier and return the affected records (nonQuery)
 ```
 
 For detailed documentation, see [Platform/src/Operations.Extensions.SourceGenerators/README.md](Platform/src/Operations.Extensions.SourceGenerators/README.md).
@@ -369,11 +396,12 @@ Production-ready monitoring and tracing:
 ├── 🐳 compose.yaml                 # Docker Compose services
 ├── 📦 Directory.Packages.props     # Centralized NuGet package management
 ├── 🏗️ Directory.Build.props        # Shared MSBuild properties
-├── 📋 CLAUDE.md                    # AI assistant instructions
 │
 ├── 🧾 Billing/                     # Billing microservice
+│   ├── docs/                       # Project documentation, including code docs
 │   ├── src/                        # Source code
 │   ├── test/                       # Tests
+│   ├── web/                        # UI project
 │   └── infra/                      # Infrastructure (database)
 │
 ├── 📊 Accounting/                  # Accounting microservice
@@ -444,17 +472,9 @@ Configure source generators globally via MSBuild properties:
 All services include optimized Dockerfiles:
 
 ```dockerfile
-FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS base
+FROM mcr.microsoft.com/dotnet/aspnet:9.0-alpine AS base
 # Multi-stage builds for optimal image size
 ```
-
-### Aspire Deployment
-
-The template supports cloud deployment via .NET Aspire:
-
-- **Azure Container Apps** - Serverless container deployment
-- **Kubernetes** - Enterprise container orchestration
-- **Service Discovery** - Automatic service registration
 
 ### Database Migrations
 
@@ -470,19 +490,16 @@ When this becomes a dotnet template, it will support:
 
 ### Template Parameters
 ```bash
-dotnet new operations-microservices \
-  --name "MyCompany.Platform" \
-  --services "Orders,Inventory,Payments" \
-  --database "postgresql" \
+dotnet new microservice-template \
+  --name "Billing" \
+  --database "pgsql" \
   --messaging "kafka" \
-  --observability "opentelemetry"
 ```
 
 ### Customization Options
 - **Service Selection** - Choose which services to include
 - **Technology Choices** - Alternative databases, messaging systems
 - **Authentication** - JWT, OAuth2, Azure AD integration
-- **Cloud Providers** - Azure, AWS, GCP specific configurations
 
 ## 🤝 Contributing
 

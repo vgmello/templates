@@ -17,7 +17,7 @@ public class DbCommandSourceGenDbParmsTests : DbCommandSourceGenTestsBase
             """,
             expected:
             """
-            public partial record CreateUserCommand : global::Operations.Extensions.Abstractions.Dapper.IDbParamsProvider
+            sealed public partial record CreateUserCommand : global::Operations.Extensions.Abstractions.Dapper.IDbParamsProvider
             {
                 public global::System.Object ToDbParams()
                 {
@@ -37,7 +37,7 @@ public class DbCommandSourceGenDbParmsTests : DbCommandSourceGenTestsBase
             """,
             expected:
             """
-            public partial record GetActiveUsersQuery : global::Operations.Extensions.Abstractions.Dapper.IDbParamsProvider
+            sealed public partial record GetActiveUsersQuery : global::Operations.Extensions.Abstractions.Dapper.IDbParamsProvider
             {
                 public global::System.Object ToDbParams()
                 {
@@ -55,7 +55,7 @@ public class DbCommandSourceGenDbParmsTests : DbCommandSourceGenTestsBase
             """,
             expected:
             """
-            public partial record ManualCommand : global::Operations.Extensions.Abstractions.Dapper.IDbParamsProvider
+            sealed public partial record ManualCommand : global::Operations.Extensions.Abstractions.Dapper.IDbParamsProvider
             {
                 public global::System.Object ToDbParams()
                 {
@@ -73,7 +73,7 @@ public class DbCommandSourceGenDbParmsTests : DbCommandSourceGenTestsBase
             """,
             expected:
             """
-            public partial record ManualCommand : global::Operations.Extensions.Abstractions.Dapper.IDbParamsProvider
+            sealed public partial record ManualCommand : global::Operations.Extensions.Abstractions.Dapper.IDbParamsProvider
             {
                 public global::System.Object ToDbParams()
                 {
@@ -95,7 +95,7 @@ public class DbCommandSourceGenDbParmsTests : DbCommandSourceGenTestsBase
             """,
             expected:
             """
-            public partial record CreateUserCommand : global::Operations.Extensions.Abstractions.Dapper.IDbParamsProvider
+            sealed public partial record CreateUserCommand : global::Operations.Extensions.Abstractions.Dapper.IDbParamsProvider
             {
                 public global::System.Object ToDbParams()
                 {
@@ -124,7 +124,7 @@ public class DbCommandSourceGenDbParmsTests : DbCommandSourceGenTestsBase
             """,
             expected:
             """
-            public partial record UpdateUserCommand : global::Operations.Extensions.Abstractions.Dapper.IDbParamsProvider
+            sealed public partial record UpdateUserCommand : global::Operations.Extensions.Abstractions.Dapper.IDbParamsProvider
             {
                 public global::System.Object ToDbParams()
                 {
@@ -149,7 +149,7 @@ public class DbCommandSourceGenDbParmsTests : DbCommandSourceGenTestsBase
             """,
             expected:
             """
-            public partial record SimpleCommand : global::Operations.Extensions.Abstractions.Dapper.IDbParamsProvider
+            sealed public partial record SimpleCommand : global::Operations.Extensions.Abstractions.Dapper.IDbParamsProvider
             {
                 public global::System.Object ToDbParams()
                 {

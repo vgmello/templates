@@ -20,10 +20,13 @@
     <Project Path="Billing\src\Billing.BackOffice\Billing.BackOffice.csproj" Type="Classic C#" />
     <Project Path="Billing\src\Billing.Contracts\Billing.Contracts.csproj" Type="Classic C#" />
     <Project Path="Billing\src\Billing\Billing.csproj" Type="Classic C#" />
-    <File Path="Billing\compose.yml" />
   </Folder>
   <Folder Name="/Billing/Infra/">
     <Project Path="Billing\infra\Billing.Database\Billing.Database.csproj" Type="Classic C#" />
+  </Folder>
+  <Folder Name="/Billing/Solution Items/">
+    <File Path="Billing\README.md" />
+    <File Path="Billing\compose.yml" />
   </Folder>
   <Folder Name="/Billing/Tests/">
     <Project Path="Billing\test\Billing.Tests\Billing.Tests.csproj" Type="Classic C#" />

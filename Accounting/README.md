@@ -121,7 +121,7 @@ This automatically:
 
 **Access Points:**
 - **Aspire Dashboard**: http://localhost:18120
-- **Accounting API**: http://localhost:8121/swagger
+- **Accounting API**: http://localhost:8121/scalar
 - **Documentation**: http://localhost:8139
 
 ### Option 2: Manual Setup
@@ -159,7 +159,7 @@ dotnet run --project Accounting/src/Accounting.BackOffice.Orleans
 
 #### 3. Verify Setup
 - **API Health**: http://localhost:8121/health
-- **Swagger UI**: http://localhost:8121/swagger
+- **scalar UI**: http://localhost:8121/scalar
 - **gRPC**: Connect to localhost:8122
 
 ### Option 3: Docker Compose

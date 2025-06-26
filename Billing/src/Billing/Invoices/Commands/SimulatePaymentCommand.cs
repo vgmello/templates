@@ -26,10 +26,10 @@ public class SimulatePaymentValidator : AbstractValidator<SimulatePaymentCommand
 
 public static class SimulatePaymentCommandHandler
 {
-    public static Task<(Result<bool>, PaymentReceivedEvent)> Handle(SimulatePaymentCommand command, IMessageBus messaging,
+    public static Task<(Result<bool>, PaymentReceived)> Handle(SimulatePaymentCommand command, IMessageBus messaging,
         CancellationToken cancellationToken)
     {
-        var paymentReceivedEvent = new PaymentReceivedEvent(
+        var paymentReceivedEvent = new PaymentReceived(
             command.InvoiceId,
             command.Amount,
             command.Currency,
@@ -38,6 +38,6 @@ public static class SimulatePaymentCommandHandler
             DateTime.UtcNow
         );
 
-        return Task.FromResult<(Result<bool>, PaymentReceivedEvent)>((true, paymentReceivedEvent));
+        return Task.FromResult<(Result<bool>, PaymentReceived)>((true, paymentReceivedEvent));
     }
 }

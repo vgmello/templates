@@ -60,7 +60,7 @@ liquibase update
 You can always override the database connection string by providing it in as a CLI parameter
 
 ```bash
-liquibase update --url=jdbc:postgresql://my-remote-server:5432/service_bus --defaults-file liquibase.setup.properties
+liquibase update --url=jdbc:postgresql://my-remote-server:5432/postgres --defaults-file liquibase.setup.properties
 ```
 
 ## Changelog Structure

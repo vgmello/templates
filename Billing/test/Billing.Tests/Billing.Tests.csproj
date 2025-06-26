@@ -20,13 +20,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <Compile Remove="Unit\CashierHandlersTests.cs"/>
-        <Compile Remove="Unit\CreateCashierCommandHandlerTests.cs"/>
-    </ItemGroup>
-
-    <ItemGroup>
         <Folder Include="Integration\Invoices\" />
-        <Folder Include="Unit\"/>
     </ItemGroup>
 
 </Project>

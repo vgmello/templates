@@ -21,7 +21,7 @@ internal static class TestHelpers
             .Concat(
             [
                 MetadataReference.CreateFromFile(typeof(T).Assembly.Location),
-                MetadataReference.CreateFromFile(typeof(DbCommandAttribute).Assembly.Location),
+                MetadataReference.CreateFromFile(typeof(DbCommandAttribute).Assembly.Location)
             ]);
 
         var compilation = CSharpCompilation.Create(
@@ -81,6 +81,7 @@ internal class TestAnalyzerConfigOptions(Dictionary<string, string?> options) : 
         }
 
         value = string.Empty;
+
         return false;
     }
 }

@@ -1,7 +1,7 @@
 --liquibase formatted sql
 
---changeset dev_user:"create create_invoice procedure" runOnChange:true
-CREATE OR REPLACE PROCEDURE billing.create_invoice(
+--changeset dev_user:"create invoice_create procedure" runOnChange:true
+CREATE OR REPLACE PROCEDURE billing.invoice_create(
     IN invoice_id uuid,
     IN name varchar(100),
     IN status text,
@@ -13,6 +13,6 @@ CREATE OR REPLACE PROCEDURE billing.create_invoice(
 LANGUAGE SQL
 BEGIN ATOMIC
     INSERT INTO billing.invoices(invoice_id, name, status, amount, currency, due_date, cashier_id)
-    VALUES (create_invoice.invoice_id, create_invoice.name, create_invoice.status, 
-            create_invoice.amount, create_invoice.currency, create_invoice.due_date, create_invoice.cashier_id);
+    VALUES (invoice_create.invoice_id, invoice_create.name, invoice_create.status, 
+            invoice_create.amount, invoice_create.currency, invoice_create.due_date, invoice_create.cashier_id);
 END;

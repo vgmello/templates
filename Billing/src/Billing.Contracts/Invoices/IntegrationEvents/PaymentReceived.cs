@@ -2,7 +2,7 @@
 
 namespace Billing.Contracts.Invoices.IntegrationEvents;
 
-public record PaymentReceivedEvent(
+public record PaymentReceived(
     Guid InvoiceId,
     decimal Amount,
     string Currency,

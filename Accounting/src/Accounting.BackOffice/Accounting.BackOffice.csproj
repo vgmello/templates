@@ -6,12 +6,12 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <Folder Include="Ledgers\DomainEvents\"/>
-        <Folder Include="Ledgers\IntegrationEvents\"/>
+        <Folder Include="Ledgers\Messaging\" />
         <Folder Include="Ledgers\Jobs\"/>
     </ItemGroup>
 
     <ItemGroup>
+        <ProjectReference Include="..\..\..\Billing\src\Billing.Contracts\Billing.Contracts.csproj" />
         <ProjectReference Include="..\..\..\Platform\src\Operations.ServiceDefaults\Operations.ServiceDefaults.csproj"/>
         <ProjectReference Include="..\Accounting.Contracts\Accounting.Contracts.csproj"/>
     </ItemGroup>
