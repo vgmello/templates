@@ -14,7 +14,7 @@ public record GetCashiersQuery : IQuery<IEnumerable<GetCashiersQuery.Result>>
     [Range(0, int.MaxValue)]
     public int Offset { get; set; } = 0;
 
-    public record Result(Guid TenantId, Guid CashierId, string Name, string Email);
+    public record Result(Guid CashierId, string Name, string Email);
 }
 
 /// <summary>
@@ -31,7 +31,7 @@ public static partial class GetCashiersQueryHandler
         await using var connection = await dataSource.OpenConnectionAsync(cancellationToken);
 
         const string sql = """
-                               SELECT null::uuid as TenantId, cashier_id AS CashierId, name AS Name, email AS Email
+                               SELECT cashier_id AS CashierId, name AS Name, email AS Email
                                FROM billing.cashiers
                                LIMIT @limit OFFSET @offset
                            """;

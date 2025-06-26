@@ -15,5 +15,6 @@
     <include file="billing/procedures/create_invoice.sql"/>
     <include file="billing/procedures/cancel_invoice.sql"/>
     <include file="billing/procedures/mark_invoice_as_paid.sql"/>
+    <include file="billing/fix-duplicate-cashier-ids.sql"/>
 
 </databaseChangeLog>
