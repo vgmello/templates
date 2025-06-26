@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+import "google/protobuf/timestamp.proto";
+
+option csharp_namespace = "Billing.Invoices.Grpc.Models";
+
+package billing.invoices;
+
+message Invoice {
+  string tenant_id = 1;
+  string invoiceId = 2;
+  string name = 3;
+  string status = 4;
+  double amount = 5;
+  string currency = 6;
+  google.protobuf.Timestamp due_date = 7;
+  string cashierId = 8;
+  google.protobuf.Timestamp created_date_utc = 9;
+  google.protobuf.Timestamp updated_date_utc = 10;
+  int32 version = 11;
+}
