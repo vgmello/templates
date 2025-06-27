@@ -1,6 +1,5 @@
 {
     "recommendations": [
-        "github.copilot",
         "ms-dotnettools.csharp",
         "ms-dotnettools.vscode-dotnet-runtime",
         "ms-dotnettools.csdevkit",
