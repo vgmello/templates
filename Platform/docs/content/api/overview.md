@@ -161,3 +161,127 @@ app.ConfigureApiUsingDefaults(); // 10+ middleware in optimal order
 - **Consistent behavior** across 20+ microservices
 - **Faster onboarding** for new developers
 - **Standardized monitoring** and troubleshooting
+
+## gRPC Service Auto-Discovery
+
+The Platform provides automatic gRPC service registration using reflection-based discovery, eliminating the need for manual service registration.
+
+### Automatic Discovery
+```csharp
+var app = builder.Build();
+
+// Auto-discover all gRPC services in entry assembly
+app.MapGrpcServices();
+
+// Services are automatically registered based on BindServiceMethodAttribute
+```
+
+### Advanced Discovery Options
+```csharp
+// Discover from specific assembly
+app.MapGrpcServices(typeof(BillingService).Assembly);
+
+// Discover using type marker
+app.MapGrpcServices<BillingServiceMarker>();
+
+// Multiple assembly discovery
+app.MapGrpcServices(
+    typeof(BillingService).Assembly,
+    typeof(AccountingService).Assembly
+);
+```
+
+### Discovery Mechanism
+The auto-discovery process uses reflection to find gRPC services:
+
+```csharp
+public static class GrpcRegistrationExtensions
+{
+    public static IEndpointRouteBuilder MapGrpcServices(this IEndpointRouteBuilder endpoints)
+    {
+        var assembly = Assembly.GetEntryAssembly();
+        var serviceTypes = assembly!.GetTypes()
+            .Where(type => type.GetMethods()
+                .Any(method => method.GetCustomAttribute<BindServiceMethodAttribute>() != null));
+        
+        foreach (var serviceType in serviceTypes)
+        {
+            endpoints.MapGrpcService(serviceType);
+        }
+        
+        return endpoints;
+    }
+}
+```
+
+### Benefits of Auto-Discovery
+- **Zero Registration**: New gRPC services are automatically discovered
+- **Type Safety**: Compile-time verification of service implementations
+- **Assembly Boundaries**: Supports discovery across multiple assemblies
+- **Maintainability**: Services are included without code changes
+- **Convention-Based**: Uses standard gRPC service patterns
+
+### Integration with API Defaults
+```csharp
+var builder = WebApplication.CreateBuilder(args);
+builder.AddApiServiceDefaults(); // Includes gRPC support
+
+var app = builder.Build();
+app.ConfigureApiUsingDefaults(); // Configures gRPC Web
+app.MapGrpcServices(); // Auto-discovers services
+
+// Development features
+if (app.Environment.IsDevelopment())
+{
+    app.MapGrpcReflectionService(); // Enables gRPC reflection
+}
+```
+
+## Configuration Options
+
+### Authentication Control
+```csharp
+// Require authentication for all endpoints (default)
+builder.AddApiServiceDefaults(requireAuth: true);
+
+// Allow anonymous access (for public APIs)
+builder.AddApiServiceDefaults(requireAuth: false);
+
+// Custom authentication configuration
+builder.AddApiServiceDefaults();
+builder.Services.Configure<AuthenticationOptions>(options =>
+{
+    options.DefaultScheme = "Bearer";
+});
+```
+
+### OpenAPI Customization
+```csharp
+builder.Services.AddOpenApiWithXmlDocSupport();
+builder.Services.Configure<OpenApiOptions>(options =>
+{
+    options.OpenApiVersion = OpenApiSpecVersion.OpenApi3_0;
+    options.AddDocumentTransformer<CustomDocumentTransformer>();
+    options.AddOperationTransformer<CustomOperationTransformer>();
+});
+```
+
+### Environment-Specific Features
+```csharp
+var app = builder.Build();
+app.ConfigureApiUsingDefaults();
+
+if (app.Environment.IsDevelopment())
+{
+    // Rich development experience
+    app.MapOpenApi("/openapi/v1.json");
+    app.MapScalarApiReference(); // Modern API docs UI
+    app.MapGrpcReflectionService(); // gRPC service discovery
+}
+else
+{
+    // Production optimizations
+    app.UseHsts(); // Force HTTPS
+    app.UseExceptionHandler(); // Global error handling
+}
+```
