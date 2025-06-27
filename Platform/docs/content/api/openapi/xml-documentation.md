@@ -33,8 +33,11 @@ To enable this feature, you need to:
 
 1.  **Enable XML documentation** in your `.csproj` file:
 
-    [!code-xml[](~/docs/samples/api/openapi/GenerateDocumentationFile.xml)]
-    [!code-xml[](~/docs/samples/api/openapi/GenerateDocumentationFile.xml)]
+    ```xml
+    <PropertyGroup>
+      <GenerateDocumentationFile>true</GenerateDocumentationFile>
+      <NoWarn>$(NoWarn);1591</NoWarn>
+    </PropertyGroup>
     ```
 
 2.  **Register the services** in your `Program.cs`:

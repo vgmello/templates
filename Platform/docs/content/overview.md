@@ -93,7 +93,25 @@ Designed specifically for distributed systems with service discovery, messaging,
 
 The Platform is designed to be adopted incrementally. Start with the [Service Defaults](architecture/service-defaults.md) to establish common configuration patterns, then add specific libraries as needed:
 
-[!code-csharp[](~/docs/samples/getting-started/Program.cs)]
+```csharp
+// Program.cs
+var builder = WebApplication.CreateBuilder(args);
+
+// Add platform service defaults
+builder.AddServiceDefaults();
+
+// Add specific platform features
+builder.Services.AddOpenApiDocumentation();
+builder.Services.AddWolverineMessaging();
+
+var app = builder.Build();
+
+// Configure platform middleware
+app.MapDefaultEndpoints();
+app.UseOpenApiDocumentation();
+
+app.Run();
+```
 
 ## Architecture principles
 

@@ -11,7 +11,27 @@ The Platform provides seamless integration with Kafka, allowing your services to
 
 To enable Kafka messaging, you typically configure it as part of your Service Defaults setup:
 
-[!code-csharp[](~/docs/samples/messaging/kafka/KafkaSetup.cs)]
+```csharp
+using Microsoft.Extensions.Hosting;
+using Operations.ServiceDefaults;
+using Operations.ServiceDefaults.Messaging.Kafka;
+
+public class KafkaSetup
+{
+    public static void ConfigureKafka()
+    {
+        var builder = Host.CreateApplicationBuilder();
+
+        builder.AddServiceDefaults();
+
+        // Add Kafka specific configuration
+        builder.Services.AddKafka();
+
+        var app = builder.Build();
+        app.Run();
+    }
+}
+```
 
 ## Key features
 
@@ -19,19 +39,67 @@ To enable Kafka messaging, you typically configure it as part of your Service De
 
 The Platform supports defining topic naming conventions to ensure consistency across your Kafka topics. This helps in organizing messages and simplifies consumer configurations.
 
-[!code-csharp[](~/docs/samples/messaging/kafka/MyCustomTopicNamingConvention.cs)]
+```csharp
+using Operations.ServiceDefaults.Messaging.Kafka;
+
+// Example of a custom topic naming convention
+public class MyCustomTopicNamingConvention : IKafkaTopicNamingConvention
+{
+    public string GetTopicName<T>()
+    {
+        return $"my-app.{typeof(T).Name.ToLowerInvariant()}";
+    }
+}
+
+// Registering the custom convention
+// builder.Services.AddSingleton<IKafkaTopicNamingConvention, MyCustomTopicNamingConvention>();
+```
 
 ### Producing messages
 
 Publish messages to Kafka topics using the `IMessageBus` interface, which is integrated with Kafka producers.
 
-[!code-csharp[](~/docs/samples/messaging/kafka/UserProducer.cs)]
+```csharp
+using Wolverine;
+using Operations.Extensions.Abstractions.Messaging;
+
+public record UserCreated(Guid UserId, string UserName);
+
+public class UserProducer
+{
+    private readonly IMessageBus _messageBus;
+
+    public UserProducer(IMessageBus messageBus)
+    {
+        _messageBus = messageBus;
+    }
+
+    public async Task PublishUserCreated(Guid userId, string userName)
+    {
+        var userCreatedEvent = new UserCreated(userId, userName);
+        await _messageBus.PublishAsync(userCreatedEvent);
+        Console.WriteLine($"Published UserCreated event for user: {userName}");
+    }
+}
+```
 
 ### Consuming messages
 
 Define message handlers to consume messages from Kafka topics. Wolverine automatically discovers and registers these handlers.
 
-[!code-csharp[](~/docs/samples/messaging/kafka/UserCreatedHandler.cs)]
+```csharp
+using Wolverine.Attributes;
+
+public class UserCreatedHandler
+{
+    [Topic("my-app.usercreated")] // Specify the topic to consume from
+    public void Handle(UserCreated message)
+    {
+        Console.WriteLine($"Received UserCreated event for user: {message.UserName} (ID: {message.UserId})");
+        // Process the message
+    }
+}
+```
 
 ## Configuration
 
