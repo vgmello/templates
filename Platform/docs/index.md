@@ -2,32 +2,31 @@
 
 The Platform Operations Service provides enterprise infrastructure for building .NET microservices with Domain-Driven Design patterns, CQRS, event sourcing, and observability. You get production-ready services with minimal configuration through standardized extensions and source generators.
 
-:::moniker range=">= operations-1.0"
-
 ## Concept
 
 The Platform Operations Service abstracts common microservice infrastructure into reusable components. Instead of configuring logging, health checks, messaging, and observability for each service, you add two extension methods and get everything working correctly.
 
 The platform follows these principles:
 
-- **Convention over configuration** - Sensible defaults for all infrastructure
-- **Zero-allocation performance** - Source generators eliminate runtime overhead  
-- **Type safety** - Compile-time validation for database operations and messaging
-- **Observability first** - Built-in tracing, metrics, and structured logging
+-   **Convention over configuration** - Sensible defaults for all infrastructure
+-   **Zero-allocation performance** - Source generators eliminate runtime overhead
+-   **Type safety** - Compile-time validation for database operations and messaging
+-   **Observability first** - Built-in tracing, metrics, and structured logging
 
 ## Example
 
 Here's a complete microservice setup:
 
-:::code language="csharp" source="~/samples/basic-service/Program.cs" highlight="4-5,9-11":::
+[!code-csharp[](~/samples/basic-service/Program.cs?highlight=4-5,9-11)]
 
 This example configures:
-- Structured logging with Serilog
-- OpenTelemetry tracing and metrics
-- Wolverine messaging with PostgreSQL transport
-- Health checks for dependencies
-- OpenAPI documentation
-- gRPC services with HTTP/2
+
+-   Structured logging with Serilog
+-   OpenTelemetry tracing and metrics
+-   Wolverine messaging with PostgreSQL transport
+-   Health checks for dependencies
+-   OpenAPI documentation
+-   gRPC services with HTTP/2
 
 > [!TIP]
 > Run `dotnet new webapi` and replace `Program.cs` with the example above to get started quickly.
@@ -36,23 +35,23 @@ This example configures:
 
 The platform targets these service types:
 
-| Service type | Extensions | Purpose |
-|--------------|------------|---------|
-| **API services** | `AddServiceDefaults()` + `AddApiServiceDefaults()` | REST APIs with OpenAPI, gRPC endpoints |
-| **Background services** | `AddServiceDefaults()` | Message handlers, scheduled jobs |
-| **Worker services** | `AddServiceDefaults()` | Long-running background processing |
+| Service type            | Extensions                                         | Purpose                                |
+| ----------------------- | -------------------------------------------------- | -------------------------------------- |
+| **API services**        | `AddServiceDefaults()` + `AddApiServiceDefaults()` | REST APIs with OpenAPI, gRPC endpoints |
+| **Background services** | `AddServiceDefaults()`                             | Message handlers, scheduled jobs       |
+| **Worker services**     | `AddServiceDefaults()`                             | Long-running background processing     |
 
 ### API services
 
 API services handle HTTP requests and expose REST or gRPC endpoints:
 
-:::code language="csharp" source="~/samples/api-service/Program.cs" id="api_setup":::
+[!code-csharp[](~/samples/api-service/Program.cs#api_setup)]
 
-### Background services  
+### Background services
 
 Background services process messages and handle scheduled work:
 
-:::code language="csharp" source="~/samples/background-service/Program.cs" id="background_setup":::
+[!code-csharp[](~/samples/background-service/Program.cs#background_setup)]
 
 ## Core components
 
@@ -62,35 +61,35 @@ The platform consists of these packages:
 
 Provides core infrastructure for all service types:
 
-- **Logging** - Serilog with structured logging and correlation IDs
-- **OpenTelemetry** - Automatic instrumentation for HTTP, database, and messaging
-- **Health checks** - Kubernetes-ready liveness and readiness endpoints  
-- **Messaging** - Wolverine integration with PostgreSQL transport
-- **Configuration** - Environment-based settings with validation
+-   **Logging** - Serilog with structured logging and correlation IDs
+-   **OpenTelemetry** - Automatic instrumentation for HTTP, database, and messaging
+-   **Health checks** - Kubernetes-ready liveness and readiness endpoints
+-   **Messaging** - Wolverine integration with PostgreSQL transport
+-   **Configuration** - Environment-based settings with validation
 
-:::code language="csharp" source="~/samples/service-defaults/ServiceConfiguration.cs" id="core_config":::
+[!code-csharp[](~/samples/service-defaults/ServiceConfiguration.cs#core_config)]
 
 ### Operations.ServiceDefaults.Api
 
 Adds API-specific features on top of core infrastructure:
 
-- **Controllers** - MVC with model validation and error handling
-- **OpenAPI** - Swagger documentation with examples and schemas
-- **gRPC** - Protocol buffer services with reflection
-- **Authentication** - JWT token validation and authorization
-- **CORS** - Cross-origin request handling
+-   **Controllers** - MVC with model validation and error handling
+-   **OpenAPI** - Swagger documentation with examples and schemas
+-   **gRPC** - Protocol buffer services with reflection
+-   **Authentication** - JWT token validation and authorization
+-   **CORS** - Cross-origin request handling
 
-:::code language="csharp" source="~/samples/api-defaults/ApiConfiguration.cs" id="api_config":::
+[!code-csharp[](~/samples/api-defaults/ApiConfiguration.cs#api_config)]
 
 ### Operations.Extensions.SourceGenerators
 
 Generates high-performance database code at compile time:
 
-- **Query mapping** - Zero-allocation result mapping from SQL queries
-- **Parameter binding** - Type-safe parameter generation for stored procedures
-- **Command builders** - Compile-time SQL command construction
+-   **Query mapping** - Zero-allocation result mapping from SQL queries
+-   **Parameter binding** - Type-safe parameter generation for stored procedures
+-   **Command builders** - Compile-time SQL command construction
 
-:::code language="csharp" source="~/samples/source-generators/DatabaseQuery.cs" id="generated_query":::
+[!code-csharp[](~/samples/source-generators/DatabaseQuery.cs#generated_query)]
 
 ## Request flow
 
@@ -114,19 +113,19 @@ Here's how requests flow through a Platform service:
 
 Add service-specific health checks:
 
-:::code language="csharp" source="~/samples/customization/CustomHealthChecks.cs" id="custom_health":::
+[!code-csharp[](~/samples/customization/CustomHealthChecks.cs#custom_health)]
 
 ### Message handling
 
 Configure custom message handlers with Wolverine:
 
-:::code language="csharp" source="~/samples/customization/MessageHandlers.cs" id="message_config":::
+[!code-csharp[](~/samples/customization/MessageHandlers.cs#message_config)]
 
 ### Database integration
 
 Use source generators for custom database operations:
 
-:::code language="csharp" source="~/samples/customization/DatabaseOperations.cs" id="database_ops":::
+[!code-csharp[](~/samples/customization/DatabaseOperations.cs#database_ops)]
 
 > [!WARNING]
 > Source generators require partial classes and specific naming conventions. See [Source Generators Overview](content/source-generators/overview.md) for details.
@@ -135,35 +134,34 @@ Use source generators for custom database operations:
 
 The platform optimizes for high-throughput scenarios:
 
-- **Zero-allocation database operations** through source generators
-- **Connection pooling** with automatic health monitoring
-- **Batched telemetry** to reduce observability overhead
-- **Efficient serialization** with System.Text.Json and Protocol Buffers
+-   **Zero-allocation database operations** through source generators
+-   **Connection pooling** with automatic health monitoring
+-   **Batched telemetry** to reduce observability overhead
+-   **Efficient serialization** with System.Text.Json and Protocol Buffers
 
 Typical performance characteristics:
-- Health check responses: < 1ms
-- Database query overhead: ~5% vs. raw ADO.NET
-- Message processing: 10,000+ messages/second per instance
+
+-   Health check responses: < 1ms
+-   Database query overhead: ~5% vs. raw ADO.NET
+-   Message processing: 10,000+ messages/second per instance
 
 ## Security best practices
 
 The platform includes security defaults:
 
-- **HTTPS enforcement** in production environments
-- **JWT token validation** with configurable issuers
-- **Request rate limiting** to prevent abuse
-- **Sensitive data filtering** in logs and traces
+-   **HTTPS enforcement** in production environments
+-   **JWT token validation** with configurable issuers
+-   **Request rate limiting** to prevent abuse
+-   **Sensitive data filtering** in logs and traces
 
 > [!WARNING]
 > Always configure authentication and authorization for production deployments. The platform provides infrastructure but doesn't enforce security policies.
 
-:::moniker-end
-
 ## Additional resources
 
-- [Architecture overview](content/architecture.md) - Core design principles and patterns
-- [API development guide](content/api/overview.md) - Building REST and gRPC services  
-- [Messaging patterns](content/messaging/overview.md) - Event-driven architecture with Wolverine
-- [Observability setup](content/opentelemetry/overview.md) - Monitoring and tracing configuration
-- [Source generator reference](content/source-generators/overview.md) - High-performance database operations
-- [Sample applications](https://github.com/operations-platform/samples) - Complete example services
+-   [Architecture overview](content/architecture.md) - Core design principles and patterns
+-   [API development guide](content/api/overview.md) - Building REST and gRPC services
+-   [Messaging patterns](content/messaging/overview.md) - Event-driven architecture with Wolverine
+-   [Observability setup](content/opentelemetry/overview.md) - Monitoring and tracing configuration
+-   [Source generator reference](content/source-generators/overview.md) - High-performance database operations
+-   [Sample applications](https://github.com/operations-platform/samples) - Complete example services
