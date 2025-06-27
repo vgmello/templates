@@ -48,7 +48,20 @@ public static class OpenTelemetrySetupExtensions
                 .AddMeter(messagingMeterName))
             .WithTracing(tracing => tracing
                 .AddSource(activitySourceName)
-                .AddAspNetCoreInstrumentation()
+                .AddAspNetCoreInstrumentation(t => t.Filter = ctx =>
+                {
+                    if (ctx.Request.Path.Value?.StartsWith("/health/") == true)
+                    {
+                        return false;
+                    }
+
+                    if (ctx.Request.Path.Value?.Contains("/OrleansSiloInstances") == true)
+                    {
+                        return false;
+                    }
+
+                    return true;
+                })
                 .AddHttpClientInstrumentation());
 
         return builder;

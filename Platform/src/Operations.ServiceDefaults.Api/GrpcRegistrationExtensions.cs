@@ -16,11 +16,15 @@ public static class GrpcRegistrationExtensions
     private static readonly MethodInfo GrpcMapServiceMethod = typeof(GrpcEndpointRouteBuilderExtensions)
         .GetMethod(nameof(GrpcEndpointRouteBuilderExtensions.MapGrpcService), STATIC_METHODS)!;
 
-    public static void MapGrpcServices(this IEndpointRouteBuilder routeBuilder) =>
+    public static void MapGrpcServices(this IEndpointRouteBuilder routeBuilder)
+    {
         routeBuilder.MapGrpcServices(Assembly.GetEntryAssembly()!);
+    }
 
-    public static void MapGrpcServices(this IEndpointRouteBuilder routeBuilder, Type assemblyMarker) =>
+    public static void MapGrpcServices(this IEndpointRouteBuilder routeBuilder, Type assemblyMarker)
+    {
         routeBuilder.MapGrpcServices(assemblyMarker.Assembly);
+    }
 
     private static void MapGrpcServices(this IEndpointRouteBuilder routeBuilder, Assembly assembly)
     {
@@ -36,7 +40,7 @@ public static class GrpcRegistrationExtensions
     private static void MapGrpcService(Type grpcServiceType, IEndpointRouteBuilder routeBuilder)
     {
         var typedGrpcMapServiceMethod = GrpcMapServiceMethod.MakeGenericMethod(grpcServiceType);
-        typedGrpcMapServiceMethod.Invoke(null, new[] { routeBuilder });
+        typedGrpcMapServiceMethod.Invoke(null, [routeBuilder]);
     }
 
     private static bool IsGrpcService(Type type)

@@ -41,7 +41,7 @@ public static partial class CreateCashierCommandHandler
         {
             CashierId = cashierId,
             Name = command.Name,
-            Email = command.Email ?? string.Empty
+            Email = command.Email
         };
 
         var createdEvent = new CashierCreated(result);
