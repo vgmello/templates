@@ -15,7 +15,7 @@ Your article must adhere to the following standards summarized below.
 -   **DocFX snippet syntax** – Reuse code from real files via `[!code‐[](...)]` blocks; Important highlight key lines.
 -   **Admonitions** – Surface tips, notes, and warnings with `> [!TIP]`, `> [!NOTE]`, `> [!WARNING]`.
 -   **Alt text & accessibility** – Every image lives in `/docs/images` and carries meaningful alt text.
--   **Build‐clean guarantee** – Articles must compile and served with (`docfx docs/docfx.json --serve --port 8081`) .
+-   **Build‐clean guarantee** – Articles must compile and served with (`docfx docs/docfx.json --serve --port 8081 &`) .
 
 ## 1 Metadata & heading flow
 
