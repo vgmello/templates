@@ -1,23 +1,22 @@
-// ExtensionComposition.cs
-namespace SampleApp
+using Microsoft.Extensions.DependencyInjection;
+
+public static class ExtensionComposition
 {
-    using Microsoft.Extensions.Hosting;
-    using Operations.ServiceDefaults;
-    using Operations.ServiceDefaults.Api;
-
-    public class ExtensionComposition
+    public static IServiceCollection AddFeatureA(this IServiceCollection services)
     {
-        public static void ComposeExtensions()
-        {
-            var builder = Host.CreateApplicationBuilder();
+        // Add services for Feature A
+        return services;
+    }
 
-            // <ExtensionComposition>
-            builder.AddServiceDefaults()
-                   .AddServiceDefaultsApi();
-            // </ExtensionComposition>
+    public static IServiceCollection AddFeatureB(this IServiceCollection services)
+    {
+        // Add services for Feature B
+        return services;
+    }
 
-            var app = builder.Build();
-            app.Run();
-        }
+    public static void ConfigureFeatures(IServiceCollection services)
+    {
+        services.AddFeatureA()
+                .AddFeatureB();
     }
 }

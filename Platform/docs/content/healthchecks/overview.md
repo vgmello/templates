@@ -1,7 +1,6 @@
 ---
 title: Health Checks
 description: Monitor application health with built-in health check endpoints, custom health checks, and comprehensive status reporting for production environments.
-ms.date: 01/27/2025
 ---
 
 # Health Checks

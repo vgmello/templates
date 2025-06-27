@@ -17,37 +17,13 @@ To use the `DomainAssemblyAttribute`, you apply it at the assembly level, typica
 
 Consider you have a domain assembly named `YourApp.Domain` and a type `YourDomainType` within it. You would mark the assembly like this:
 
-```csharp
-// In YourApp.Domain/AssemblyInfo.cs or a similar file
-using Operations.ServiceDefaults;
-using YourApp.Domain.Entities; // Assuming YourDomainType is in Entities namespace
-
-[assembly: DomainAssembly(typeof(YourDomainType))]
-```
+[!code-csharp[](~/docs/samples/domain-assembly-attribute/DomainAssemblyAttributeUsage.cs)]
 
 ### Retrieving domain assemblies
 
 The `DomainAssemblyAttribute` provides a static helper method, `GetDomainAssemblies`, to retrieve the marked assemblies. This method can be called from your application's entry point or any other part of your application that needs to discover domain assemblies.
 
-```csharp
-using System.Reflection;
-using Operations.ServiceDefaults;
-
-public class ApplicationStartup
-{
-    public void ConfigureServices()
-    {
-        // Get domain assemblies from the entry assembly
-        var domainAssemblies = DomainAssemblyAttribute.GetDomainAssemblies(Assembly.GetEntryAssembly());
-
-        foreach (var assembly in domainAssemblies)
-        {
-            Console.WriteLine($"Found domain assembly: {assembly.FullName}");
-            // You can now use reflection to find types, register services, etc.
-        }
-    }
-}
-```
+[!code-csharp[](~/docs/samples/domain-assembly-attribute/GetDomainAssemblies.cs)]
 
 ## See also
 

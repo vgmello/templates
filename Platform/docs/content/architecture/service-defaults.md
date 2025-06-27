@@ -1,7 +1,6 @@
 ---
 title: Service Defaults
 description: Configure consistent cross-cutting concerns across all services with Platform Service Defaults.
-ms.date: 01/27/2025
 ---
 
 # Service Defaults

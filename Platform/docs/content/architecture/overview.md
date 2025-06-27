@@ -1,7 +1,6 @@
 ---
 title: Architecture Overview
 description: Understanding the Platform's architectural patterns and design principles for building scalable microservices.
-ms.date: 01/27/2025
 ---
 
 # Architecture Overview
@@ -13,7 +12,7 @@ The Platform follows a layered architecture designed to provide maximum flexibil
 ### Service Defaults pattern
 The Service Defaults pattern provides a central place to configure cross-cutting concerns that should be consistent across all services:
 
-[!code-csharp[](~/samples/architecture/ServiceDefaults.cs)]
+[!code-csharp[](~/docs/samples/architecture/ServiceDefaults.cs)]
 
 This pattern ensures that logging, health checks, OpenTelemetry, and other infrastructure concerns are configured consistently across your entire system.
 
