@@ -26,6 +26,44 @@ This setup provides:
 ### Distributed tracing
 Track requests across multiple services and components:
 
+```mermaid
+sequenceDiagram
+    participant Client
+    participant API Gateway
+    participant Service A
+    participant Service B
+    participant Database
+    participant Message Queue
+    
+    Note over Client, Message Queue: Trace ID: abc-123-def
+    
+    Client->>+API Gateway: HTTP Request
+    Note right of API Gateway: Span: gateway-request
+    
+    API Gateway->>+Service A: gRPC Call
+    Note right of Service A: Span: service-a-operation
+    
+    Service A->>+Database: SQL Query
+    Note right of Database: Span: db-query
+    Database-->>-Service A: Query Result
+    
+    Service A->>+Service B: HTTP Call
+    Note right of Service B: Span: service-b-operation
+    
+    Service B->>+Database: SQL Update
+    Note right of Database: Span: db-update
+    Database-->>-Service B: Update Result
+    
+    Service B->>Message Queue: Publish Event
+    Note right of Message Queue: Span: event-publish
+    
+    Service B-->>-Service A: Response
+    Service A-->>-API Gateway: Response
+    API Gateway-->>-Client: Final Response
+    
+    Note over Client, Message Queue: All spans linked by Trace ID
+```
+
 [!code-csharp[](~/samples/opentelemetry/DistributedTracing.cs#TracingSetup)]
 
 Distributed tracing provides:

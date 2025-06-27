@@ -12,6 +12,62 @@ The Platform provides a comprehensive suite of .NET 9 libraries designed to stre
 
 The Platform consists of several focused libraries that work together to provide a cohesive development experience:
 
+```mermaid
+graph LR
+    subgraph "Platform Architecture"
+        SD[Service Defaults]
+        API[API Extensions]
+        DB[Database Integration]
+        MSG[Messaging]
+        SG[Source Generators]
+        EXT[Extensions]
+    end
+    
+    subgraph "Core Infrastructure"
+        LOG[Serilog Logging]
+        OTEL[OpenTelemetry]
+        HC[Health Checks]
+        RES[HTTP Resilience]
+    end
+    
+    subgraph "External Dependencies"
+        WOLF[Wolverine]
+        DAPPER[Dapper]
+        KAFKA[Kafka]
+        POSTGRES[PostgreSQL]
+    end
+    
+    SD --> LOG
+    SD --> OTEL
+    SD --> HC
+    SD --> RES
+    
+    API --> OTEL
+    API --> LOG
+    
+    DB --> DAPPER
+    DB --> SG
+    
+    MSG --> WOLF
+    MSG --> KAFKA
+    MSG --> POSTGRES
+    MSG --> OTEL
+    
+    SG --> DB
+    
+    EXT --> SD
+    EXT --> API
+    EXT --> DB
+    EXT --> MSG
+    
+    style SD fill:#e1f5fe
+    style API fill:#f3e5f5
+    style DB fill:#e8f5e8
+    style MSG fill:#fff3e0
+    style SG fill:#fce4ec
+    style EXT fill:#e0f2f1
+```
+
 - **Service Defaults** - Common configuration patterns for logging, health checks, and OpenTelemetry
 - **API Extensions** - Streamlined OpenAPI documentation and gRPC integration
 - **Database Integration** - Dapper extensions with source-generated command handlers

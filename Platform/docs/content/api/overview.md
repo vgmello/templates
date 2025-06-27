@@ -133,7 +133,37 @@ Security defaults include:
 
 ## Middleware pipeline
 
-The Platform configures a standard middleware pipeline:
+The Platform configures a standard middleware pipeline with optimal ordering for security and performance:
+
+```mermaid
+graph TD
+    REQ[HTTP Request] --> LOG[HTTP Logging]
+    LOG --> ROUTE[Routing]
+    ROUTE --> AUTH[Authentication]
+    AUTH --> AUTHZ[Authorization]
+    AUTHZ --> EXCEPT[Exception Handling]
+    EXCEPT --> HSTS[HSTS Headers]
+    HSTS --> ENDPOINT[API Endpoint]
+    ENDPOINT --> RESP[HTTP Response]
+    
+    subgraph "Error Handling"
+        EXCEPT -.-> PROBLEM[Problem Details]
+        PROBLEM -.-> ERR_RESP[Error Response]
+    end
+    
+    subgraph "Development Only"
+        DEV_EXCEPT[Developer Exception Page]
+        SWAGGER[Swagger UI]
+    end
+    
+    style REQ fill:#e3f2fd
+    style LOG fill:#f3e5f5
+    style AUTH fill:#ffebee
+    style AUTHZ fill:#fff3e0
+    style ENDPOINT fill:#e8f5e8
+    style RESP fill:#e0f2f1
+    style PROBLEM fill:#ffcdd2
+```
 
 [!code-csharp[](~/samples/api/MiddlewarePipeline.cs)]
 

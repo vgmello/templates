@@ -23,6 +23,61 @@ This setup provides:
 
 ## Health check endpoints
 
+The Platform provides three distinct health check endpoints optimized for different monitoring scenarios:
+
+```mermaid
+graph TD
+    subgraph "Health Check Architecture"
+        CLIENT[Client Request]
+        
+        subgraph "Endpoint Types"
+            STATUS["/status"]
+            INTERNAL["/health/internal"]
+            HEALTH["/health"]
+        end
+        
+        subgraph "Response Types"
+            SIMPLE[Simple Status]
+            BASIC[Basic JSON]
+            DETAILED[Detailed Report]
+        end
+        
+        subgraph "Authentication"
+            NONE[No Auth Required]
+            LOCALHOST[Localhost Only]
+            AUTH[Authentication Required]
+        end
+        
+        subgraph "Use Cases"
+            CONTAINER[Container Orchestration]
+            DEPLOY[Deployment Verification]
+            MONITOR[Monitoring Dashboards]
+        end
+    end
+    
+    CLIENT --> STATUS
+    CLIENT --> INTERNAL
+    CLIENT --> HEALTH
+    
+    STATUS --> SIMPLE
+    INTERNAL --> BASIC
+    HEALTH --> DETAILED
+    
+    STATUS --> NONE
+    INTERNAL --> LOCALHOST
+    HEALTH --> AUTH
+    
+    STATUS --> CONTAINER
+    INTERNAL --> DEPLOY
+    HEALTH --> MONITOR
+    
+    style STATUS fill:#c8e6c9
+    style INTERNAL fill:#fff3e0
+    style HEALTH fill:#e1f5fe
+    style SIMPLE fill:#f3e5f5
+    style DETAILED fill:#fce4ec
+```
+
 ### Liveness probe (/status)
 Lightweight endpoint for container liveness checks:
 

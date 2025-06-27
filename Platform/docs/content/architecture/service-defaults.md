@@ -25,6 +25,54 @@ This one line configures:
 
 ## What gets configured
 
+Service Defaults orchestrates multiple infrastructure concerns through a single configuration call:
+
+```mermaid
+graph TD
+    A[AddServiceDefaults] --> B[Serilog Logging]
+    A --> C[OpenTelemetry]
+    A --> D[Wolverine Messaging]
+    A --> E[FluentValidation]
+    A --> F[Health Checks]
+    A --> G[Service Discovery]
+    A --> H[HTTP Resilience]
+    
+    B --> B1[Console Output]
+    B --> B2[Structured Format]
+    B --> B3[Dynamic Levels]
+    
+    C --> C1[Distributed Tracing]
+    C --> C2[Metrics Collection]
+    C --> C3[OTLP Export]
+    
+    D --> D1[CQRS Handlers]
+    D --> D2[Message Routing]
+    D --> D3[PostgreSQL Storage]
+    
+    E --> E1[Assembly Discovery]
+    E --> E2[Automatic Registration]
+    
+    F --> F1[Liveness Probes]
+    F --> F2[Readiness Checks]
+    F --> F3[Health Endpoints]
+    
+    G --> G1[Service Registration]
+    G --> G2[Load Balancing]
+    
+    H --> H1[Retry Policies]
+    H --> H2[Circuit Breakers]
+    H --> H3[Timeout Handling]
+    
+    style A fill:#e1f5fe
+    style B fill:#f3e5f5
+    style C fill:#e8f5e8
+    style D fill:#fff3e0
+    style E fill:#fce4ec
+    style F fill:#e0f2f1
+    style G fill:#f1f8e9
+    style H fill:#fff8e1
+```
+
 ### Logging setup
 Service Defaults configures Serilog with structured logging and appropriate log levels for different environments:
 

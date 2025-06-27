@@ -27,6 +27,50 @@ This setup provides:
 ### Command and Query Separation (CQRS)
 Separate commands (write operations) from queries (read operations):
 
+```mermaid
+graph LR
+    subgraph "CQRS Pattern Flow"
+        CLIENT[Client Request]
+        
+        subgraph "Command Side"
+            CMD[Command]
+            CMD_HANDLER[Command Handler]
+            WRITE_DB[(Write Database)]
+            EVENT[Domain Event]
+        end
+        
+        subgraph "Query Side"
+            QUERY[Query]
+            QUERY_HANDLER[Query Handler]
+            READ_DB[(Read Database)]
+        end
+        
+        subgraph "Event Processing"
+            EVENT_HANDLER[Event Handler]
+            PROJECTION[Projection Update]
+        end
+    end
+    
+    CLIENT -->|Write Request| CMD
+    CMD --> CMD_HANDLER
+    CMD_HANDLER --> WRITE_DB
+    CMD_HANDLER --> EVENT
+    
+    CLIENT -->|Read Request| QUERY
+    QUERY --> QUERY_HANDLER
+    QUERY_HANDLER --> READ_DB
+    
+    EVENT --> EVENT_HANDLER
+    EVENT_HANDLER --> PROJECTION
+    PROJECTION --> READ_DB
+    
+    style CMD fill:#ffcdd2
+    style QUERY fill:#c8e6c9
+    style EVENT fill:#fff3e0
+    style WRITE_DB fill:#e1f5fe
+    style READ_DB fill:#f3e5f5
+```
+
 [!code-csharp[](~/samples/messaging/CqrsPattern.cs#CommandDefinition)]
 [!code-csharp[](~/samples/messaging/CqrsPattern.cs#QueryDefinition)]
 
@@ -145,7 +189,32 @@ Metadata includes:
 ## Middleware pipeline
 
 ### Built-in middleware
-The Platform includes essential middleware components:
+The Platform includes essential middleware components in a structured pipeline:
+
+```mermaid
+graph TD
+    MSG[Incoming Message] --> A[Authentication]
+    A --> V[Validation]
+    V --> LOG[Logging]
+    LOG --> TRACE[OpenTelemetry Tracing]
+    TRACE --> RETRY[Retry Policy]
+    RETRY --> CB[Circuit Breaker]
+    CB --> HANDLER[Message Handler]
+    HANDLER --> CLOUD[CloudEvents Transform]
+    CLOUD --> PUB[Event Publishing]
+    PUB --> RESP[Response]
+    
+    RETRY -.->|On Failure| DLQ[Dead Letter Queue]
+    CB -.->|Circuit Open| FALLBACK[Fallback Response]
+    
+    style MSG fill:#e3f2fd
+    style V fill:#ffebee
+    style LOG fill:#f3e5f5
+    style TRACE fill:#e8f5e8
+    style HANDLER fill:#fff3e0
+    style CLOUD fill:#fce4ec
+    style DLQ fill:#ffcdd2
+```
 
 [!code-csharp[](~/samples/messaging/BuiltInMiddleware.cs)]
 

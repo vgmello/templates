@@ -23,7 +23,45 @@ This generates:
 ## DbCommand source generator
 
 ### Automatic code generation
-The DbCommand generator creates comprehensive database access code:
+The DbCommand generator creates comprehensive database access code through a compile-time process:
+
+```mermaid
+graph LR
+    subgraph "Source Generation Workflow"
+        CODE[C# Source Code]
+        ATTR[DbCommand Attribute]
+        COMPILER[C# Compiler]
+        GENERATOR[Source Generator]
+        
+        subgraph "Generated Artifacts"
+            PARAMS[ToDbParams Method]
+            HANDLER[Static Handler]
+            INTERFACE[IDbParamsProvider]
+        end
+        
+        USAGE[Runtime Usage]
+    end
+    
+    CODE --> ATTR
+    ATTR --> COMPILER
+    COMPILER --> GENERATOR
+    
+    GENERATOR --> PARAMS
+    GENERATOR --> HANDLER
+    GENERATOR --> INTERFACE
+    
+    PARAMS --> USAGE
+    HANDLER --> USAGE
+    INTERFACE --> USAGE
+    
+    style CODE fill:#e3f2fd
+    style ATTR fill:#fff3e0
+    style GENERATOR fill:#e8f5e8
+    style PARAMS fill:#f3e5f5
+    style HANDLER fill:#fce4ec
+    style INTERFACE fill:#e0f2f1
+    style USAGE fill:#ffebee
+```
 
 [!code-csharp[](~/samples/source-generators/DbCommandExamples.cs#StoredProcedureCommand)]
 
