@@ -18,25 +18,27 @@ Endpoint filters in the Operations platform provide a way to execute code before
 The platform includes a `LocalhostEndpointFilter` that restricts access to certain endpoints when running in production:
 
 ```csharp
-public class LocalhostEndpointFilter : IEndpointFilter
+public partial class LocalhostEndpointFilter(ILogger logger) : IEndpointFilter
 {
-    public async ValueTask<object?> InvokeAsync(
-        EndpointFilterInvocationContext context, 
-        EndpointFilterDelegate next)
+    public async ValueTask<object?> InvokeAsync(EndpointFilterInvocationContext context, EndpointFilterDelegate next)
     {
-        var httpContext = context.HttpContext;
-        
-        // Allow localhost access in development
-        if (httpContext.Request.IsLocal() || 
-            !httpContext.RequestServices.GetRequiredService<IWebHostEnvironment>().IsProduction())
+        var remoteIp = context.HttpContext.Connection.RemoteIpAddress;
+
+        if (remoteIp is null || !IPAddress.IsLoopback(remoteIp))
         {
-            return await next(context);
+            LogRemoteRequestForLocalEndpoint(logger, remoteIp);
+
+            return Results.Unauthorized();
         }
 
-        // Block in production
-        httpContext.Response.StatusCode = 403;
-        return Results.Forbid();
+        return await next(context);
     }
+
+    [LoggerMessage(
+        EventId = 1,
+        Level = LogLevel.Debug,
+        Message = "Remote request received for a local-only endpoint, returning unauthorized. IP address: {RemoteIpAddress}")]
+    private static partial void LogRemoteRequestForLocalEndpoint(ILogger logger, IPAddress? remoteIpAddress);
 }
 ```
 

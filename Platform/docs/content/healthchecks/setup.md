@@ -1,284 +1,60 @@
-# Health Checks Setup and Configuration
+---
+title: Health Check Setup Extensions
+description: Learn how to configure and map health check endpoints in your application using the provided setup extensions.
+---
 
-This guide covers the setup and configuration of health checks in the Operations platform.
+# Health Check Setup Extensions
 
-## Overview
+The `HealthCheckSetupExtensions` class provides a set of extension methods to easily configure and map health check endpoints within your ASP.NET Core application. These extensions simplify the process of exposing application health status for monitoring and orchestration systems.
 
-The Operations platform provides comprehensive health check functionality through the `Operations.ServiceDefaults.HealthChecks` package, enabling monitoring of application health, dependencies, and system resources.
+## Key Features
 
-## Basic Setup
+### MapDefaultHealthCheckEndpoints
 
-### Service Registration
+This extension method configures and maps a set of default health check endpoints. It provides different endpoints for various monitoring needs, including liveness probes, readiness probes, and detailed public health status.
+
+#### Configured Endpoints
+
+-   **`/status`**: A lightweight liveness probe. This endpoint returns the string representation of the last recorded health status (e.g., "Healthy", "Unhealthy"). It does *not* execute health checks itself but reflects the last known state. This is ideal for quick checks by orchestrators to determine if the application process is alive.
+
+-   **`/health/internal`**: A container-only readiness probe. This endpoint provides simplified health status information and is primarily intended for use within containerized environments (e.g., Kubernetes readiness probes). When run locally, it provides the same detailed output as the `/health` endpoint. It is restricted to localhost and includes a `LocalhostEndpointFilter`.
+
+-   **`/health`**: A public, detailed health probe. This endpoint returns comprehensive health status information, including the status of all registered health checks, their durations, and any associated error messages. It requires authorization, making it suitable for exposing detailed health information to authorized consumers.
+
+#### Usage example
+
+Call `MapDefaultHealthCheckEndpoints` on your `WebApplication` instance:
 
 ```csharp
+// In Program.cs
 var builder = WebApplication.CreateBuilder(args);
 
-// Add service defaults (includes health checks)
-builder.AddServiceDefaults();
+// Add health checks (e.g., for database, external services)
+builder.Services.AddHealthChecks();
 
 var app = builder.Build();
 
-// Map health check endpoints
-app.MapDefaultEndpoints();
+// Map the default health check endpoints
+app.MapDefaultHealthCheckEndpoints();
 
 app.Run();
 ```
 
-### Manual Health Check Registration
+## Health Check Logging
+
+The extensions also include logging for health check responses. Successful health checks are logged at a debug level, while unhealthy or degraded statuses are logged at error or warning levels, respectively, providing insights into the health of your application's components.
+
+## Customizing Health Checks
+
+You can add custom health checks to your application using the standard ASP.NET Core `AddHealthChecks()` method and then chaining additional health check registrations. These custom checks will be included in the detailed `/health` and `/health/internal` reports.
 
 ```csharp
+// In Program.cs
 builder.Services.AddHealthChecks()
-    .AddCheck("self", () => HealthCheckResult.Healthy())
-    .AddNpgSql(connectionString, name: "postgres")
-    .AddUrlGroup(new Uri("https://api.external.com/health"), "external-api");
+    .AddSqlServer("ConnectionStrings:DefaultConnection", name: "SQL Server");
 ```
 
-## Built-in Health Checks
+## See also
 
-### Database Health Checks
-
-```csharp
-// PostgreSQL
-builder.Services.AddHealthChecks()
-    .AddNpgSql(connectionString, name: "database");
-
-// Multiple databases
-builder.Services.AddHealthChecks()
-    .AddNpgSql(billingConnectionString, name: "billing-db")
-    .AddNpgSql(serviceBusConnectionString, name: "servicebus-db");
-```
-
-### HTTP Health Checks
-
-```csharp
-builder.Services.AddHealthChecks()
-    .AddUrlGroup(new Uri("https://api.dependency.com/health"), "dependency-api")
-    .AddHttpHealthCheck("external-service", "https://service.com/ping");
-```
-
-### Custom Health Checks
-
-```csharp
-public class CashierServiceHealthCheck : IHealthCheck
-{
-    private readonly ICashierRepository _repository;
-
-    public CashierServiceHealthCheck(ICashierRepository repository)
-    {
-        _repository = repository;
-    }
-
-    public async Task<HealthCheckResult> CheckHealthAsync(
-        HealthCheckContext context, 
-        CancellationToken cancellationToken = default)
-    {
-        try
-        {
-            var count = await _repository.GetActiveCashierCountAsync(cancellationToken);
-            
-            return count > 0 
-                ? HealthCheckResult.Healthy($"Active cashiers: {count}")
-                : HealthCheckResult.Degraded("No active cashiers");
-        }
-        catch (Exception ex)
-        {
-            return HealthCheckResult.Unhealthy("Cashier service unavailable", ex);
-        }
-    }
-}
-
-// Registration
-builder.Services.AddHealthChecks()
-    .AddCheck<CashierServiceHealthCheck>("cashier-service");
-```
-
-## Health Check Endpoints
-
-### Default Endpoints
-
-The platform exposes several health check endpoints:
-
-- `/health` - Overall health status
-- `/health/ready` - Readiness probe
-- `/health/live` - Liveness probe
-
-### Custom Endpoint Configuration
-
-```csharp
-app.MapHealthChecks("/health", new HealthCheckOptions
-{
-    ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
-});
-
-app.MapHealthChecks("/health/ready", new HealthCheckOptions
-{
-    Predicate = check => check.Tags.Contains("ready")
-});
-
-app.MapHealthChecks("/health/live", new HealthCheckOptions
-{
-    Predicate = _ => false
-});
-```
-
-## Health Check Tags
-
-Organize health checks using tags:
-
-```csharp
-builder.Services.AddHealthChecks()
-    .AddCheck("database", () => HealthCheckResult.Healthy(), tags: new[] { "ready", "db" })
-    .AddCheck("external-api", () => HealthCheckResult.Healthy(), tags: new[] { "ready", "external" })
-    .AddCheck("memory", () => HealthCheckResult.Healthy(), tags: new[] { "live" });
-```
-
-## Configuration Options
-
-### appsettings.json
-
-```json
-{
-  "HealthChecks": {
-    "Timeout": "00:00:30",
-    "CheckInterval": "00:01:00",
-    "FailureStatus": "Unhealthy",
-    "DetailedErrors": true
-  }
-}
-```
-
-### Environment-Specific Configuration
-
-```json
-{
-  "HealthChecks": {
-    "Database": {
-      "Enabled": true,
-      "ConnectionString": "Host=localhost;Database=billing;Username=postgres"
-    },
-    "ExternalServices": {
-      "Enabled": false
-    }
-  }
-}
-```
-
-## Health Check Results
-
-### Status Levels
-
-- **Healthy**: Service is operating normally
-- **Degraded**: Service is operational but with reduced functionality
-- **Unhealthy**: Service is not operational
-
-### Response Format
-
-```json
-{
-  "status": "Healthy",
-  "totalDuration": "00:00:00.0123456",
-  "entries": {
-    "database": {
-      "status": "Healthy",
-      "duration": "00:00:00.0056789",
-      "data": {
-        "connection": "active"
-      }
-    },
-    "external-api": {
-      "status": "Degraded",
-      "duration": "00:00:00.0234567",
-      "description": "High response time",
-      "data": {
-        "responseTime": "2.5s"
-      }
-    }
-  }
-}
-```
-
-## Integration with Kubernetes
-
-### Liveness Probe
-
-```yaml
-livenessProbe:
-  httpGet:
-    path: /health/live
-    port: 8080
-  initialDelaySeconds: 30
-  periodSeconds: 10
-```
-
-### Readiness Probe
-
-```yaml
-readinessProbe:
-  httpGet:
-    path: /health/ready
-    port: 8080
-  initialDelaySeconds: 5
-  periodSeconds: 5
-```
-
-## Monitoring and Alerting
-
-### Health Check Status Store
-
-The platform includes a health check status store for tracking health over time:
-
-```csharp
-builder.Services.AddSingleton<HealthCheckStatusStore>();
-
-// Access health history
-app.MapGet("/health/history", (HealthCheckStatusStore store) => 
-    store.GetHealthCheckHistory());
-```
-
-### Integration with OpenTelemetry
-
-Health check results are automatically exported as metrics:
-
-```csharp
-// Custom health metrics
-builder.Services.AddOpenTelemetry()
-    .WithMetrics(metrics => metrics
-        .AddMeter("HealthChecks"));
-```
-
-## Best Practices
-
-1. **Granular Checks**: Create specific health checks for each dependency
-2. **Timeout Configuration**: Set appropriate timeouts for external dependencies
-3. **Graceful Degradation**: Use Degraded status for non-critical issues
-4. **Avoid Cascading Failures**: Don't let health checks impact service performance
-5. **Meaningful Data**: Include relevant diagnostic information in health check responses
-
-## Troubleshooting
-
-### Common Issues
-
-- **Timeout errors**: Increase health check timeout values
-- **False positives**: Review health check logic and thresholds
-- **Performance impact**: Optimize health check queries and reduce frequency
-- **Dependency failures**: Implement circuit breaker patterns
-
-### Debugging
-
-Enable health check logging:
-
-```json
-{
-  "Logging": {
-    "LogLevel": {
-      "Microsoft.Extensions.Diagnostics.HealthChecks": "Debug"
-    }
-  }
-}
-```
-
-## See Also
-
-- [Health Checks Overview](overview.md)
-- [OpenTelemetry Setup](../opentelemetry/setup.md)
-- [Service Defaults](../architecture/service-defaults.md)
+- [Health Check Status Store](./health-check-status-store.md)
+- [Endpoint Filters](../api/endpoint-filters.md)

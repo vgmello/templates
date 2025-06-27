@@ -1,3 +1,5 @@
+- name: Domain Assembly Attribute
+  href: domain-assembly-attribute.md
 - name: Architecture
   href: architecture/
   items:
@@ -60,10 +62,8 @@
   - name: DbCommand Generator
     href: source-generators/dbcommand-generator.md
 - name: Extensions
-  href: extensions/
+  href: extensions/overview.md
   items:
-  - name: Overview
-    href: extensions/overview.md
   - name: String Extensions
     href: extensions/string-extensions.md
   - name: Result Pattern

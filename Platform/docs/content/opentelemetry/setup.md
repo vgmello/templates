@@ -1,144 +1,58 @@
-# OpenTelemetry Setup and Configuration
+---
+title: OpenTelemetry Setup Extensions
+description: Learn how to configure OpenTelemetry for comprehensive observability in your services, including tracing, metrics, and logging.
+---
 
-This guide covers the setup and configuration of OpenTelemetry in the Operations platform.
+# OpenTelemetry Setup Extensions
 
-## Overview
+The `OpenTelemetrySetupExtensions` class provides a set of extension methods to easily integrate OpenTelemetry into your ASP.NET Core applications. OpenTelemetry is a vendor-neutral open-source observability framework that enables you to collect and export telemetry data (traces, metrics, and logs) from your services.
 
-The Operations platform provides comprehensive OpenTelemetry support through the `Operations.ServiceDefaults.OpenTelemetry` package, enabling distributed tracing, metrics collection, and observability across all services.
+## Key Features
 
-## Basic Setup
+### AddOpenTelemetry
 
-### Service Registration
+This extension method configures OpenTelemetry for your application, setting up tracing, metrics, and logging. It provides sensible defaults and allows for customization through configuration.
 
-```csharp
-var builder = WebApplication.CreateBuilder(args);
+#### Tracing Configuration
 
-// Add OpenTelemetry with default configuration
-builder.AddServiceDefaults();
+-   **ActivitySource**: A new `ActivitySource` is created and registered, using the application name or a configurable name (`OpenTelemetry:ActivitySourceName`). This source is used to create custom spans for your application logic.
+-   **AspNetCoreInstrumentation**: Automatically instruments ASP.NET Core requests, capturing details about incoming HTTP requests. It includes a filter to exclude health check endpoints from tracing.
+-   **HttpClientInstrumentation**: Instruments outgoing HTTP requests made with `HttpClient`, allowing you to trace calls to external services. It includes a filter to exclude certain internal paths.
+-   **Wolverine Instrumentation**: Adds instrumentation for Wolverine, ensuring that message processing is included in your traces.
 
-var app = builder.Build();
+#### Metrics Configuration
 
-// Map default observability endpoints
-app.MapDefaultEndpoints();
+-   **Meter**: A new `Meter` is created and registered for messaging metrics, using the application name or a configurable name (`OpenTelemetry:MessagingMeterName`).
+-   **AspNetCoreInstrumentation**: Instruments ASP.NET Core metrics, such as request duration and counts.
+-   **HttpClientInstrumentation**: Instruments `HttpClient` metrics, such as outgoing request duration and counts.
+-   **RuntimeInstrumentation**: Collects metrics from the .NET runtime, including CPU usage, memory, and garbage collection.
+-   **Wolverine Metrics**: Integrates with Wolverine's internal metrics.
+-   **Messaging Metrics**: Integrates with the custom `MessagingMeterStore` for application-specific messaging metrics.
 
-app.Run();
-```
+#### Logging Configuration
 
-### Manual Configuration
+-   **OpenTelemetry Logging**: Configures logging to be exported via OpenTelemetry, including formatted messages and scopes.
 
-For more control over OpenTelemetry configuration:
+## Usage example
 
-```csharp
-builder.Services.AddOpenTelemetry()
-    .WithTracing(tracing => tracing
-        .AddAspNetCoreInstrumentation()
-        .AddHttpClientInstrumentation()
-        .AddGrpcClientInstrumentation())
-    .WithMetrics(metrics => metrics
-        .AddAspNetCoreInstrumentation()
-        .AddHttpClientInstrumentation());
-```
+To add OpenTelemetry to your application, call `AddOpenTelemetry` on your `IHostApplicationBuilder`:
 
-## Configuration Options
+[!code-csharp[](~/samples/basic-service/Program.cs?highlight=6)]
 
-### Environment Variables
+## Configuration
 
-- `OTEL_SERVICE_NAME`: Service name for telemetry
-- `OTEL_SERVICE_VERSION`: Service version
-- `OTEL_RESOURCE_ATTRIBUTES`: Additional resource attributes
-- `OTEL_EXPORTER_OTLP_ENDPOINT`: OpenTelemetry Collector endpoint
-
-### appsettings.json
+You can configure OpenTelemetry settings in your `appsettings.json` file:
 
 ```json
 {
   "OpenTelemetry": {
-    "ServiceName": "billing-api",
-    "ServiceVersion": "1.0.0",
-    "Otlp": {
-      "Endpoint": "http://localhost:4317"
-    }
+    "ActivitySourceName": "MyApplication.Activities",
+    "MessagingMeterName": "MyApplication.MessagingMetrics"
   }
 }
 ```
 
-## Instrumentation
+## See also
 
-### Automatic Instrumentation
-
-The platform automatically instruments:
-- ASP.NET Core requests
-- HTTP client calls
-- gRPC client/server calls
-- Database operations (via Dapper extensions)
-- Messaging operations (via Wolverine)
-
-### Custom Instrumentation
-
-```csharp
-// Custom activity source
-private static readonly ActivitySource ActivitySource = new("Billing.Api");
-
-// Creating custom spans
-using var activity = ActivitySource.StartActivity("ProcessPayment");
-activity?.SetTag("payment.id", paymentId);
-activity?.SetTag("payment.amount", amount);
-```
-
-## Exporters
-
-### OTLP Exporter (Default)
-
-Exports to OpenTelemetry Collector:
-
-```csharp
-builder.Services.Configure<OpenTelemetryLoggerOptions>(logging => logging
-    .AddOtlpExporter());
-```
-
-### Console Exporter (Development)
-
-For local development:
-
-```csharp
-builder.Services.AddOpenTelemetry()
-    .WithTracing(tracing => tracing.AddConsoleExporter())
-    .WithMetrics(metrics => metrics.AddConsoleExporter());
-```
-
-## Best Practices
-
-1. **Service Naming**: Use consistent service names across environments
-2. **Resource Attributes**: Include deployment environment, version, and region
-3. **Sampling**: Configure appropriate sampling rates for production
-4. **Custom Metrics**: Create business-specific metrics for monitoring
-5. **Error Handling**: Ensure telemetry doesn't impact application performance
-
-## Troubleshooting
-
-### Common Issues
-
-- **Missing traces**: Verify OTLP endpoint configuration
-- **High overhead**: Adjust sampling rates
-- **Network errors**: Check collector connectivity
-- **Missing attributes**: Verify resource configuration
-
-### Debugging
-
-Enable debug logging for OpenTelemetry:
-
-```json
-{
-  "Logging": {
-    "LogLevel": {
-      "OpenTelemetry": "Debug"
-    }
-  }
-}
-```
-
-## See Also
-
-- [OpenTelemetry Overview](overview.md)
-- [Health Checks Setup](../healthchecks/setup.md)
-- [Logging Configuration](../logging/overview.md)
+- [Messaging Meter Store](../messaging/telemetry/messaging-meter-store.md)
+- [Messaging Metrics](../messaging/telemetry/messaging-metrics.md)
