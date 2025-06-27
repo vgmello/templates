@@ -1,13 +1,14 @@
-using Operations.ServiceDefaults;
-using Operations.ServiceDefaults.Api;
+using Operations.ServiceDefaults.Api.OpenApi.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.AddServiceDefaults();
-builder.AddApiServiceDefaults();
+// Add services to the container.
+builder.Services.AddOpenApiWithXmlDocSupport();
+builder.Services.AddControllers();
 
 var app = builder.Build();
 
-app.MapDefaultEndpoints();
+// Configure the HTTP request pipeline.
+app.MapControllers();
 
 app.Run();
