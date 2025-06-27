@@ -1,6 +1,0 @@
-- name: Overview
-  href: overview.md
-- name: gRPC Integration
-  href: grpc-integration.md
-- name: OpenAPI Documentation
-  href: openapi-documentation.md
