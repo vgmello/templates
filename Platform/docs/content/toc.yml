@@ -1,0 +1,6 @@
+- name: Architecture
+  href: architecture.md
+- name: Extensions
+  href: extensions.md
+- name: Source Generators
+  href: source-generators.md

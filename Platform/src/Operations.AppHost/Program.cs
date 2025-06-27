@@ -106,4 +106,18 @@ builder
     })
     .WithHttpHealthCheck("toc.json");
 
+// Documentation container for Platform (port 8159)
+builder
+    .AddContainer("platform-docs", "platform-docfx")
+    .WithDockerfile("../../Platform/docs")
+    .WithBindMount("../../Platform/", "/app")
+    .WithHttpEndpoint(port: 8159, targetPort: 8080, name: "http")
+    .WithArgs("docs/docfx.json", "--serve", "--hostname=*", "--logLevel=error")
+    .WithUrlForEndpoint("http", url =>
+    {
+        url.DisplayText = "Platform Documentation";
+        url.Url = "/";
+    })
+    .WithHttpHealthCheck("toc.json");
+
 await builder.Build().RunAsync();
