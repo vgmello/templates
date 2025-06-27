@@ -9,10 +9,10 @@ class InvoiceStore {
 	selectedInvoice = $state<Invoice | null>(null);
 	searchTerm = $state('');
 	statusFilter = $state('');
-	errorMessage = $state<string | null>(null);
+	errorMessage = $state.raw<string | null>(null); // Use $state.raw for non-reactive error messages
 
-	// Computed properties using getter
-	get filteredInvoices() {
+	// Computed properties using $derived runes - Svelte 5 best practice
+	filteredInvoices = $derived.by(() => {
 		return this.invoices.filter(invoice => {
 			const matchesSearch = invoice.name.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
 				invoice.invoiceId.toLowerCase().includes(this.searchTerm.toLowerCase());
@@ -21,104 +21,132 @@ class InvoiceStore {
 			
 			return matchesSearch && matchesStatus;
 		});
-	}
+	});
 
-	// Statistics - using getter properties for proper reactivity
-	get totalInvoices() {
-		return this.invoices.length;
-	}
+	// Statistics - using $derived for proper reactivity
+	totalInvoices = $derived(this.invoices.length);
 
-	get totalAmount() {
-		return this.invoices.reduce((sum, invoice) => sum + invoice.amount, 0);
-	}
+	totalAmount = $derived(
+		this.invoices.reduce((sum, invoice) => sum + invoice.amount, 0)
+	);
 
-	get paidInvoices() {
-		return this.invoices.filter(i => i.status === 'Paid').length;
-	}
+	paidInvoices = $derived(
+		this.invoices.filter(i => i.status === 'Paid').length
+	);
 
-	get draftInvoices() {
-		return this.invoices.filter(i => i.status === 'Draft').length;
-	}
+	draftInvoices = $derived(
+		this.invoices.filter(i => i.status === 'Draft').length
+	);
 
-	get cancelledInvoices() {
-		return this.invoices.filter(i => i.status === 'Cancelled').length;
-	}
+	cancelledInvoices = $derived(
+		this.invoices.filter(i => i.status === 'Cancelled').length
+	);
 
 	// Available statuses derived from data
-	get availableStatuses() {
+	availableStatuses = $derived.by(() => {
 		const statuses = new Set(this.invoices.map(i => i.status));
 		return Array.from(statuses).sort();
-	}
+	});
 
 	// Available currencies derived from data
-	get availableCurrencies() {
+	availableCurrencies = $derived.by(() => {
 		const currencies = new Set(this.invoices.map(i => i.currency).filter(Boolean));
 		return Array.from(currencies).sort();
-	}
+	});
 
-	// Methods
-	initializeInvoices(invoices: Invoice[]) {
-		this.invoices = invoices;
+	// Actions for initializing from SSR data
+	initializeInvoices(invoices: Invoice[]): void {
+		this.invoices = $state.snapshot(invoices || []);
 		this.errorMessage = null;
 	}
 
-	initializeSelectedInvoice(invoice: Invoice | null) {
+	initializeSelectedInvoice(invoice: Invoice | null): void {
 		this.selectedInvoice = invoice;
+		
+		// Add to invoices list if not already there
+		if (invoice) {
+			const currentInvoices = $state.snapshot(this.invoices);
+			if (!currentInvoices.find(i => i.invoiceId === invoice.invoiceId)) {
+				this.invoices = [...currentInvoices, invoice];
+			}
+		}
 	}
 
-	setSearchTerm(term: string) {
+	// Filter actions - using direct property assignment
+	setSearchTerm(term: string): void {
 		this.searchTerm = term;
 	}
 
-	setStatusFilter(status: string) {
+	setStatusFilter(status: string): void {
 		this.statusFilter = status;
 	}
 
-	setError(message: string | null) {
+	setError(message: string | null): void {
 		this.errorMessage = message;
 	}
 
-	clearError() {
+	clearError(): void {
 		this.errorMessage = null;
 	}
 
-	addInvoice(invoice: Invoice) {
-		this.invoices = [...this.invoices, invoice];
+	// Method to update store after successful server operations
+	addInvoice(invoice: Invoice): void {
+		const currentInvoices = $state.snapshot(this.invoices);
+		this.invoices = [...currentInvoices, invoice];
 	}
 
-	updateInvoice(updatedInvoice: Invoice) {
-		this.invoices = this.invoices.map(invoice => 
-			invoice.invoiceId === updatedInvoice.invoiceId ? updatedInvoice : invoice
-		);
+	updateInvoiceInStore(updatedInvoice: Invoice): void {
+		const currentInvoices = $state.snapshot(this.invoices);
+		const index = currentInvoices.findIndex(i => i.invoiceId === updatedInvoice.invoiceId);
+		if (index !== -1) {
+			currentInvoices[index] = updatedInvoice;
+			this.invoices = [...currentInvoices];
+		}
 		
-		// Update selected invoice if it's the one being updated
+		// Update selected invoice if it's the same one
 		if (this.selectedInvoice?.invoiceId === updatedInvoice.invoiceId) {
 			this.selectedInvoice = updatedInvoice;
 		}
 	}
 
-	removeInvoice(invoiceId: string) {
-		this.invoices = this.invoices.filter(invoice => invoice.invoiceId !== invoiceId);
+	removeInvoice(invoiceId: string): void {
+		// Remove from the list using snapshot to avoid reactivity cycles
+		const currentInvoices = $state.snapshot(this.invoices);
+		this.invoices = currentInvoices.filter(i => i.invoiceId !== invoiceId);
 		
-		// Clear selected invoice if it's the one being removed
+		// Clear selected invoice if it's the same one
 		if (this.selectedInvoice?.invoiceId === invoiceId) {
 			this.selectedInvoice = null;
 		}
 	}
 
-	getInvoiceById(invoiceId: string): Invoice | undefined {
-		return this.invoices.find(invoice => invoice.invoiceId === invoiceId);
+	// Utility actions
+	clearFilters(): void {
+		this.searchTerm = '';
+		this.statusFilter = '';
 	}
 
-	// Status-specific filters
+	clearSelectedInvoice(): void {
+		this.selectedInvoice = null;
+	}
+
+	// Get invoice by ID from current list using snapshot for consistency
+	getInvoiceById(invoiceId: string): Invoice | null {
+		const invoices = $state.snapshot(this.invoices);
+		return invoices.find(invoice => invoice.invoiceId === invoiceId) || null;
+	}
+
+	// Status-specific filters using derived computations
 	getInvoicesByStatus(status: string): Invoice[] {
-		return this.invoices.filter(invoice => invoice.status === status);
+		const invoices = $state.snapshot(this.invoices);
+		return invoices.filter(invoice => invoice.status === status);
 	}
 
-	// Due date helpers
+	// Due date helpers - using snapshot for safe operations
 	getOverdueInvoices(): Invoice[] {
 		const now = new Date();
-		return this.invoices.filter(invoice => 
+		const invoices = $state.snapshot(this.invoices);
+		return invoices.filter(invoice => 
 			invoice.dueDate && 
 			new Date(invoice.dueDate) < now && 
 			invoice.status !== 'Paid' && 
@@ -131,7 +159,8 @@ class InvoiceStore {
 		const futureDate = new Date();
 		futureDate.setDate(now.getDate() + days);
 		
-		return this.invoices.filter(invoice => 
+		const invoices = $state.snapshot(this.invoices);
+		return invoices.filter(invoice => 
 			invoice.dueDate && 
 			new Date(invoice.dueDate) >= now &&
 			new Date(invoice.dueDate) <= futureDate &&

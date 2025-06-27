@@ -22,6 +22,55 @@
 	tomorrow.setDate(tomorrow.getDate() + 1);
 	const minDate = tomorrow.toISOString().split('T')[0];
 
+	// Real-time validation using $derived - Svelte 5 best practice
+	const nameValidation = $derived.by(() => {
+		if (!name.trim()) {
+			return { isValid: false, message: 'Invoice name is required' };
+		}
+		if (name.trim().length < 2) {
+			return { isValid: false, message: 'Invoice name must be at least 2 characters' };
+		}
+		if (name.trim().length > 100) {
+			return { isValid: false, message: 'Invoice name must be less than 100 characters' };
+		}
+		return { isValid: true, message: '' };
+	});
+
+	const amountValidation = $derived.by(() => {
+		const numAmount = parseFloat(amount);
+		if (!amount.trim()) {
+			return { isValid: false, message: 'Amount is required' };
+		}
+		if (isNaN(numAmount) || numAmount <= 0) {
+			return { isValid: false, message: 'Amount must be greater than 0' };
+		}
+		if (numAmount > 1000000) {
+			return { isValid: false, message: 'Amount must be less than 1,000,000' };
+		}
+		return { isValid: true, message: '' };
+	});
+
+	const dueDateValidation = $derived.by(() => {
+		if (!dueDate) {
+			return { isValid: true, message: '' }; // Optional field
+		}
+		const selectedDate = new Date(dueDate);
+		const today = new Date();
+		today.setHours(0, 0, 0, 0);
+		
+		if (selectedDate < today) {
+			return { isValid: false, message: 'Due date cannot be in the past' };
+		}
+		return { isValid: true, message: '' };
+	});
+
+	// Overall form validity
+	const isFormValid = $derived(
+		nameValidation.isValid && 
+		amountValidation.isValid && 
+		dueDateValidation.isValid
+	);
+
 	// Auto-focus management
 	let nameInput: HTMLInputElement;
 	$effect(() => {
@@ -83,11 +132,15 @@
 						bind:value={name}
 						required
 						disabled={isSubmitting}
-						class={form?.error && (!name || name.length < 2) ? 'border-destructive' : ''}
+						class={!nameValidation.isValid && name.trim() ? 'border-destructive' : ''}
 					/>
-					<p class="text-sm text-muted-foreground">
-						A descriptive name for this invoice
-					</p>
+					{#if !nameValidation.isValid && name.trim()}
+						<p class="text-sm text-destructive">{nameValidation.message}</p>
+					{:else}
+						<p class="text-sm text-muted-foreground">
+							A descriptive name for this invoice
+						</p>
+					{/if}
 				</div>
 
 				<!-- Amount -->
@@ -103,11 +156,15 @@
 						bind:value={amount}
 						required
 						disabled={isSubmitting}
-						class={form?.error && (!amount || parseFloat(amount) <= 0) ? 'border-destructive' : ''}
+						class={!amountValidation.isValid && amount.trim() ? 'border-destructive' : ''}
 					/>
-					<p class="text-sm text-muted-foreground">
-						Invoice amount (must be greater than 0)
-					</p>
+					{#if !amountValidation.isValid && amount.trim()}
+						<p class="text-sm text-destructive">{amountValidation.message}</p>
+					{:else}
+						<p class="text-sm text-muted-foreground">
+							Invoice amount (must be greater than 0)
+						</p>
+					{/if}
 				</div>
 
 				<!-- Currency -->
@@ -139,10 +196,15 @@
 						min={minDate}
 						bind:value={dueDate}
 						disabled={isSubmitting}
+						class={!dueDateValidation.isValid && dueDate ? 'border-destructive' : ''}
 					/>
-					<p class="text-sm text-muted-foreground">
-						Optional: When payment is due
-					</p>
+					{#if !dueDateValidation.isValid && dueDate}
+						<p class="text-sm text-destructive">{dueDateValidation.message}</p>
+					{:else}
+						<p class="text-sm text-muted-foreground">
+							Optional: When payment is due
+						</p>
+					{/if}
 				</div>
 
 				<!-- Cashier Selection -->
@@ -167,13 +229,25 @@
 
 				<!-- Actions -->
 				<div class="flex gap-4 pt-4">
-					<Button type="submit" disabled={isSubmitting} class="flex-1">
+					<Button 
+						type="submit" 
+						disabled={isSubmitting || !isFormValid} 
+						class="flex-1"
+						title={!isFormValid ? 'Please fix validation errors before submitting' : ''}
+					>
 						{isSubmitting ? 'Creating...' : 'Create Invoice'}
 					</Button>
 					<Button type="button" variant="outline" href="/invoices" disabled={isSubmitting}>
 						Cancel
 					</Button>
 				</div>
+				
+				<!-- Form validity indicator -->
+				{#if !isFormValid && (name.trim() || amount.trim() || dueDate)}
+					<div class="text-sm text-muted-foreground text-center mt-2">
+						Please fix the validation errors above to continue
+					</div>
+				{/if}
 			</form>
 	</Card>
 </div>
