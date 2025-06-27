@@ -47,7 +47,7 @@ By default, all mapped controllers will require authorization. You can change th
 
 To apply the default configurations, call `AddApiServiceDefaults` on your `WebApplicationBuilder` and `ConfigureApiUsingDefaults` on the `WebApplication`.
 
-[!code-csharp[](../samples/api-defaults/Program.cs?highlight=5,9)]
+[!code-csharp[](~/samples/api-defaults/Program.cs?highlight=5,9)]
 
 ## See also
 
