@@ -1,576 +1,339 @@
-# Logging Overview
-
-The Platform provides a sophisticated logging infrastructure built on Serilog with OpenTelemetry integration, dynamic configuration, and production-ready defaults.
-
-## Key Benefits
-
-### 🚀 **Two-Stage Initialization**
-- **Bootstrap logging** - Capture startup issues before full configuration
-- **Enhanced logging** - Rich structured logging after services are available
-- **Graceful fallback** - Ensures no log messages are lost during startup
-
-### 🎯 **Production Ready**
-- **Structured logging** - JSON output for log aggregation systems
-- **Performance optimized** - Asynchronous sinks and efficient serialization
-- **Context enrichment** - Automatic correlation IDs and environment information
-
-### 🔧 **Dynamic Configuration**
-- **Runtime log level changes** - Adjust verbosity without restarts
-- **Namespace-specific levels** - Fine-grained control over different components
-- **Environment-aware** - Different configurations for dev/staging/production
-
-## Two-Stage Initialization
-
-### Stage 1: Bootstrap Logger
-
-Initialize basic logging before building the application:
-
-```csharp
-// Early in Program.cs
-Log.Logger = new LoggerConfiguration()
-    .UseInitializationLogger(builder.Configuration)
-    .CreateBootstrapLogger();
-
-try
-{
-    Log.Information("Starting application initialization");
-    
-    var builder = WebApplication.CreateBuilder(args);
-    
-    // Application setup...
-    
-    Log.Information("Application configured successfully");
-}
-catch (Exception ex)
-{
-    Log.Fatal(ex, "Application failed to start");
-    throw;
-}
-finally
-{
-    await Log.CloseAndFlushAsync();
-}
-```
-
-### Stage 2: Full Logging Setup
-
-Configure complete logging after service registration:
-
-```csharp
-// In AddServiceDefaults()
-builder.Services.AddLogging(logging =>
-{
-    logging.ClearProviders();
-    logging.AddSerilog(dispose: true);
-});
-
-builder.Host.UseSerilog((context, services, configuration) =>
-{
-    configuration
-        .ReadFrom.Configuration(context.Configuration)
-        .ReadFrom.Services(services) // Enables service injection
-        .Enrich.FromLogContext()
-        .WriteTo.Console(new JsonFormatter())
-        .WriteTo.OpenTelemetry(); // Structured output for observability
-});
-```
-
-### Benefits of Two-Stage Approach
-
-| Aspect | Bootstrap Logger | Full Logger |
-|--------|------------------|-------------|
-| **Availability** | Immediate | After service setup |
-| **Configuration** | Basic/fallback | Full configuration |
-| **Enrichment** | Minimal | Complete context |
-| **Sinks** | Console only | Multiple sinks |
-| **Performance** | Synchronous | Async with batching |
-
-## Configuration
-
-### Basic Configuration (appsettings.json)
-
-```json
-{
-  "Serilog": {
-    "Using": [ "Serilog.Sinks.Console", "Serilog.Sinks.OpenTelemetry" ],
-    "MinimumLevel": {
-      "Default": "Information",
-      "Override": {
-        "Microsoft": "Warning",
-        "Microsoft.Hosting.Lifetime": "Information",
-        "Microsoft.AspNetCore": "Warning",
-        "System": "Warning",
-        "Wolverine": "Information"
-      }
-    },
-    "WriteTo": [
-      {
-        "Name": "Console",
-        "Args": {
-          "formatter": "Serilog.Formatting.Json.JsonFormatter, Serilog"
-        }
-      },
-      {
-        "Name": "OpenTelemetry",
-        "Args": {
-          "endpoint": "http://localhost:4317",
-          "protocol": "grpc",
-          "includeFormattedMessage": true,
-          "includeScopes": true
-        }
-      }
-    ],
-    "Enrich": [
-      "FromLogContext",
-      "WithMachineName",
-      "WithEnvironmentName",
-      "WithCorrelationId"
-    ],
-    "Properties": {
-      "Application": "BillingService",
-      "Version": "1.0.0"
-    }
-  }
-}
-```
-
-### Environment-Specific Configuration
-
-#### Development (appsettings.Development.json)
-```json
-{
-  "Serilog": {
-    "MinimumLevel": {
-      "Default": "Debug",
-      "Override": {
-        "Microsoft": "Information",
-        "Wolverine": "Debug"
-      }
-    },
-    "WriteTo": [
-      {
-        "Name": "Console",
-        "Args": {
-          "outputTemplate": "[{Timestamp:HH:mm:ss} {Level:u3}] {SourceContext}: {Message:lj}{NewLine}{Exception}"
-        }
-      },
-      {
-        "Name": "File",
-        "Args": {
-          "path": "logs/app-.log",
-          "rollingInterval": "Day",
-          "formatter": "Serilog.Formatting.Json.JsonFormatter, Serilog"
-        }
-      }
-    ]
-  }
-}
-```
-
-#### Production (appsettings.Production.json)
-```json
-{
-  "Serilog": {
-    "MinimumLevel": {
-      "Default": "Information",
-      "Override": {
-        "Microsoft": "Warning",
-        "System": "Error"
-      }
-    },
-    "WriteTo": [
-      {
-        "Name": "Console",
-        "Args": {
-          "formatter": "Serilog.Formatting.Json.JsonFormatter, Serilog"
-        }
-      },
-      {
-        "Name": "OpenTelemetry",
-        "Args": {
-          "endpoint": "https://otel-collector:4317",
-          "protocol": "grpc"
-        }
-      }
-    ]
-  }
-}
-```
-
-## Dynamic Log Level Configuration
-
-### Runtime Configuration
-
-The Platform supports changing log levels at runtime without restarting the application:
-
-```csharp
-public class DynamicLogLevelSettings
-{
-    public Dictionary<string, HashSet<string>> Overrides { get; set; } = new();
-}
-```
-
-### Configuration Example
-
-```json
-{
-  "DynamicLogLevel": {
-    "Overrides": {
-      "Debug": [
-        "Billing.Cashier",
-        "Billing.Invoices.Commands"
-      ],
-      "Warning": [
-        "Microsoft.EntityFrameworkCore",
-        "Wolverine.Transports"
-      ],
-      "Error": [
-        "ThirdParty.SlowLibrary"
-      ]
-    }
-  }
-}
-```
-
-### Runtime API Endpoint
-
-```csharp
-[HttpPost("admin/log-level")]
-[Authorize(Roles = "Administrator")]
-public IActionResult UpdateLogLevel([FromBody] LogLevelUpdateRequest request)
-{
-    var settings = _configuration.GetSection("DynamicLogLevel").Get<DynamicLogLevelSettings>();
-    
-    // Update configuration
-    settings.Overrides[request.Level] = request.Namespaces.ToHashSet();
-    
-    // Apply changes immediately
-    Log.Logger = new LoggerConfiguration()
-        .ReadFrom.Configuration(_configuration)
-        .CreateLogger();
-        
-    _logger.LogInformation("Log level updated for {Namespaces} to {Level}", 
-        request.Namespaces, request.Level);
-        
-    return Ok();
-}
-```
-
-### Benefits
-- **Zero downtime** - Change log levels without restarts
-- **Granular control** - Different levels for different namespaces
-- **Temporary debugging** - Increase verbosity for troubleshooting
-- **Performance optimization** - Reduce logging overhead in production
-
-## Structured Logging Patterns
-
-### Context Enrichment
-
-```csharp
-public class EnrichmentMiddleware
-{
-    public async Task InvokeAsync(HttpContext context, RequestDelegate next)
-    {
-        using (LogContext.PushProperty("UserId", context.User?.Identity?.Name))
-        using (LogContext.PushProperty("RequestId", context.TraceIdentifier))
-        using (LogContext.PushProperty("CorrelationId", GetCorrelationId(context)))
-        {
-            await next(context);
-        }
-    }
-}
-```
-
-### Command/Query Logging
-
-```csharp
-public class LoggingCommandHandler<TCommand> : ICommandHandler<TCommand>
-    where TCommand : class, ICommand
-{
-    private readonly ICommandHandler<TCommand> _inner;
-    private readonly ILogger<LoggingCommandHandler<TCommand>> _logger;
-
-    public async Task<TResult> ExecuteAsync<TResult>(TCommand command, CancellationToken cancellationToken)
-    {
-        var commandName = typeof(TCommand).Name;
-        
-        using var activity = _logger.BeginScope(new Dictionary<string, object>
-        {
-            ["CommandType"] = commandName,
-            ["CommandId"] = Guid.NewGuid()
-        });
-
-        _logger.LogInformation("Executing command {CommandType}", commandName);
-        
-        var stopwatch = Stopwatch.StartNew();
-        
-        try
-        {
-            var result = await _inner.ExecuteAsync<TResult>(command, cancellationToken);
-            
-            _logger.LogInformation("Command {CommandType} completed successfully in {Duration}ms", 
-                commandName, stopwatch.ElapsedMilliseconds);
-                
-            return result;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Command {CommandType} failed after {Duration}ms", 
-                commandName, stopwatch.ElapsedMilliseconds);
-            throw;
-        }
-    }
-}
-```
-
-### Business Event Logging
-
-```csharp
-public class CashierService
-{
-    private readonly ILogger<CashierService> _logger;
-
-    public async Task<CashierDto> CreateCashierAsync(CreateCashierCommand command)
-    {
-        _logger.LogInformation("Creating cashier {Email} with currencies {Currencies}", 
-            command.Email, command.Currencies);
-
-        try
-        {
-            var cashier = await _cashierRepository.CreateAsync(command);
-            
-            _logger.LogInformation("Cashier created successfully {CashierId} for {Email}", 
-                cashier.Id, cashier.Email);
-                
-            return cashier;
-        }
-        catch (ValidationException ex)
-        {
-            _logger.LogWarning("Cashier creation failed validation {Email}: {Errors}", 
-                command.Email, ex.Errors.Select(e => e.ErrorMessage));
-            throw;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Failed to create cashier {Email}", command.Email);
-            throw;
-        }
-    }
-}
-```
-
-## OpenTelemetry Integration
-
-### Automatic Correlation
-
-```csharp
-// Logs automatically include trace and span IDs
-{
-  "timestamp": "2024-01-15T10:30:00.123Z",
-  "level": "Information",
-  "message": "Cashier created successfully {CashierId} for {Email}",
-  "properties": {
-    "CashierId": "550e8400-e29b-41d4-a716-446655440000",
-    "Email": "john.doe@company.com"
-  },
-  "traceId": "12345678901234567890123456789012",
-  "spanId": "1234567890123456"
-}
-```
-
-### Benefits
-- **Distributed tracing** - Correlate logs across service boundaries
-- **Automatic context** - No manual correlation ID management
-- **Observability integration** - Works with Jaeger, Zipkin, and other tools
-
-## Performance Optimization
-
-### Async Logging
-
-```csharp
-.WriteTo.Async(a => a.Console(new JsonFormatter()), bufferSize: 500)
-.WriteTo.Async(a => a.OpenTelemetry(), bufferSize: 1000)
-```
-
-### Conditional Logging
-
-```csharp
-// Efficient - only executes if log level is enabled
-_logger.LogDebug("Processing {Count} items: {@Items}", items.Count, items);
-
-// More efficient for expensive operations
-if (_logger.IsEnabled(LogLevel.Debug))
-{
-    var expensiveData = ComputeExpensiveDebugInfo();
-    _logger.LogDebug("Debug info: {@Data}", expensiveData);
-}
-```
-
-### Sampling
-
-```json
-{
-  "Serilog": {
-    "Filter": [
-      {
-        "Name": "ByIncludingOnly",
-        "Args": {
-          "expression": "SamplingSuppressed or Random() < 0.1"
-        }
-      }
-    ]
-  }
-}
-```
-
-## Error Handling and Monitoring
-
-### Global Exception Handler
-
-```csharp
-public class GlobalExceptionHandler : IExceptionHandler
-{
-    private readonly ILogger<GlobalExceptionHandler> _logger;
-
-    public async ValueTask<bool> TryHandleAsync(
-        HttpContext httpContext, 
-        Exception exception, 
-        CancellationToken cancellationToken)
-    {
-        _logger.LogError(exception, 
-            "Unhandled exception in {RequestPath} {Method} from {RemoteIp}", 
-            httpContext.Request.Path,
-            httpContext.Request.Method,
-            httpContext.Connection.RemoteIpAddress);
-
-        var problemDetails = new ProblemDetails
-        {
-            Status = StatusCodes.Status500InternalServerError,
-            Title = "An error occurred while processing your request",
-            Instance = httpContext.Request.Path
-        };
-
-        // Don't leak internal details in production
-        if (httpContext.RequestServices.GetRequiredService<IWebHostEnvironment>().IsDevelopment())
-        {
-            problemDetails.Detail = exception.Message;
-        }
-
-        httpContext.Response.StatusCode = StatusCodes.Status500InternalServerError;
-        await httpContext.Response.WriteAsJsonAsync(problemDetails, cancellationToken);
-
-        return true;
-    }
-}
-```
-
-## Log Analysis and Alerting
-
-### ELK Stack Integration
-
-```yaml
-# Logstash configuration
-input {
-  beats {
-    port => 5044
-  }
-}
-
-filter {
-  if [fields][service] == "billing" {
-    json {
-      source => "message"
-    }
-    
-    date {
-      match => [ "timestamp", "ISO8601" ]
-    }
-  }
-}
-
-output {
-  elasticsearch {
-    hosts => ["elasticsearch:9200"]
-    index => "billing-logs-%{+YYYY.MM.dd}"
-  }
-}
-```
-
-### Alerting Rules
-
-```yaml
-# Elasticsearch Watcher
-{
-  "trigger": {
-    "schedule": {
-      "interval": "1m"
-    }
-  },
-  "input": {
-    "search": {
-      "request": {
-        "search_type": "query_then_fetch",
-        "indices": ["billing-logs-*"],
-        "body": {
-          "query": {
-            "bool": {
-              "must": [
-                {
-                  "term": {
-                    "level": "Error"
-                  }
-                },
-                {
-                  "range": {
-                    "timestamp": {
-                      "gte": "now-5m"
-                    }
-                  }
-                }
-              ]
-            }
-          }
-        }
-      }
-    }
-  },
-  "condition": {
-    "compare": {
-      "ctx.payload.hits.total": {
-        "gt": 10
-      }
-    }
-  },
-  "actions": {
-    "send_alert": {
-      "email": {
-        "to": ["ops-team@company.com"],
-        "subject": "High error rate detected in billing service",
-        "body": "{{ctx.payload.hits.total}} errors in the last 5 minutes"
-      }
-    }
-  }
-}
-```
-
-## Value Delivered
-
-### Operational Excellence
-- **90% faster troubleshooting** with structured logging and correlation
-- **Zero log message loss** with two-stage initialization
-- **Real-time observability** with OpenTelemetry integration
-
-### Developer Experience
-- **Rich local debugging** with formatted console output
-- **Instant setup** - Works out of the box with sensible defaults
-- **Dynamic tuning** - Adjust verbosity without restarts
-
-### Performance Benefits
-- **Minimal overhead** with async logging and efficient serialization
-- **Intelligent sampling** - Reduce volume while maintaining visibility
-- **Optimized queries** - Structured data enables fast log analysis
-
-### Business Impact
-- **Reduced MTTR** from hours to minutes with better log correlation
-- **Proactive issue detection** with automated alerting
-- **Compliance support** with comprehensive audit trails
+---
+title: Logging
+description: Structured logging with Serilog, OpenTelemetry integration, and dynamic log level configuration for comprehensive application observability.
+ms.date: 01/27/2025
+---
+
+# Logging
+
+The Platform provides comprehensive structured logging capabilities using Serilog with OpenTelemetry integration, automatic configuration from appsettings, and dynamic log level management. You get production-ready logging infrastructure that scales from development to enterprise environments.
+
+## Quick start
+
+Logging is automatically configured when you add Service Defaults:
+
+[!code-csharp[](~/samples/logging/BasicSetup.cs#BasicLogging)]
+
+This setup provides:
+- **Structured logging** with Serilog as the primary provider
+- **OpenTelemetry integration** for distributed tracing correlation
+- **Configuration-based** setup from appsettings.json
+- **Log context enrichment** with request correlation
+- **Two-stage initialization** for startup error capture
+
+## Core logging features
+
+### Structured logging with Serilog
+Rich, queryable log data with semantic structure:
+
+[!code-csharp[](~/samples/logging/StructuredLogging.cs#StructuredLogs)]
+
+Structured logging benefits:
+- **Queryable properties** for log analysis
+- **Type-safe logging** with compile-time validation
+- **Rich context** capture without string concatenation
+- **Performance optimized** message templates
+
+### Log context enrichment
+Automatic enrichment with correlation and context data:
+
+[!code-csharp[](~/samples/logging/LogContextEnrichment.cs#ContextEnrichment)]
+
+Context enrichment includes:
+- **Request correlation IDs** for tracing requests
+- **User identity** information when available
+- **Machine name** and environment details
+- **Custom properties** via log context scope
+
+### OpenTelemetry integration
+Seamless integration with distributed tracing:
+
+[!code-csharp[](~/samples/logging/OpenTelemetryIntegration.cs#OTelIntegration)]
+
+OpenTelemetry integration provides:
+- **Trace correlation** linking logs to spans
+- **Activity ID** propagation across service boundaries
+- **Structured export** to observability platforms
+- **Consistent correlation** with metrics and traces
+
+## Configuration management
+
+### Configuration-driven setup
+Configure logging behavior through appsettings:
+
+[!code-csharp[](~/samples/logging/ConfigurationSetup.cs#ConfigDrivenLogging)]
+
+Configuration capabilities:
+- **Log levels** per namespace and category
+- **Output sinks** configuration (Console, File, etc.)
+- **Enricher settings** and custom properties
+- **Filtering rules** for noise reduction
+
+### Dynamic log level changes
+Modify log levels at runtime without application restart:
+
+[!code-csharp[](~/samples/logging/DynamicLogLevels.cs#DynamicLevels)]
+
+Dynamic configuration features:
+- **Runtime adjustment** of log levels
+- **Hot reload** support for configuration changes
+- **Granular control** by namespace or category
+- **Temporary overrides** for debugging
+
+### Environment-specific configuration
+Different logging behaviors per environment:
+
+[!code-csharp[](~/samples/logging/EnvironmentConfiguration.cs#EnvSpecificLogging)]
+
+Environment adaptations:
+- **Development** - Console output with detailed formatting
+- **Production** - JSON structured logs with minimal overhead
+- **Staging** - Enhanced logging for deployment validation
+- **Testing** - Suppressed noise with focused error capture
+
+## Log sinks and outputs
+
+### Console sink configuration
+Optimized console output for different environments:
+
+[!code-csharp[](~/samples/logging/ConsoleSink.cs#ConsoleConfiguration)]
+
+Console sink features:
+- **Human-readable format** in development
+- **JSON format** for container environments
+- **Color-coded output** for log level distinction
+- **Template customization** for specific needs
+
+### File sink configuration
+Persistent log storage with rotation and management:
+
+[!code-csharp[](~/samples/logging/FileSink.cs#FileConfiguration)]
+
+File sink capabilities:
+- **Automatic rotation** by size or time
+- **Retention policies** for disk space management
+- **Structured or plain text** output formats
+- **Async writing** for performance
+
+### External system integration
+Send logs to monitoring and analysis platforms:
+
+[!code-csharp[](~/samples/logging/ExternalSinks.cs#ExternalIntegration)]
+
+External integration options:
+- **Application Insights** for Azure environments
+- **Elasticsearch** for centralized log search
+- **Fluentd/Fluent Bit** for log forwarding
+- **Custom sinks** for proprietary systems
+
+## Performance optimization
+
+### Asynchronous logging
+High-performance async logging for minimal application impact:
+
+[!code-csharp[](~/samples/logging/AsyncLogging.cs#AsyncConfiguration)]
+
+Async logging benefits:
+- **Non-blocking** log operations
+- **Buffered writes** for batching efficiency
+- **Backpressure handling** for high-volume scenarios
+- **Graceful shutdown** with log flushing
+
+### Log filtering and sampling
+Reduce logging overhead with intelligent filtering:
+
+[!code-csharp[](~/samples/logging/FilteringAndSampling.cs#FilteringSampling)]
+
+Filtering capabilities:
+- **Namespace-based** filtering for noise reduction
+- **Sampling rules** for high-frequency events
+- **Conditional logging** based on context
+- **Performance-critical** path optimization
+
+### Memory and allocation optimization
+Minimize memory pressure from logging operations:
+
+[!code-csharp[](~/samples/logging/MemoryOptimization.cs#MemoryOptimal)]
+
+Memory optimizations:
+- **Object pooling** for log event reuse
+- **String interning** for repeated values
+- **Minimal allocations** in hot paths
+- **GC pressure** reduction techniques
+
+## Log analysis and monitoring
+
+### Structured query capabilities
+Query logs with structured properties:
+
+[!code-csharp[](~/samples/logging/StructuredQueries.cs#QueryExamples)]
+
+Query capabilities include:
+- **Property-based filtering** on structured data
+- **Time range** queries for incident investigation
+- **Correlation** queries across request boundaries
+- **Aggregation** for metrics and trends
+
+### Alert and notification setup
+Automated alerting on log-based conditions:
+
+[!code-csharp[](~/samples/logging/AlertingSetup.cs#AlertConfiguration)]
+
+Alerting features:
+- **Error threshold** monitoring
+- **Performance degradation** detection
+- **Business metric** alerting from logs
+- **Custom rule** configuration
+
+### Dashboard and visualization
+Create dashboards from structured log data:
+
+[!code-csharp[](~/samples/logging/DashboardSetup.cs#DashboardConfig)]
+
+Visualization capabilities:
+- **Real-time dashboards** from log streams
+- **Historical analysis** and trending
+- **Business intelligence** from application logs
+- **Custom metrics** derived from log data
+
+## Security and compliance
+
+### Sensitive data protection
+Prevent logging of sensitive information:
+
+[!code-csharp[](~/samples/logging/SensitiveDataProtection.cs#DataProtection)]
+
+Data protection features:
+- **Automatic scrubbing** of sensitive patterns
+- **Allowlist/blocklist** for properties
+- **Encryption** of sensitive log data
+- **Audit trail** for log access
+
+### Compliance and retention
+Meet regulatory requirements for log retention:
+
+[!code-csharp[](~/samples/logging/ComplianceRetention.cs#ComplianceLogging)]
+
+Compliance capabilities:
+- **Retention policies** per regulation requirements
+- **Immutable storage** for audit purposes
+- **Access controls** for log data
+- **Anonymization** for privacy compliance
+
+## Testing and debugging
+
+### Testing with logging
+Verify logging behavior in unit and integration tests:
+
+[!code-csharp[](~/samples/logging/LoggingTesting.cs#TestingLogs)]
+
+Testing approaches:
+- **Log assertion** in unit tests
+- **Sink verification** for output validation
+- **Performance testing** of logging overhead
+- **Integration testing** with real sinks
+
+### Debug logging patterns
+Effective debugging with structured logs:
+
+[!code-csharp[](~/samples/logging/DebuggingPatterns.cs#DebugPatterns)]
+
+Debugging techniques:
+- **Correlation tracking** across service calls
+- **State capture** at decision points
+- **Performance timing** for bottleneck identification
+- **Context preservation** through async operations
+
+## Custom logging patterns
+
+### Business event logging
+Log business-relevant events for analytics:
+
+[!code-csharp[](~/samples/logging/BusinessEventLogging.cs#BusinessEvents)]
+
+Business event features:
+- **Domain event** capture for business intelligence
+- **User journey** tracking across interactions
+- **Performance metrics** for business operations
+- **Audit trail** for compliance and debugging
+
+### Error handling integration
+Comprehensive error logging with context:
+
+[!code-csharp[](~/samples/logging/ErrorHandlingIntegration.cs#ErrorLogging)]
+
+Error logging includes:
+- **Exception details** with full stack traces
+- **Context preservation** from error boundaries
+- **Correlation** with user actions
+- **Aggregation** for error trending
+
+### Performance logging
+Monitor application performance through logs:
+
+[!code-csharp[](~/samples/logging/PerformanceLogging.cs#PerfLogging)]
+
+Performance logging covers:
+- **Operation timing** for key business processes
+- **Resource utilization** monitoring
+- **Bottleneck identification** through correlation
+- **Trend analysis** for capacity planning
+
+## Best practices
+
+- **Use structured logging** with semantic properties over string interpolation
+- **Configure log levels** appropriately for each environment
+- **Implement async logging** for high-performance scenarios
+- **Protect sensitive data** from accidental logging
+- **Set up retention policies** early for compliance
+- **Monitor logging performance** itself for overhead
+- **Correlate logs** with traces and metrics
+- **Test logging** behavior as part of your pipeline
+
+## Common scenarios
+
+### Request correlation tracking
+Track requests across service boundaries:
+
+[!code-csharp[](~/samples/logging/RequestCorrelation.cs#CorrelationTracking)]
+
+### Database operation logging
+Monitor database performance and issues:
+
+[!code-csharp[](~/samples/logging/DatabaseLogging.cs#DatabaseOps)]
+
+### Background job logging
+Track background processing and errors:
+
+[!code-csharp[](~/samples/logging/BackgroundJobLogging.cs#JobLogging)]
+
+## Troubleshooting
+
+### Common logging issues
+Diagnose and resolve logging problems:
+
+[!code-csharp[](~/samples/logging/Troubleshooting.cs#CommonIssues)]
+
+### Performance tuning
+Optimize logging performance for production:
+
+[!code-csharp[](~/samples/logging/PerformanceTuning.cs#TuningTechniques)]
+
+### Configuration debugging
+Debug logging configuration issues:
+
+[!code-csharp[](~/samples/logging/ConfigurationDebugging.cs#ConfigDebug)]
+
+## Next steps
+
+- Learn about [Dynamic Log Levels](dynamic-log-levels.md) for runtime configuration
+- Explore [OpenTelemetry](../opentelemetry/overview.md) for distributed tracing
+- Understand [Health Checks](../healthchecks/overview.md) logging integration
+- Review [Extensions](../extensions/overview.md) for logging utilities
+
+## Additional resources
+
+- [Serilog Documentation](https://serilog.net/)
+- [ASP.NET Core Logging](https://learn.microsoft.com/en-us/aspnet/core/fundamentals/logging/)
+- [OpenTelemetry Logging](https://opentelemetry.io/docs/languages/net/logs/)
+- [Structured Logging Best Practices](https://serilog.net/wiki/structured-data)

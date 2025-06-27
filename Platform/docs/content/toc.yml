@@ -1,14 +1,88 @@
+- name: Platform Documentation
+  href: overview.md
 - name: Architecture
-  href: architecture.md
-- name: API Extensions
+  href: architecture/
+  items:
+  - name: Overview
+    href: architecture/overview.md
+  - name: Service Defaults
+    href: architecture/service-defaults.md
+- name: API
   href: api/
-- name: Health Checks
-  href: healthchecks/
-- name: Logging
-  href: logging/
+  items:
+  - name: Overview
+    href: api/overview.md
+  - name: OpenAPI Documentation
+    href: api/openapi/
+    items:
+    - name: Getting Started
+      href: api/openapi/overview.md
+    - name: XML Documentation
+      href: api/openapi/xml-documentation.md
+    - name: Transformers
+      href: api/openapi/transformers.md
+  - name: gRPC Integration
+    href: api/grpc-integration.md
+  - name: Endpoint Filters
+    href: api/endpoint-filters.md
+- name: Database Integration
+  href: database-integration/
+  items:
+  - name: Overview
+    href: database-integration/overview.md
+  - name: Dapper Extensions
+    href: database-integration/dapper-extensions.md
+  - name: Source Generators
+    href: database-integration/source-generators.md
 - name: Messaging
   href: messaging/
+  items:
+  - name: Overview
+    href: messaging/overview.md
+  - name: Wolverine Integration
+    href: messaging/wolverine-integration.md
+  - name: CloudEvents
+    href: messaging/cloudevents.md
+  - name: Kafka
+    href: messaging/kafka.md
+  - name: Middlewares
+    href: messaging/middlewares.md
+  - name: Telemetry
+    href: messaging/telemetry.md
+- name: Health Checks
+  href: healthchecks/
+  items:
+  - name: Overview
+    href: healthchecks/overview.md
+  - name: Setup and Configuration
+    href: healthchecks/setup.md
+- name: Logging
+  href: logging/
+  items:
+  - name: Overview
+    href: logging/overview.md
+  - name: Dynamic Log Levels
+    href: logging/dynamic-log-levels.md
 - name: OpenTelemetry
   href: opentelemetry/
+  items:
+  - name: Overview
+    href: opentelemetry/overview.md
+  - name: Setup and Configuration
+    href: opentelemetry/setup.md
 - name: Source Generators
   href: source-generators/
+  items:
+  - name: Overview
+    href: source-generators/overview.md
+  - name: DbCommand Generator
+    href: source-generators/dbcommand-generator.md
+- name: Extensions
+  href: extensions/
+  items:
+  - name: Overview
+    href: extensions/overview.md
+  - name: String Extensions
+    href: extensions/string-extensions.md
+  - name: Result Pattern
+    href: extensions/result-pattern.md

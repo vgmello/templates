@@ -1,287 +1,287 @@
-# API Extensions Overview
+---
+title: API Development
+description: Build robust APIs with Platform's integrated OpenAPI documentation, gRPC support, and standardized middleware pipeline.
+ms.date: 01/27/2025
+---
 
-The Platform provides comprehensive API extensions that standardize API development across all microservices with minimal configuration and maximum functionality.
+# API Development
 
-## Key Benefits
+The Platform provides comprehensive API development capabilities, combining REST and gRPC services with automatic documentation generation, built-in security, and standardized middleware. You get production-ready APIs with minimal configuration.
 
-### 🚀 **Developer Productivity**
-- **Zero-configuration setup** - Get a production-ready API with one line of code
-- **Auto-discovery** - Automatic registration of controllers, gRPC services, and validators
-- **Consistent patterns** - Same API behavior across all services
+## Quick start
 
-### 📝 **Rich Documentation**
-- **Automatic OpenAPI generation** with XML documentation integration
-- **Interactive documentation** with Scalar UI in development
-- **Type-safe client generation** ready out of the box
+Set up a complete API service with just a few lines:
 
-### 🔒 **Security by Default**
-- **Authentication/authorization** configured automatically
-- **HTTPS enforcement** in production
-- **Localhost-only endpoints** for internal health checks
+[!code-csharp[](~/samples/api/ApiSetup.cs)]
 
-### 🎯 **Production Ready**
-- **Structured error handling** with Problem Details (RFC 7807)
-- **Performance monitoring** with built-in metrics
-- **Graceful degradation** with resilience patterns
+This setup provides:
+- **REST API controllers** with automatic model binding
+- **gRPC services** with automatic discovery
+- **OpenAPI documentation** with XML comment integration
+- **Authentication and authorization** ready to configure
+- **Problem details** for consistent error responses
+- **HTTP logging** for debugging and monitoring
 
-## Core Components
+## REST API features
 
-### API Service Defaults
+### Automatic OpenAPI generation
+Your controllers automatically generate comprehensive OpenAPI documentation:
 
-#### Basic Setup
-```csharp
-var builder = WebApplication.CreateBuilder(args);
+[!code-csharp[](~/samples/api/OpenApiController.cs#OpenApiController)]
 
-// Registers controllers, OpenAPI, gRPC, auth, validation
-builder.AddApiServiceDefaults();
+The Platform automatically generates:
+- Request/response schemas
+- Parameter documentation
+- Status code responses
+- Example values
+- Security requirements
 
-var app = builder.Build();
+> [!TIP]
+> Use XML documentation comments to enrich your OpenAPI specification with detailed descriptions and examples.
 
-// Configures middleware pipeline with best practices
-app.ConfigureApiUsingDefaults();
+### Problem details integration
+Consistent error responses using RFC 7807 Problem Details:
 
-await app.RunAsync(args);
-```
+[!code-csharp[](~/samples/api/ProblemDetailsExample.cs)]
 
-#### Advanced Configuration
-```csharp
-var builder = WebApplication.CreateBuilder(args);
-builder.AddApiServiceDefaults();
+Problem details provide:
+- Standardized error format
+- Machine-readable error types
+- Human-readable error messages
+- Additional error context
 
-var app = builder.Build();
+### HTTP logging
+Built-in request/response logging for debugging and monitoring:
 
-// Skip authentication for public APIs
-app.ConfigureApiUsingDefaults(requireAuth: false);
+[!code-csharp[](~/samples/api/HttpLoggingConfiguration.cs)]
 
-// Add custom middleware
-app.UseMiddleware<CustomMiddleware>();
+HTTP logging captures:
+- Request headers and body
+- Response status and headers
+- Request duration
+- Sensitive data redaction
 
-await app.RunAsync(args);
-```
+## gRPC integration
 
-### What Gets Registered
+### Automatic service discovery
+gRPC services are automatically discovered and registered:
 
-#### Controllers and Validation
-```csharp
-// Automatic registration includes:
-services.AddControllers(options =>
-{
-    // Auto-response type convention
-    options.Conventions.Add(new AutoProducesResponseTypeConvention());
-});
+[!code-csharp[](~/samples/api/GrpcServiceExample.cs)]
 
-// FluentValidation integration
-services.AddValidatorsFromAssembly(assembly);
-services.Configure<ApiBehaviorOptions>(options =>
-{
-    // Custom validation error handling
-});
-```
+The Platform automatically:
+- Discovers services inheriting from generated base classes
+- Maps services to gRPC endpoints
+- Enables gRPC-Web for browser clients
+- Provides reflection services in development
 
-#### Problem Details
-```csharp
-// RFC 7807 compliant error responses
-services.AddProblemDetails(options =>
-{
-    options.CustomizeProblemDetails = (context) =>
-    {
-        // Enhanced error information in development
-        context.ProblemDetails.Extensions["traceId"] = context.HttpContext.TraceIdentifier;
-    };
-});
-```
+### gRPC-Web support
+Enable gRPC services to be called from web browsers:
 
-### Middleware Pipeline
+[!code-csharp[](~/samples/api/GrpcWebConfiguration.cs)]
 
-The configured pipeline provides optimal ordering for security, performance, and observability:
+gRPC-Web provides:
+- Browser compatibility for gRPC services
+- Streaming support where possible
+- Automatic protocol negotiation
+- CORS support for cross-origin requests
 
-```csharp
-// Production pipeline
-if (!app.Environment.IsDevelopment())
-{
-    app.UseExceptionHandler();  // Global exception handling
-    app.UseHsts();             // HTTP Strict Transport Security
-}
+### Development tools
+Enhanced development experience with gRPC reflection:
 
-app.UseHttpLogging();          // Request/response logging
-app.UseRouting();              // Route matching
-app.UseAuthentication();       // Identity verification
-app.UseAuthorization();        // Permission checks
-app.UseGrpcWeb();             // gRPC-Web support
-app.MapControllers();         // REST endpoints
-app.MapGrpcServices();        // gRPC services
+[!code-csharp[](~/samples/api/GrpcReflectionSetup.cs)]
 
-// Development only
-if (app.Environment.IsDevelopment())
-{
-    app.MapOpenApi();         // OpenAPI endpoint
-    app.MapScalarApiReference(); // Interactive docs
-    app.MapGrpcReflectionService(); // gRPC reflection
-}
-```
+gRPC reflection enables:
+- Service discovery for client tools
+- Interactive testing with gRPC clients
+- Dynamic schema exploration
+- Protocol buffer introspection
 
-## Value Proposition
+## Security integration
 
-### Before Platform API Extensions
-```csharp
-// Manual configuration - error-prone and inconsistent
-var builder = WebApplication.CreateBuilder(args);
+### Authentication setup
+Flexible authentication configuration:
 
-// Forgot to add authentication?
-services.AddControllers();
-services.AddEndpointsApiExplorer();
-services.AddSwaggerGen();
-// Missing problem details
-// Missing validation
-// Missing gRPC
-// Wrong middleware order
-// No health checks
-// No observability
+[!code-csharp[](~/samples/api/AuthenticationSetup.cs)]
 
-var app = builder.Build();
-app.UseSwagger();
-app.UseSwaggerUI();
-app.MapControllers();
-// Security misconfiguration risk
-```
+Common authentication patterns:
+- JWT bearer tokens
+- API key authentication
+- OAuth 2.0 / OpenID Connect
+- Custom authentication schemes
 
-### After Platform API Extensions
-```csharp
-// One line - everything configured correctly
-var builder = WebApplication.CreateBuilder(args);
-builder.AddApiServiceDefaults(); // 15+ services registered correctly
+### Authorization policies
+Fine-grained authorization control:
 
-var app = builder.Build();
-app.ConfigureApiUsingDefaults(); // 10+ middleware in optimal order
-```
+[!code-csharp[](~/samples/api/AuthorizationPolicies.cs)]
 
-### Business Impact
-- **85% reduction** in API setup code
-- **Zero security misconfigurations** with defaults
-- **Consistent behavior** across 20+ microservices
-- **Faster onboarding** for new developers
-- **Standardized monitoring** and troubleshooting
+Authorization features:
+- Role-based access control
+- Policy-based authorization
+- Resource-based authorization
+- Custom authorization handlers
 
-## gRPC Service Auto-Discovery
+### Secure defaults
+Security-focused default configuration:
 
-The Platform provides automatic gRPC service registration using reflection-based discovery, eliminating the need for manual service registration.
+[!code-csharp[](~/samples/api/SecurityDefaults.cs)]
 
-### Automatic Discovery
-```csharp
-var app = builder.Build();
+Security defaults include:
+- Server header removal
+- HTTPS enforcement in production
+- HSTS headers
+- Secure cookie settings
 
-// Auto-discover all gRPC services in entry assembly
-app.MapGrpcServices();
+## Middleware pipeline
 
-// Services are automatically registered based on BindServiceMethodAttribute
-```
+The Platform configures a standard middleware pipeline:
 
-### Advanced Discovery Options
-```csharp
-// Discover from specific assembly
-app.MapGrpcServices(typeof(BillingService).Assembly);
+[!code-csharp[](~/samples/api/MiddlewarePipeline.cs)]
 
-// Discover using type marker
-app.MapGrpcServices<BillingServiceMarker>();
+The pipeline includes:
+1. **HTTP logging** for request tracing
+2. **Routing** for endpoint matching
+3. **Authentication** for identity verification
+4. **Authorization** for access control
+5. **Exception handling** for error responses
+6. **HSTS** for security headers
 
-// Multiple assembly discovery
-app.MapGrpcServices(
-    typeof(BillingService).Assembly,
-    typeof(AccountingService).Assembly
-);
-```
+## Environment-specific behavior
 
-### Discovery Mechanism
-The auto-discovery process uses reflection to find gRPC services:
+### Development environment
+Enhanced development experience:
 
-```csharp
-public static class GrpcRegistrationExtensions
-{
-    public static IEndpointRouteBuilder MapGrpcServices(this IEndpointRouteBuilder endpoints)
-    {
-        var assembly = Assembly.GetEntryAssembly();
-        var serviceTypes = assembly!.GetTypes()
-            .Where(type => type.GetMethods()
-                .Any(method => method.GetCustomAttribute<BindServiceMethodAttribute>() != null));
-        
-        foreach (var serviceType in serviceTypes)
-        {
-            endpoints.MapGrpcService(serviceType);
-        }
-        
-        return endpoints;
-    }
-}
-```
+[!code-csharp[](~/samples/api/DevelopmentConfiguration.cs)]
 
-### Benefits of Auto-Discovery
-- **Zero Registration**: New gRPC services are automatically discovered
-- **Type Safety**: Compile-time verification of service implementations
-- **Assembly Boundaries**: Supports discovery across multiple assemblies
-- **Maintainability**: Services are included without code changes
-- **Convention-Based**: Uses standard gRPC service patterns
+Development features:
+- Interactive OpenAPI documentation
+- gRPC reflection services
+- Detailed error responses
+- OpenAPI caching middleware
 
-### Integration with API Defaults
-```csharp
-var builder = WebApplication.CreateBuilder(args);
-builder.AddApiServiceDefaults(); // Includes gRPC support
+### Production environment
+Production-optimized configuration:
 
-var app = builder.Build();
-app.ConfigureApiUsingDefaults(); // Configures gRPC Web
-app.MapGrpcServices(); // Auto-discovers services
+[!code-csharp[](~/samples/api/ProductionConfiguration.cs)]
 
-// Development features
-if (app.Environment.IsDevelopment())
-{
-    app.MapGrpcReflectionService(); // Enables gRPC reflection
-}
-```
+Production features:
+- HSTS security headers
+- Global exception handling
+- Minimal error disclosure
+- Performance optimizations
 
-## Configuration Options
+## OpenAPI documentation
 
-### Authentication Control
-```csharp
-// Require authentication for all endpoints (default)
-builder.AddApiServiceDefaults(requireAuth: true);
+### XML documentation integration
+Automatically generate rich API documentation:
 
-// Allow anonymous access (for public APIs)
-builder.AddApiServiceDefaults(requireAuth: false);
+[!code-csharp[](~/samples/api/XmlDocumentationExample.cs)]
 
-// Custom authentication configuration
-builder.AddApiServiceDefaults();
-builder.Services.Configure<AuthenticationOptions>(options =>
-{
-    options.DefaultScheme = "Bearer";
-});
-```
+XML documentation provides:
+- Parameter descriptions
+- Response type documentation
+- Example values
+- Operation summaries
 
-### OpenAPI Customization
-```csharp
-builder.Services.AddOpenApiWithXmlDocSupport();
-builder.Services.Configure<OpenApiOptions>(options =>
-{
-    options.OpenApiVersion = OpenApiSpecVersion.OpenApi3_0;
-    options.AddDocumentTransformer<CustomDocumentTransformer>();
-    options.AddOperationTransformer<CustomOperationTransformer>();
-});
-```
+### Scalar UI integration
+Beautiful, interactive API documentation:
 
-### Environment-Specific Features
-```csharp
-var app = builder.Build();
-app.ConfigureApiUsingDefaults();
+[!code-csharp[](~/samples/api/ScalarIntegration.cs)]
 
-if (app.Environment.IsDevelopment())
-{
-    // Rich development experience
-    app.MapOpenApi("/openapi/v1.json");
-    app.MapScalarApiReference(); // Modern API docs UI
-    app.MapGrpcReflectionService(); // gRPC service discovery
-}
-else
-{
-    // Production optimizations
-    app.UseHsts(); // Force HTTPS
-    app.UseExceptionHandler(); // Global error handling
-}
-```
+Scalar provides:
+- Modern, responsive UI
+- Interactive API testing
+- Code generation samples
+- Authentication testing
+
+### Custom transformers
+Extend OpenAPI generation with custom transformers:
+
+[!code-csharp[](~/samples/api/CustomTransformers.cs)]
+
+Transformers enable:
+- Custom schema modifications
+- Additional metadata injection
+- Response type enrichment
+- Documentation enhancement
+
+## Performance considerations
+
+### Kestrel optimization
+Optimized server configuration:
+
+[!code-csharp[](~/samples/api/KestrelOptimization.cs)]
+
+Performance optimizations:
+- Disabled server header for security
+- Optimized connection limits
+- Efficient request processing
+- Memory usage optimization
+
+### gRPC performance
+High-performance gRPC configuration:
+
+[!code-csharp[](~/samples/api/GrpcPerformance.cs)]
+
+gRPC optimizations:
+- Binary serialization
+- HTTP/2 multiplexing
+- Streaming support
+- Connection pooling
+
+## Testing strategies
+
+### Integration testing
+Test complete API endpoints:
+
+[!code-csharp[](~/samples/api/IntegrationTesting.cs)]
+
+### gRPC testing
+Test gRPC services with specialized clients:
+
+[!code-csharp[](~/samples/api/GrpcTesting.cs)]
+
+### OpenAPI validation
+Ensure API contracts match implementation:
+
+[!code-csharp[](~/samples/api/OpenApiValidation.cs)]
+
+## Best practices
+
+- **Use XML documentation** for all public API methods
+- **Follow REST conventions** for HTTP endpoints
+- **Implement proper error handling** with Problem Details
+- **Secure endpoints** with appropriate authorization
+- **Version your APIs** for backward compatibility
+- **Test API contracts** with integration tests
+- **Monitor API performance** with telemetry
+
+## Common scenarios
+
+### File upload endpoint
+Handle file uploads with validation:
+
+[!code-csharp[](~/samples/api/FileUploadEndpoint.cs)]
+
+### Paginated results
+Return paginated data efficiently:
+
+[!code-csharp[](~/samples/api/PaginatedResults.cs)]
+
+### Background job triggers
+Trigger background jobs from API endpoints:
+
+[!code-csharp[](~/samples/api/BackgroundJobTrigger.cs)]
+
+## Next steps
+
+- Learn about [OpenAPI documentation](openapi/overview.md) in detail
+- Explore [gRPC integration](grpc-integration.md) patterns
+- Understand [Endpoint filters](endpoint-filters.md) for cross-cutting concerns
+- Review [Database integration](../database-integration/overview.md) for data access
+
+## Additional resources
+
+- [ASP.NET Core Web APIs](https://learn.microsoft.com/en-us/aspnet/core/web-api/)
+- [gRPC for .NET](https://learn.microsoft.com/en-us/aspnet/core/grpc/)
+- [OpenAPI Specification](https://spec.openapis.org/oas/v3.1.0)
+- [Problem Details RFC](https://tools.ietf.org/html/rfc7807)

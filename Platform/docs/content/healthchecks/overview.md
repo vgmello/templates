@@ -1,373 +1,294 @@
-# Health Checks Overview
+---
+title: Health Checks
+description: Monitor application health with built-in health check endpoints, custom health checks, and comprehensive status reporting for production environments.
+ms.date: 01/27/2025
+---
 
-The Platform provides a comprehensive health check system designed for Kubernetes environments with multiple specialized endpoints for different monitoring needs.
+# Health Checks
 
-## Key Benefits
+The Platform provides comprehensive health check capabilities with multiple endpoints optimized for different scenarios - from lightweight liveness probes to detailed health status reporting. You get production-ready monitoring infrastructure with minimal configuration.
 
-### 🎯 **Kubernetes Optimized**
-- **Liveness probes** - Fast endpoint for container restart decisions
-- **Readiness probes** - Comprehensive checks for traffic routing
-- **Security-aware** - Internal endpoints protected from external access
+## Quick start
 
-### ⚡ **Performance Focused**
-- **Cached results** - Liveness probes use cached status for sub-millisecond response
-- **Lightweight checks** - Minimal resource usage for frequent polling
-- **Async operations** - Non-blocking health evaluations
+Health checks are automatically configured when you add Service Defaults:
 
-### 🔒 **Security by Design**
-- **Localhost-only internal endpoints** - Protected from external access
-- **Authorized public endpoints** - Detailed health info requires authentication
-- **Information disclosure protection** - Sensitive details hidden in production
+[!code-csharp[](~/samples/healthchecks/BasicSetup.cs#BasicHealthChecks)]
 
-## Health Check Endpoints
+This setup provides:
+- **Liveness probe** at `/status` for container orchestration
+- **Readiness probe** at `/health/internal` for deployment verification  
+- **Detailed health check** at `/health` for monitoring dashboards
+- **Automatic logging** of health check results
+- **JSON response format** with comprehensive status information
 
-### Endpoint Overview
+## Health check endpoints
 
-| Endpoint | Purpose | Audience | Response Time | Detail Level |
-|----------|---------|----------|---------------|--------------|
-| `/status` | Liveness probe | Kubernetes | < 1ms | Minimal |
-| `/health/internal` | Readiness probe | Localhost only | 10-100ms | Comprehensive |
-| `/health` | Public monitoring | Authenticated users | 10-100ms | Detailed |
+### Liveness probe (/status)
+Lightweight endpoint for container liveness checks:
 
-### Liveness Probe - `/status`
+[!code-csharp[](~/samples/healthchecks/LivenessProbe.cs#LivenessEndpoint)]
 
-#### Purpose
-Ultra-fast endpoint for Kubernetes liveness probes that determines if the container should be restarted.
+Liveness probe characteristics:
+- **Fast response** - returns cached status without executing checks
+- **Simple output** - just the health status string
+- **No authentication** required for container orchestrators
+- **Minimal overhead** for high-frequency polling
 
-#### Implementation
-```csharp
-app.MapGet("/status", (HealthCheckStatusStore store) =>
-{
-    var status = store.LastHealthStatus;
-    var statusText = status switch
-    {
-        HealthStatus.Healthy => "Healthy",
-        HealthStatus.Degraded => "Degraded", 
-        HealthStatus.Unhealthy => "Unhealthy",
-        _ => "Unknown"
-    };
-    
-    return Results.Ok(statusText);
-})
-.WithName("GetStatus")
-.WithSummary("Lightweight liveness probe")
-.WithDescription("Returns cached health status for Kubernetes liveness probes")
-.Produces<string>(StatusCodes.Status200OK)
-.AllowAnonymous();
-```
+### Readiness probe (/health/internal)
+Container-only endpoint for deployment readiness:
 
-#### Kubernetes Configuration
-```yaml
-livenessProbe:
-  httpGet:
-    path: /status
-    port: 8080
-  initialDelaySeconds: 30
-  periodSeconds: 10
-  timeoutSeconds: 1
-  failureThreshold: 3
-```
+[!code-csharp[](~/samples/healthchecks/ReadinessProbe.cs#ReadinessEndpoint)]
 
-#### Benefits
-- **Sub-millisecond response** - Uses cached status
-- **No database calls** - Prevents resource exhaustion during outages
-- **Simple string response** - Minimal processing overhead
+Readiness probe features:
+- **Localhost-only** access for security
+- **Executes health checks** to verify application readiness
+- **Simplified output** in production environments
+- **Detailed output** in development for debugging
 
-### Readiness Probe - `/health/internal`
+### Health status endpoint (/health)
+Comprehensive health information for monitoring:
 
-#### Purpose
-Comprehensive health checks for Kubernetes readiness probes to determine if the pod should receive traffic.
+[!code-csharp[](~/samples/healthchecks/HealthStatus.cs#HealthEndpoint)]
 
-#### Implementation
-```csharp
-app.MapHealthChecks("/health/internal", new HealthCheckOptions
-{
-    ResultStatusCodes =
-    {
-        [HealthStatus.Healthy] = StatusCodes.Status200OK,
-        [HealthStatus.Degraded] = StatusCodes.Status200OK,
-        [HealthStatus.Unhealthy] = StatusCodes.Status503ServiceUnavailable
-    },
-    ResponseWriter = async (context, result) =>
-    {
-        // Store result for liveness probe caching
-        var store = context.RequestServices.GetRequiredService<HealthCheckStatusStore>();
-        store.LastHealthStatus = result.Status;
-        
-        // Return simple status for internal use
-        await context.Response.WriteAsync(result.Status.ToString());
-    }
-})
-.RequireHost("localhost", "127.0.0.1", "::1") // Localhost only
-.WithName("GetInternalHealth")
-.WithSummary("Comprehensive readiness probe")
-.WithDescription("Internal health checks for Kubernetes readiness probes");
-```
+Health status provides:
+- **Detailed health report** with individual check results
+- **Authorization required** for security
+- **JSON format** with status, duration, and error information
+- **Data collection** from each health check
 
-#### Kubernetes Configuration
-```yaml
-readinessProbe:
-  httpGet:
-    path: /health/internal
-    port: 8080
-  initialDelaySeconds: 5
-  periodSeconds: 5
-  timeoutSeconds: 3
-  failureThreshold: 3
-```
+## Custom health checks
 
-#### Registered Checks
-```csharp
-// Automatic registration in AddServiceDefaults()
-builder.Services.AddHealthChecks()
-    .AddNpgSql(connectionString) // Database connectivity
-    .AddKafka(kafkaOptions)      // Message bus connectivity  
-    .AddCheck<CustomBusinessLogicCheck>() // Custom application checks
-    .AddCheck("wolverine", () => /* Wolverine health */)
-    .AddCheck("external-api", () => /* External dependencies */);
-```
+### Database health checks
+Monitor database connectivity and performance:
 
-### Public Health - `/health`
+[!code-csharp[](~/samples/healthchecks/DatabaseHealthChecks.cs#DatabaseChecks)]
 
-#### Purpose
-Detailed health information for monitoring systems and authenticated administrators.
+Database health checks verify:
+- **Connection availability** to primary and secondary databases
+- **Query execution** performance within acceptable limits
+- **Connection pool** health and utilization
+- **Transaction capability** for write operations
 
-#### Implementation
-```csharp
-app.MapHealthChecks("/health", new HealthCheckOptions
-{
-    ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse,
-    ResultStatusCodes =
-    {
-        [HealthStatus.Healthy] = StatusCodes.Status200OK,
-        [HealthStatus.Degraded] = StatusCodes.Status200OK, 
-        [HealthStatus.Unhealthy] = StatusCodes.Status503ServiceUnavailable
-    }
-})
-.RequireAuthorization() // Requires authentication
-.WithName("GetHealth")
-.WithSummary("Detailed health information")
-.WithDescription("Comprehensive health checks with detailed response data");
-```
+### External service health checks
+Monitor dependencies on external services:
 
-#### Response Format
-```json
-{
-  "status": "Healthy",
-  "totalDuration": "00:00:00.0156250",
-  "entries": {
-    "billing-db": {
-      "status": "Healthy",
-      "duration": "00:00:00.0123456",
-      "description": "PostgreSQL database connectivity",
-      "data": {
-        "server": "localhost:5432",
-        "database": "billing"
-      }
-    },
-    "messaging": {
-      "status": "Healthy", 
-      "duration": "00:00:00.0098765",
-      "description": "Kafka message broker connectivity",
-      "data": {
-        "brokers": ["localhost:9092"],
-        "topics": ["billing.events", "accounting.events"]
-      }
-    },
-    "wolverine": {
-      "status": "Healthy",
-      "duration": "00:00:00.0045678",
-      "description": "Wolverine message processing"
-    }
-  }
-}
-```
+[!code-csharp[](~/samples/healthchecks/ExternalServiceChecks.cs#ExternalServices)]
 
-## Health Check Status Store
+External service checks include:
+- **HTTP endpoint** availability and response times
+- **Authentication service** connectivity
+- **Message queue** broker availability
+- **Cache service** responsiveness
 
-### Implementation
+### Custom business logic checks
+Implement application-specific health validations:
 
-```csharp
-public class HealthCheckStatusStore
-{
-    private volatile HealthStatus _lastHealthStatus = HealthStatus.Unhealthy;
-    
-    public HealthStatus LastHealthStatus
-    {
-        get => _lastHealthStatus;
-        set => _lastHealthStatus = value;
-    }
-}
-```
+[!code-csharp[](~/samples/healthchecks/BusinessLogicChecks.cs#BusinessChecks)]
 
-### Registration
-```csharp
-// Singleton registration for thread-safe caching
-builder.Services.AddSingleton<HealthCheckStatusStore>();
-```
+Business logic checks can verify:
+- **Critical business rules** are functioning
+- **Data consistency** across systems
+- **License validation** and expiration
+- **Feature flag** service availability
 
-### Benefits
-- **Thread-safe** - Uses volatile field for atomic reads/writes
-- **Memory efficient** - Single enum value storage
-- **Fast access** - Direct property access without locks
+## Health check configuration
 
-## Custom Health Checks
+### Tags and filtering
+Organize health checks with tags for different scenarios:
 
-### Business Logic Check
-```csharp
-public class CashierServiceHealthCheck : IHealthCheck
-{
-    private readonly IServiceProvider _serviceProvider;
-    private readonly ILogger<CashierServiceHealthCheck> _logger;
-    
-    public CashierServiceHealthCheck(
-        IServiceProvider serviceProvider,
-        ILogger<CashierServiceHealthCheck> logger)
-    {
-        _serviceProvider = serviceProvider;
-        _logger = logger;
-    }
-    
-    public async Task<HealthCheckResult> CheckHealthAsync(
-        HealthCheckContext context,
-        CancellationToken cancellationToken = default)
-    {
-        try
-        {
-            using var scope = _serviceProvider.CreateScope();
-            var messageBus = scope.ServiceProvider.GetRequiredService<IMessageBus>();
-            
-            // Test basic query functionality
-            var testQuery = new HealthCheckQuery();
-            var result = await messageBus.InvokeQueryAsync(testQuery, cancellationToken);
-            
-            if (result.IsHealthy)
-            {
-                return HealthCheckResult.Healthy(
-                    "Cashier service is functioning normally",
-                    new Dictionary<string, object>
-                    {
-                        ["lastCheck"] = DateTimeOffset.UtcNow,
-                        ["activeHandlers"] = result.ActiveHandlerCount
-                    });
-            }
-            
-            return HealthCheckResult.Degraded(
-                "Some cashier operations are experiencing issues",
-                data: new Dictionary<string, object>
-                {
-                    ["issues"] = result.Issues
-                });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Health check failed for cashier service");
-            return HealthCheckResult.Unhealthy(
-                "Cashier service is not responding",
-                ex);
-        }
-    }
-}
-```
+[!code-csharp[](~/samples/healthchecks/TaggedHealthChecks.cs#TaggedChecks)]
 
-### Registration
-```csharp
-builder.Services.AddHealthChecks()
-    .AddCheck<CashierServiceHealthCheck>("cashier-service", 
-        tags: new[] { "business", "critical" });
-```
+Tag-based filtering enables:
+- **Environment-specific** checks (development vs production)
+- **Component-based** grouping (database, cache, external)
+- **Criticality levels** (critical vs optional)
+- **Custom endpoint** configuration for different consumers
 
-## Security Features
+### Timeout and retry configuration
+Configure resilience for health check execution:
 
-### Localhost Endpoint Filter
+[!code-csharp[](~/samples/healthchecks/TimeoutConfiguration.cs#TimeoutSettings)]
 
-```csharp
-public class LocalhostEndpointFilter : IEndpointFilter
-{
-    private readonly ILogger<LocalhostEndpointFilter> _logger;
-    
-    public async ValueTask<object?> InvokeAsync(
-        EndpointFilterInvocationContext context,
-        EndpointFilterDelegate next)
-    {
-        var remoteIp = context.HttpContext.Connection.RemoteIpAddress;
-        
-        if (remoteIp != null && !IPAddress.IsLoopback(remoteIp))
-        {
-            _logger.LogDebug("Blocked non-localhost request from {RemoteIp}", remoteIp);
-            
-            context.HttpContext.Response.StatusCode = StatusCodes.Status401Unauthorized;
-            await context.HttpContext.Response.WriteAsync("Access denied");
-            return null;
-        }
-        
-        return await next(context);
-    }
-}
-```
+Timeout configuration includes:
+- **Per-check timeouts** to prevent hanging
+- **Global timeout** for overall health check execution
+- **Retry policies** for transient failures
+- **Circuit breaker** patterns for failing dependencies
 
-### Benefits
-- **Container security** - Internal endpoints not accessible from outside pod
-- **Information disclosure protection** - Prevents external reconnaissance
-- **Performance** - Fast IP address validation
+### Health check intervals
+Control when and how often health checks execute:
 
-## Monitoring Integration
+[!code-csharp[](~/samples/healthchecks/IntervalConfiguration.cs#IntervalSettings)]
 
-### Prometheus Metrics
-```csharp
-// Automatic metrics export for health checks
-services.AddOpenTelemetry()
-    .WithMetrics(builder => builder
-        .AddAspNetCoreInstrumentation()
-        .AddMeter("Microsoft.AspNetCore.HealthChecks")); // Built-in health check metrics
-```
+Interval configuration provides:
+- **Background execution** separate from endpoint requests
+- **Configurable periods** for different check types
+- **Health result caching** for performance
+- **Failure threshold** configuration
 
-### Available Metrics
-- `aspnetcore_healthcheck_status` - Current health status (0=Unhealthy, 1=Degraded, 2=Healthy)
-- `aspnetcore_healthcheck_duration_seconds` - Time taken for health check execution
-- `aspnetcore_healthcheck_checks_total` - Total number of health check executions
+## Response formats
 
-### Alerting Rules
-```yaml
-# Prometheus alerting rules
-groups:
-  - name: health-checks
-    rules:
-      - alert: ServiceUnhealthy
-        expr: aspnetcore_healthcheck_status < 2
-        for: 2m
-        labels:
-          severity: critical
-        annotations:
-          summary: "Service {{ $labels.instance }} is unhealthy"
-          
-      - alert: HealthCheckSlow
-        expr: aspnetcore_healthcheck_duration_seconds > 5
-        for: 1m
-        labels:
-          severity: warning
-        annotations:
-          summary: "Health checks taking too long on {{ $labels.instance }}"
-```
+### JSON health report format
+Detailed JSON structure for monitoring tools:
 
-## Value Delivered
+[!code-csharp[](~/samples/healthchecks/JsonResponseFormat.cs#JsonFormat)]
 
-### Operational Excellence
-- **99.9% uptime** with proper liveness/readiness configuration
-- **Zero false positives** with cached liveness probes
-- **Rapid incident detection** with comprehensive readiness checks
+JSON response includes:
+- **Overall status** (Healthy, Degraded, Unhealthy)
+- **Total duration** for all health checks
+- **Individual check details** with status and timing
+- **Error information** for failed checks
+- **Custom data** from health check implementations
 
-### Developer Experience
-- **One-line setup** - All endpoints configured automatically
-- **Security by default** - No configuration required for localhost protection
-- **Rich debugging** - Detailed health information in development
+### Status codes and responses
+HTTP status codes for different health states:
 
-### Platform Benefits
-- **Consistent monitoring** across all microservices
-- **Kubernetes best practices** built-in
-- **Observability integration** with metrics and logging
+[!code-csharp[](~/samples/healthchecks/StatusCodes.cs#StatusResponses)]
 
-### Business Impact
-- **Reduced downtime** with proactive health monitoring
-- **Faster problem resolution** with detailed health information
-- **Lower operational costs** with automated container management
+Status code mapping:
+- **200 OK** - All health checks pass
+- **503 Service Unavailable** - Critical health checks fail
+- **200 OK with Degraded** - Non-critical checks fail but service operational
+- **Custom status codes** for specific scenarios
+
+## Integration with monitoring
+
+### Application Insights integration
+Send health check data to Application Insights:
+
+[!code-csharp[](~/samples/healthchecks/ApplicationInsights.cs#AppInsightsIntegration)]
+
+Application Insights benefits:
+- **Automated alerting** on health check failures
+- **Historical trending** of health check performance
+- **Correlation** with other application telemetry
+- **Dashboard visualization** of health metrics
+
+### Prometheus metrics
+Expose health check metrics for Prometheus scraping:
+
+[!code-csharp[](~/samples/healthchecks/PrometheusMetrics.cs#PrometheusIntegration)]
+
+Prometheus metrics include:
+- **Health check duration** histograms
+- **Success/failure counters** by check name
+- **Health status gauges** for real-time monitoring
+- **Custom business metrics** from health checks
+
+### Custom health check publishers
+Send health data to custom monitoring systems:
+
+[!code-csharp[](~/samples/healthchecks/CustomPublishers.cs#CustomPublisher)]
+
+Custom publishers enable:
+- **Integration** with existing monitoring infrastructure
+- **Custom alert logic** based on health check results
+- **Data transformation** for different monitoring formats
+- **Batching and filtering** of health check data
+
+## Container orchestration
+
+### Kubernetes integration
+Configure health checks for Kubernetes deployments:
+
+[!code-csharp[](~/samples/healthchecks/KubernetesIntegration.cs#K8sConfig)]
+
+Kubernetes integration provides:
+- **Liveness probes** to restart unhealthy containers
+- **Readiness probes** to control traffic routing
+- **Startup probes** for slow-starting applications
+- **Custom probe configuration** for specific needs
+
+### Docker Compose health checks
+Health check configuration for Docker Compose:
+
+[!code-csharp[](~/samples/healthchecks/DockerCompose.cs#DockerConfig)]
+
+Docker Compose features:
+- **Health check intervals** and timeouts
+- **Dependency management** based on health status
+- **Service discovery** integration
+- **Development environment** optimization
+
+## Testing strategies
+
+### Health check testing
+Test health check implementations in isolation:
+
+[!code-csharp[](~/samples/healthchecks/HealthCheckTesting.cs#TestingChecks)]
+
+Testing approaches include:
+- **Unit testing** individual health check logic
+- **Integration testing** with real dependencies
+- **Mock testing** for external service dependencies
+- **Performance testing** for health check overhead
+
+### End-to-end health validation
+Validate complete health check pipeline:
+
+[!code-csharp[](~/samples/healthchecks/EndToEndTesting.cs#E2ETesting)]
+
+End-to-end testing covers:
+- **Endpoint accessibility** and response format
+- **Authentication** and authorization requirements
+- **Performance characteristics** under load
+- **Failure scenarios** and error handling
+
+## Best practices
+
+- **Keep health checks simple** and fast-executing
+- **Use appropriate timeouts** to prevent cascading failures
+- **Tag health checks** for different consumption scenarios
+- **Monitor health check performance** itself
+- **Implement graceful degradation** for non-critical dependencies
+- **Use caching** for expensive health check operations
+- **Include business logic** validation where appropriate
+- **Test health checks** as part of your deployment pipeline
+
+## Common scenarios
+
+### Microservice dependency health
+Monitor dependencies between microservices:
+
+[!code-csharp[](~/samples/healthchecks/MicroserviceDependencies.cs#ServiceDependencies)]
+
+### Database cluster health
+Monitor database cluster status and failover:
+
+[!code-csharp[](~/samples/healthchecks/DatabaseCluster.cs#ClusterHealth)]
+
+### Message queue health
+Monitor message queue depth and processing:
+
+[!code-csharp[](~/samples/healthchecks/MessageQueueHealth.cs#QueueHealth)]
+
+## Troubleshooting
+
+### Common health check issues
+Diagnose and resolve health check problems:
+
+[!code-csharp[](~/samples/healthchecks/Troubleshooting.cs#CommonIssues)]
+
+### Performance optimization
+Optimize health check execution performance:
+
+[!code-csharp[](~/samples/healthchecks/PerformanceOptimization.cs#OptimizationTechniques)]
+
+### Debugging health failures
+Debug failing health checks effectively:
+
+[!code-csharp[](~/samples/healthchecks/DebuggingFailures.cs#DebuggingTechniques)]
+
+## Next steps
+
+- Learn about [Health Check Setup](setup.md) for advanced configuration
+- Explore [Logging](../logging/overview.md) for health check logging patterns
+- Understand [OpenTelemetry](../opentelemetry/overview.md) integration
+- Review [API development](../api/overview.md) for health endpoint customization
+
+## Additional resources
+
+- [ASP.NET Core Health Checks](https://learn.microsoft.com/en-us/aspnet/core/host-and-deploy/health-checks)
+- [Kubernetes Health Checks](https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/)
+- [Docker Health Checks](https://docs.docker.com/engine/reference/builder/#healthcheck)
+- [Application Insights Health Checks](https://learn.microsoft.com/en-us/azure/azure-monitor/app/monitor-web-app-availability)
