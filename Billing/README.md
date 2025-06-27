@@ -178,6 +178,29 @@ This automatically:
 - ✅ Starts all services (UI, API, BackOffice, Orleans)
 - ✅ Configures service discovery and dependencies
 - ✅ Provides observability dashboard
+- ✅ Uses persistent containers for consistent port allocation
+
+#### Persistent Container Configuration
+
+The Billing service uses `WithEndpointProxySupport(false)` for infrastructure services to maintain consistent port mappings across container restarts:
+
+```csharp
+var pgsql = builder
+    .AddPostgres("billing-db", password: dbPassword, port: 54320)
+    .WithEndpointProxySupport(false)  // Disables proxy, uses direct port binding
+    .WithLifetime(ContainerLifetime.Persistent);
+```
+
+**Key Benefits:**
+- **Consistent Ports**: Infrastructure services (PostgreSQL, Kafka, PgAdmin) always use the same ports
+- **Persistent State**: Containers survive Aspire restarts, preserving database state
+- **Direct Access**: External tools can connect directly to known ports
+- **Development Efficiency**: No need to reconfigure connections after restarts
+
+**Services with Persistent Port Binding:**
+- **PostgreSQL**: Always accessible at `localhost:54320`
+- **PgAdmin**: Always accessible at `localhost:54321` 
+- **Kafka**: Always accessible at `localhost:90920`
 
 **Access Points:**
 - **Aspire Dashboard**: http://localhost:18100
