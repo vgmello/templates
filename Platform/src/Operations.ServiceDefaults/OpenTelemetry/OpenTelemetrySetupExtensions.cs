@@ -55,15 +55,27 @@ public static class OpenTelemetrySetupExtensions
                         return false;
                     }
 
-                    if (ctx.Request.Path.Value?.Contains("/OrleansSiloInstances") == true)
-                    {
-                        return false;
-                    }
-
                     return true;
                 })
-                .AddHttpClientInstrumentation());
+                .AddHttpClientInstrumentation(ctx =>
+                {
+                    ctx.FilterHttpRequestMessage = message =>
+                    {
+                        var requestPath = message.RequestUri?.AbsolutePath;
+
+                        if (requestPath is null)
+                            return true;
+
+                        return !ExcludedClientPaths.Any(requestPath.Contains);
+                    };
+                }));
 
         return builder;
     }
+
+    private static readonly List<string> ExcludedClientPaths =
+    [
+        "/OrleansSiloInstances",
+        "/$batch"
+    ];
 }
