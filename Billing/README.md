@@ -151,7 +151,7 @@ The Billing service uses the following port allocation:
 - **Documentation Service:** 8119
 
 ### Shared Services
-- **5432**: PostgreSQL
+- **54320**: PostgreSQL
 - **4317/4318**: OpenTelemetry OTLP
 
 ## Prerequisites

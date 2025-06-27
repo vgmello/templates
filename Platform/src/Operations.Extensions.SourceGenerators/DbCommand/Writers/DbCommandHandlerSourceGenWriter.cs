@@ -13,7 +13,7 @@ internal class DbCommandHandlerSourceGenWriter : SourceGenBaseWriter
             ? "global::System.Threading.Tasks.Task"
             : $"global::System.Threading.Tasks.Task<{dbCommandTypeInfo.ResultType!.QualifiedTypeName}>";
 
-        var dapperCall = CreateDapperCall(dbCommandTypeInfo.ResultType, dbCommandTypeInfo.DbCommandAttribute, dbCommandTypeInfo);
+        var dapperCall = CreateDapperCall(dbCommandTypeInfo.ResultType, dbCommandTypeInfo);
 
         var sourceBuilder = new StringBuilder();
 
@@ -56,10 +56,11 @@ internal class DbCommandHandlerSourceGenWriter : SourceGenBaseWriter
         return sourceBuilder.ToString();
     }
 
-    private static string CreateDapperCall(DbCommandTypeInfo.ResultTypeInfo? resultTypeInfo, DbCommandAttribute commandAttributesValues, DbCommandTypeInfo dbCommandTypeInfo)
+    private static string CreateDapperCall(DbCommandTypeInfo.ResultTypeInfo? resultTypeInfo, DbCommandTypeInfo dbCommandTypeInfo)
     {
-        var commandText = GetCommandText(commandAttributesValues, dbCommandTypeInfo);
-        var commandType = string.IsNullOrEmpty(commandAttributesValues.Sp)
+        var dbCommandAttribute = dbCommandTypeInfo.DbCommandAttribute;
+        var commandText = GetCommandText(dbCommandAttribute, dbCommandTypeInfo);
+        var commandType = string.IsNullOrEmpty(dbCommandAttribute.Sp)
             ? "System.Data.CommandType.Text"
             : "System.Data.CommandType.StoredProcedure";
 
@@ -67,7 +68,7 @@ internal class DbCommandHandlerSourceGenWriter : SourceGenBaseWriter
             $"new global::Dapper.CommandDefinition(\"{commandText}\", dbParams, commandType: global::{commandType}, " +
             "cancellationToken: cancellationToken)";
 
-        var methodCall = CreateMethodDapperCall(resultTypeInfo, commandAttributesValues);
+        var methodCall = CreateMethodDapperCall(resultTypeInfo, dbCommandAttribute);
 
         return $"global::Dapper.SqlMapper.{methodCall}(connection, {commandDefinitionCall});";
     }
@@ -78,6 +79,7 @@ internal class DbCommandHandlerSourceGenWriter : SourceGenBaseWriter
         {
             var baseCommand = commandAttributesValues.Fn;
             var parameters = string.Join(", ", dbCommandTypeInfo.DbProperties.Select(p => $"@{p.ParameterName}"));
+
             return $"{baseCommand}({parameters})";
         }
 

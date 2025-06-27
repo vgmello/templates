@@ -107,7 +107,7 @@ cd Billing/src/Billing.AppHost
 dotnet run
 ```
 
-### 📊 Accounting Domain  
+### 📊 Accounting Domain
 ```bash
 # Clone and run Accounting services
 git clone <repository-url>
@@ -124,7 +124,7 @@ dotnet run
 
 **Access Points:**
 - **Billing Aspire Dashboard**: http://localhost:18100
-- **Accounting Aspire Dashboard**: http://localhost:18120  
+- **Accounting Aspire Dashboard**: http://localhost:18120
 - **Operations Aspire Dashboard**: http://localhost:18140
 - **Domain APIs**: Available through respective Aspire dashboards
 
@@ -134,7 +134,7 @@ The system uses a structured port allocation optimized for macOS compatibility:
 
 #### **Service Port Ranges**
 - **Billing**: 8100-8119 (20 ports)
-- **Accounting**: 8120-8139 (20 ports)  
+- **Accounting**: 8120-8139 (20 ports)
 - **Operations**: 8140-8159 (20 ports)
 
 #### **Port Pattern Within Each Service**
@@ -159,7 +159,7 @@ XX19: Documentation (last port of range)
 - **Billing Service**: http://localhost:8101 (API), http://localhost:8119 (Docs)
 - **Accounting Service**: http://localhost:8121 (API), http://localhost:8139 (Docs - reserved)
 - **Operations Service**: http://localhost:8159 (Docs - reserved)
-- **Shared Services**: PostgreSQL (5432), OTLP (4317/4318)
+- **Shared Services**: PostgreSQL (54320), OTLP (4317/4318)
 
 ---
 
@@ -337,7 +337,7 @@ Command and Query separation with automatic handler discovery:
 // Command
 public record CreateLedgerCommand(string Name, LedgerType Type) : ICommand<Guid>;
 
-// Query  
+// Query
 public record GetLedgerQuery(Guid Id) : IQuery<Ledger>;
 
 // Handlers auto-discovered and registered
@@ -372,9 +372,9 @@ public async Task CreateCashier_ShouldReturnSuccess()
     // Integration test with Testcontainers PostgreSQL
     await using var app = new BillingApiWebAppFactory();
     var client = app.CreateClient();
-    
+
     var response = await client.PostAsJsonAsync("/cashiers", new CreateCashierRequest(...));
-    
+
     response.StatusCode.ShouldBe(HttpStatusCode.Created);
 }
 ```
@@ -405,7 +405,7 @@ Production-ready monitoring and tracing:
 │   └── infra/                      # Infrastructure (database)
 │
 ├── 📊 Accounting/                  # Accounting microservice
-│   ├── src/                        # Source code  
+│   ├── src/                        # Source code
 │   ├── test/                       # Tests
 │   └── infra/                      # Infrastructure (database)
 │
@@ -427,7 +427,7 @@ Production-ready monitoring and tracing:
 The template uses centralized configuration management:
 
 - **Directory.Build.props** - Shared MSBuild properties and package references
-- **Directory.Packages.props** - Centralized package version management  
+- **Directory.Packages.props** - Centralized package version management
 - **Operations.ruleset** - Code analysis rules
 - **.editorconfig** - Code style enforcement
 

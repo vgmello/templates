@@ -2,8 +2,8 @@
 
 --changeset dev_user:"create invoices_get function" runOnChange:true
 CREATE OR REPLACE FUNCTION billing.invoices_get(
-    IN limit integer DEFAULT 50,
-    IN offset integer DEFAULT 0,
+    IN "limit" integer DEFAULT 50,
+    IN "offset" integer DEFAULT 0,
     IN status text DEFAULT NULL
 )
 RETURNS TABLE(
@@ -25,5 +25,5 @@ BEGIN ATOMIC
     FROM billing.invoices i
     WHERE (invoices_get.status IS NULL OR i.status = invoices_get.status)
     ORDER BY i.created_date_utc DESC
-    LIMIT invoices_get.limit OFFSET invoices_get.offset;
+    LIMIT "limit" OFFSET "offset";
 END;

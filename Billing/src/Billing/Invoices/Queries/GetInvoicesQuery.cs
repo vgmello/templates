@@ -8,7 +8,7 @@ public record GetInvoicesQuery(int Limit = 50, int Offset = 0, string? Status = 
 
 public static partial class GetInvoicesQueryHandler
 {
-    [DbCommand(sp: "billing.invoices_get")]
+    [DbCommand(fn: "select * from billing.invoices_get")]
     public partial record GetInvoicesDbQuery(int Limit, int Offset, string? Status) : IQuery<IEnumerable<InvoiceModel>>;
 
     public static async Task<IEnumerable<InvoiceModel>> Handle(GetInvoicesQuery query, IMessageBus messaging,

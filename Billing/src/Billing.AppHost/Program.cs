@@ -8,10 +8,13 @@ var builder = DistributedApplication.CreateBuilder(args);
 var dbPassword = builder.AddParameter("DbPassword", secret: true);
 
 var pgsql = builder
-    .AddPostgres("billing-db", password: dbPassword)
+    .AddPostgres("billing-db", password: dbPassword, port: 54320)
     .WithImage("postgres", "17-alpine")
     .WithContainerName("billing-db")
+    .WithEndpointProxySupport(false)
     .WithPgAdmin(pgAdmin => pgAdmin
+        .WithHostPort(port: 54321)
+        .WithEndpointProxySupport(false)
         .WithImage("dpage/pgadmin4", "latest")
         .WithLifetime(ContainerLifetime.Persistent)
         .WithUrlForEndpoint("http", url => url.DisplayText = "PgAdmin (DB Management)"))
@@ -19,10 +22,11 @@ var pgsql = builder
 
 var database = pgsql.AddDatabase(name: "BillingDb", databaseName: "billing");
 var serviceBusDb = pgsql.AddDatabase(name: "ServiceBus", databaseName: "service_bus");
-var liquibase = builder.AddLiquibaseMigrations(pgsql, dbPassword);
+builder.AddLiquibaseMigrations(pgsql, dbPassword);
 
 var kafka = builder
-    .AddKafka("messaging")
+    .AddKafka("messaging", port: 90920)
+    .WithEndpointProxySupport(false)
     .WithKafkaUI(r => r.WithUrlForEndpoint("http", url => url.DisplayText = "Kafka UI"));
 
 var storage = builder.AddAzureStorage("billing-azure-storage").RunAsEmulator();
@@ -41,7 +45,6 @@ var billingApi = builder
     .WithReference(database)
     .WithReference(serviceBusDb)
     .WithReference(kafka)
-    .WaitForCompletion(liquibase)
     .WithHttpHealthCheck("/health/internal");
 
 builder
@@ -60,7 +63,6 @@ builder
     .WithReference(database)
     .WithReference(serviceBusDb)
     .WithReference(kafka)
-    .WaitForCompletion(liquibase)
     .WithHttpHealthCheck("/health/internal");
 
 builder
@@ -72,7 +74,6 @@ builder
     .WithReference(database)
     .WithReference(serviceBusDb)
     .WithReference(kafka)
-    .WaitForCompletion(liquibase)
     .WithReplicas(3)
     .WithUrlForEndpoint("https", url =>
     {
