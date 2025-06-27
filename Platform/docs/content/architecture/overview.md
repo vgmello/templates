@@ -126,7 +126,7 @@ Full service testing with TestContainers:
 ### Architecture testing
 Enforce architectural constraints with tests:
 
-[!code-csharp[](~/samples/architecture/ArchitectureTesting.cs)]
+[!code-csharp[](../samples/architecture/ArchitectureTesting.cs)]
 
 ## Best practices
 

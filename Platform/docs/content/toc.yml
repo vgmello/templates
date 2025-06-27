@@ -32,12 +32,14 @@
   - name: Middlewares
     href: messaging/middlewares.md
   - name: Telemetry
-    href: messaging/telemetry.md
+    href: messaging/telemetry/toc.yml
 - name: Health Checks
   href: healthchecks/
   items:
   - name: Overview
     href: healthchecks/overview.md
+  - name: Setup and Configuration
+    href: healthchecks/setup.md
   - name: Setup and Configuration
     href: healthchecks/setup.md
 - name: Logging
@@ -55,12 +57,7 @@
   - name: Setup and Configuration
     href: opentelemetry/setup.md
 - name: Source Generators
-  href: source-generators/
-  items:
-  - name: Overview
-    href: source-generators/overview.md
-  - name: DbCommand Generator
-    href: source-generators/dbcommand-generator.md
+  href: source-generators/toc.yml
 - name: Extensions
   href: extensions/overview.md
   items:

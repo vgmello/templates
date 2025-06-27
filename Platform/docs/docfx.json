@@ -6,11 +6,8 @@
         {
           "src": "../src",
           "files": [
-            "**/bin/Release/**/Operations*.dll",
-            "**/bin/Debug/**/Operations*.dll"
-          ],
-          "exclude": [
-            "**/*.AppHost.dll"
+            "Operations.Extensions/bin/Debug/net9.0/Operations.Extensions.dll",
+            "Operations.Extensions.Abstractions/bin/Debug/netstandard2.1/Operations.Extensions.Abstractions.dll"
           ]
         }
       ],

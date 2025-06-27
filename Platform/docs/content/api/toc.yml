@@ -5,10 +5,10 @@
 - name: gRPC
   href: grpc.md
 - name: OpenAPI
-  href: openapi/overview.md
+  href: openapi/
   items:
-  - name: Getting Started
-    href: openapi/getting-started.md
+  - name: Overview
+    href: openapi/overview.md
   - name: Transformers
     href: openapi/transformers.md
   - name: XML Documentation

@@ -1,4 +1,2 @@
-- name: Overview
+- name: Kafka Messaging
   href: overview.md
-- name: Topic Naming Convention
-  href: topic-naming-convention.md

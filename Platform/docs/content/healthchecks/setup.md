@@ -1,60 +1,128 @@
 ---
-title: Health Check Setup Extensions
-description: Learn how to configure and map health check endpoints in your application using the provided setup extensions.
+title: Health Check Setup
+description: Advanced configuration options for setting up health checks in your application.
 ---
 
-# Health Check Setup Extensions
+# Health Check Setup
 
-The `HealthCheckSetupExtensions` class provides a set of extension methods to easily configure and map health check endpoints within your ASP.NET Core application. These extensions simplify the process of exposing application health status for monitoring and orchestration systems.
+This document provides advanced configuration options for setting up health checks in your application, building upon the basic setup provided by the Platform's Service Defaults.
 
-## Key Features
+## Customizing Health Check Services
 
-### MapDefaultHealthCheckEndpoints
-
-This extension method configures and maps a set of default health check endpoints. It provides different endpoints for various monitoring needs, including liveness probes, readiness probes, and detailed public health status.
-
-#### Configured Endpoints
-
--   **`/status`**: A lightweight liveness probe. This endpoint returns the string representation of the last recorded health status (e.g., "Healthy", "Unhealthy"). It does *not* execute health checks itself but reflects the last known state. This is ideal for quick checks by orchestrators to determine if the application process is alive.
-
--   **`/health/internal`**: A container-only readiness probe. This endpoint provides simplified health status information and is primarily intended for use within containerized environments (e.g., Kubernetes readiness probes). When run locally, it provides the same detailed output as the `/health` endpoint. It is restricted to localhost and includes a `LocalhostEndpointFilter`.
-
--   **`/health`**: A public, detailed health probe. This endpoint returns comprehensive health status information, including the status of all registered health checks, their durations, and any associated error messages. It requires authorization, making it suitable for exposing detailed health information to authorized consumers.
-
-#### Usage example
-
-Call `MapDefaultHealthCheckEndpoints` on your `WebApplication` instance:
+You can customize the `IHealthCheckService` registration to control various aspects of health check behavior, such as the delay before the first check, and the period between checks.
 
 ```csharp
-// In Program.cs
-var builder = WebApplication.CreateBuilder(args);
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
+using Microsoft.Extensions.Hosting;
+using System;
 
-// Add health checks (e.g., for database, external services)
-builder.Services.AddHealthChecks();
+public class CustomHealthCheckServiceSetup
+{
+    public static void ConfigureHealthCheckService()
+    {
+        var builder = Host.CreateApplicationBuilder();
 
-var app = builder.Build();
+        builder.Services.AddHealthChecks();
 
-// Map the default health check endpoints
-app.MapDefaultHealthCheckEndpoints();
+        // Configure the HealthCheckService options
+        builder.Services.Configure<HealthCheckServiceOptions>(options =>
+        {
+            options.Delay = TimeSpan.FromSeconds(5); // Delay before the first health check execution
+            options.Period = TimeSpan.FromSeconds(30); // Period between health check executions
+        });
 
-app.Run();
+        var app = builder.Build();
+        app.Run();
+    }
+}
 ```
 
-## Health Check Logging
+## Registering Custom Health Checks
 
-The extensions also include logging for health check responses. Successful health checks are logged at a debug level, while unhealthy or degraded statuses are logged at error or warning levels, respectively, providing insights into the health of your application's components.
-
-## Customizing Health Checks
-
-You can add custom health checks to your application using the standard ASP.NET Core `AddHealthChecks()` method and then chaining additional health check registrations. These custom checks will be included in the detailed `/health` and `/health/internal` reports.
+Beyond the built-in health checks, you can register your own custom health checks by implementing the `IHealthCheck` interface.
 
 ```csharp
-// In Program.cs
-builder.Services.AddHealthChecks()
-    .AddSqlServer("ConnectionStrings:DefaultConnection", name: "SQL Server");
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
+using Microsoft.Extensions.Hosting;
+using System.Threading;
+using System.Threading.Tasks;
+
+public class CustomHealthCheckRegistration
+{
+    public static void RegisterCustomCheck()
+    {
+        var builder = Host.CreateApplicationBuilder();
+
+        builder.Services.AddHealthChecks()
+            .AddCheck<MyCustomHealthCheck>("MyCustomCheck");
+
+        var app = builder.Build();
+        app.Run();
+    }
+}
+
+public class MyCustomHealthCheck : IHealthCheck
+{
+    public Task<HealthCheckResult> CheckHealthAsync(HealthCheckContext context, CancellationToken cancellationToken = default)
+    {
+        // Implement your custom health check logic here
+        bool isHealthy = true; // Replace with actual logic
+
+        if (isHealthy)
+        {
+            return Task.FromResult(HealthCheckResult.Healthy("My custom check is healthy."));
+        }
+        else
+        {
+            return Task.FromResult(HealthCheckResult.Unhealthy("My custom check is unhealthy."));
+        }
+    }
+}
+```
+
+## Health Check Publishers
+
+Health check publishers allow you to send health check results to external systems or logs. You can implement custom publishers or use existing ones like the Application Insights publisher.
+
+```csharp
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
+using Microsoft.Extensions.Hosting;
+using System.Threading;
+using System.Threading.Tasks;
+
+public class HealthCheckPublisherSetup
+{
+    public static void ConfigurePublisher()
+    {
+        var builder = Host.CreateApplicationBuilder();
+
+        builder.Services.AddHealthChecks();
+
+        // Register a custom health check publisher
+        builder.Services.AddSingleton<IHealthCheckPublisher, MyCustomHealthCheckPublisher>();
+
+        var app = builder.Build();
+        app.Run();
+    }
+}
+
+public class MyCustomHealthCheckPublisher : IHealthCheckPublisher
+{
+    public Task PublishAsync(HealthReport report, CancellationToken cancellationToken)
+    {
+        Console.WriteLine($"Health Report Status: {report.Status}");
+        foreach (var entry in report.Entries)
+        {
+            Console.WriteLine($"  {entry.Key}: {entry.Value.Status}");
+        }
+        return Task.CompletedTask;
+    }
+}
 ```
 
 ## See also
 
-- [Health Check Status Store](./health-check-status-store.md)
-- [Endpoint Filters](../api/endpoint-filters.md)
+*   [Health Checks Overview](overview.md)

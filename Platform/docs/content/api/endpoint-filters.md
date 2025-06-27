@@ -17,30 +17,7 @@ Endpoint filters in the Operations platform provide a way to execute code before
 
 The platform includes a `LocalhostEndpointFilter` that restricts access to certain endpoints when running in production:
 
-```csharp
-public partial class LocalhostEndpointFilter(ILogger logger) : IEndpointFilter
-{
-    public async ValueTask<object?> InvokeAsync(EndpointFilterInvocationContext context, EndpointFilterDelegate next)
-    {
-        var remoteIp = context.HttpContext.Connection.RemoteIpAddress;
-
-        if (remoteIp is null || !IPAddress.IsLoopback(remoteIp))
-        {
-            LogRemoteRequestForLocalEndpoint(logger, remoteIp);
-
-            return Results.Unauthorized();
-        }
-
-        return await next(context);
-    }
-
-    [LoggerMessage(
-        EventId = 1,
-        Level = LogLevel.Debug,
-        Message = "Remote request received for a local-only endpoint, returning unauthorized. IP address: {RemoteIpAddress}")]
-    private static partial void LogRemoteRequestForLocalEndpoint(ILogger logger, IPAddress? remoteIpAddress);
-}
-```
+[!code-csharp[](../samples/api/endpoint-filters/LocalhostEndpointFilter.cs)]
 
 ### Usage with Service Defaults
 
@@ -97,124 +74,17 @@ public class LoggingEndpointFilter : IEndpointFilter
 ### Validation Filter
 
 ```csharp
-public class ValidationEndpointFilter<T> : IEndpointFilter where T : class
-{
-    private readonly IValidator<T> _validator;
-
-    public ValidationEndpointFilter(IValidator<T> validator)
-    {
-        _validator = validator;
-    }
-
-    public async ValueTask<object?> InvokeAsync(
-        EndpointFilterInvocationContext context, 
-        EndpointFilterDelegate next)
-    {
-        // Find the parameter of type T
-        var argument = context.Arguments
-            .OfType<T>()
-            .FirstOrDefault();
-
-        if (argument is not null)
-        {
-            var validationResult = await _validator.ValidateAsync(argument);
-            if (!validationResult.IsValid)
-            {
-                return Results.ValidationProblem(validationResult.ToDictionary());
-            }
-        }
-
-        return await next(context);
-    }
-}
+[!code-csharp[](../samples/api/endpoint-filters/ValidationEndpointFilter.cs)]
 ```
 
 ### Authentication Filter
 
-```csharp
-public class RequireRoleEndpointFilter : IEndpointFilter
-{
-    private readonly string _requiredRole;
-
-    public RequireRoleEndpointFilter(string requiredRole)
-    {
-        _requiredRole = requiredRole;
-    }
-
-    public async ValueTask<object?> InvokeAsync(
-        EndpointFilterInvocationContext context, 
-        EndpointFilterDelegate next)
-    {
-        var user = context.HttpContext.User;
-        
-        if (!user.Identity?.IsAuthenticated == true)
-        {
-            return Results.Unauthorized();
-        }
-
-        if (!user.IsInRole(_requiredRole))
-        {
-            return Results.Forbid();
-        }
-
-        return await next(context);
-    }
-}
-```
+[!code-csharp[](../samples/api/endpoint-filters/RequireRoleEndpointFilter.cs)]
 
 ### Rate Limiting Filter
 
 ```csharp
-public class RateLimitEndpointFilter : IEndpointFilter
-{
-    private readonly IMemoryCache _cache;
-    private readonly int _maxRequests;
-    private readonly TimeSpan _window;
-
-    public RateLimitEndpointFilter(
-        IMemoryCache cache, 
-        int maxRequests = 100, 
-        TimeSpan? window = null)
-    {
-        _cache = cache;
-        _maxRequests = maxRequests;
-        _window = window ?? TimeSpan.FromMinutes(1);
-    }
-
-    public async ValueTask<object?> InvokeAsync(
-        EndpointFilterInvocationContext context, 
-        EndpointFilterDelegate next)
-    {
-        var httpContext = context.HttpContext;
-        var clientId = GetClientIdentifier(httpContext);
-        var key = $"rate_limit:{clientId}";
-
-        var requestCount = _cache.Get<int>(key);
-        
-        if (requestCount >= _maxRequests)
-        {
-            httpContext.Response.Headers.Add("Retry-After", 
-                _window.TotalSeconds.ToString(CultureInfo.InvariantCulture));
-            
-            return Results.Problem(
-                statusCode: 429,
-                title: "Too Many Requests",
-                detail: $"Rate limit exceeded. Maximum {_maxRequests} requests per {_window}.");
-        }
-
-        _cache.Set(key, requestCount + 1, _window);
-        
-        return await next(context);
-    }
-
-    private static string GetClientIdentifier(HttpContext context)
-    {
-        // Use user ID if authenticated, otherwise use IP address
-        return context.User.Identity?.IsAuthenticated == true
-            ? context.User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "anonymous"
-            : context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
-    }
-}
+[!code-csharp[](../samples/api/endpoint-filters/RateLimitEndpointFilter.cs)]
 ```
 
 ## Filter Registration
@@ -274,127 +144,16 @@ cashierGroup.MapPut("{id}", UpdateCashier)
 ### Conditional Filters
 
 ```csharp
-public class ConditionalLoggingFilter : IEndpointFilter
-{
-    private readonly ILogger<ConditionalLoggingFilter> _logger;
-    private readonly IConfiguration _configuration;
-
-    public ConditionalLoggingFilter(
-        ILogger<ConditionalLoggingFilter> logger,
-        IConfiguration configuration)
-    {
-        _logger = logger;
-        _configuration = configuration;
-    }
-
-    public async ValueTask<object?> InvokeAsync(
-        EndpointFilterInvocationContext context, 
-        EndpointFilterDelegate next)
-    {
-        var enableLogging = _configuration.GetValue<bool>("Features:DetailedLogging");
-        
-        if (enableLogging)
-        {
-            _logger.LogInformation("Executing endpoint with detailed logging");
-        }
-
-        return await next(context);
-    }
-}
+[!code-csharp[](../samples/api/endpoint-filters/ConditionalLoggingFilter.cs)]
 ```
 
 ### Filter with Dependencies
 
-```csharp
-public class CacheEndpointFilter : IEndpointFilter
-{
-    private readonly IDistributedCache _cache;
-    private readonly ILogger<CacheEndpointFilter> _logger;
-
-    public CacheEndpointFilter(
-        IDistributedCache cache,
-        ILogger<CacheEndpointFilter> logger)
-    {
-        _cache = cache;
-        _logger = logger;
-    }
-
-    public async ValueTask<object?> InvokeAsync(
-        EndpointFilterInvocationContext context, 
-        EndpointFilterDelegate next)
-    {
-        var request = context.HttpContext.Request;
-        
-        // Only cache GET requests
-        if (!HttpMethods.IsGet(request.Method))
-        {
-            return await next(context);
-        }
-
-        var cacheKey = GenerateCacheKey(request);
-        var cachedResponse = await _cache.GetStringAsync(cacheKey);
-        
-        if (cachedResponse != null)
-        {
-            _logger.LogInformation("Cache hit for key: {CacheKey}", cacheKey);
-            return Results.Json(JsonSerializer.Deserialize<object>(cachedResponse));
-        }
-
-        var result = await next(context);
-        
-        // Cache successful responses
-        if (result is IResult okResult)
-        {
-            var serialized = JsonSerializer.Serialize(result);
-            await _cache.SetStringAsync(cacheKey, serialized, TimeSpan.FromMinutes(15));
-            _logger.LogInformation("Cached response for key: {CacheKey}", cacheKey);
-        }
-
-        return result;
-    }
-
-    private static string GenerateCacheKey(HttpRequest request)
-    {
-        return $"endpoint_cache:{request.Path}{request.QueryString}";
-    }
-}
-```
+[!code-csharp[](../samples/api/endpoint-filters/CacheEndpointFilter.cs)]
 
 ### Async Filter with Cancellation
 
-```csharp
-public class TimeoutEndpointFilter : IEndpointFilter
-{
-    private readonly TimeSpan _timeout;
-
-    public TimeoutEndpointFilter(TimeSpan timeout)
-    {
-        _timeout = timeout;
-    }
-
-    public async ValueTask<object?> InvokeAsync(
-        EndpointFilterInvocationContext context, 
-        EndpointFilterDelegate next)
-    {
-        using var cts = CancellationTokenSource.CreateLinkedTokenSource(
-            context.HttpContext.RequestAborted);
-        
-        cts.CancelAfter(_timeout);
-
-        try
-        {
-            return await next(context);
-        }
-        catch (OperationCanceledException) when (cts.Token.IsCancellationRequested)
-        {
-            return Results.Problem(
-                statusCode: 408,
-                title: "Request Timeout",
-                detail: $"Request exceeded the maximum allowed time of {_timeout}.");
-        }
-    }
-}
-```
+[!code-csharp[](../samples/api/endpoint-filters/TimeoutEndpointFilter.cs)]
 
 ## Filter Order and Pipeline
 
@@ -402,85 +161,23 @@ public class TimeoutEndpointFilter : IEndpointFilter
 
 Filters execute in the order they are added:
 
-```csharp
-app.MapPost("/cashiers", CreateCashier)
-    .AddEndpointFilter<LoggingEndpointFilter>()        // Executes first
-    .AddEndpointFilter<ValidationEndpointFilter<CreateCashierCommand>>() // Executes second
-    .AddEndpointFilter<RateLimitEndpointFilter>();     // Executes last
-```
+[!code-csharp[](../samples/api/endpoint-filters/ExecutionOrder.cs)]
 
 ### Short-Circuiting
 
 Filters can short-circuit the pipeline:
 
-```csharp
-public class ShortCircuitFilter : IEndpointFilter
-{
-    public async ValueTask<object?> InvokeAsync(
-        EndpointFilterInvocationContext context, 
-        EndpointFilterDelegate next)
-    {
-        // Condition to short-circuit
-        if (ShouldShortCircuit())
-        {
-            return Results.BadRequest("Request rejected by filter");
-        }
-
-        // Continue pipeline
-        return await next(context);
-    }
-}
-```
+[!code-csharp[](../samples/api/endpoint-filters/ShortCircuitFilter.cs)]
 
 ## Testing Endpoint Filters
 
 ### Unit Testing
 
-```csharp
-[Fact]
-public async Task ValidationFilter_InvalidModel_ReturnsValidationProblem()
-{
-    // Arrange
-    var validator = new Mock<IValidator<CreateCashierCommand>>();
-    validator.Setup(v => v.ValidateAsync(It.IsAny<CreateCashierCommand>(), default))
-        .ReturnsAsync(new ValidationResult(new[] 
-        { 
-            new ValidationFailure("Name", "Name is required") 
-        }));
-
-    var filter = new ValidationEndpointFilter<CreateCashierCommand>(validator.Object);
-    var context = CreateMockContext(new CreateCashierCommand());
-
-    // Act
-    var result = await filter.InvokeAsync(context, _ => ValueTask.FromResult<object?>(Results.Ok()));
-
-    // Assert
-    Assert.IsType<ProblemHttpResult>(result);
-}
-```
+[!code-csharp[](../samples/api/endpoint-filters/ValidationFilter_InvalidModel_ReturnsValidationProblem.cs)]
 
 ### Integration Testing
 
-```csharp
-[Fact]
-public async Task CashierEndpoint_WithFilters_WorksCorrectly()
-{
-    // Arrange
-    using var factory = new WebApplicationFactory<Program>();
-    var client = factory.CreateClient();
-
-    // Act
-    var response = await client.PostAsJsonAsync("/cashiers", new CreateCashierCommand
-    {
-        Name = "Test Cashier",
-        Email = "test@example.com",
-        Currencies = new[] { "USD" }
-    });
-
-    // Assert
-    Assert.Equal(HttpStatusCode.Created, response.StatusCode);
-}
-```
+[!code-csharp[](../samples/api/endpoint-filters/CashierEndpoint_WithFilters_WorksCorrectly.cs)]
 
 ## Best Practices
 
