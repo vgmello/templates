@@ -12,6 +12,9 @@
 	// Initialize store with SSR data
 	onMount(() => {
 		invoiceStore.initializeInvoices(data.invoices);
+		if (data.error) {
+			invoiceStore.setError(data.error);
+		}
 	});
 
 	// Format currency
@@ -63,9 +66,9 @@
 				Manage and track your invoices
 			</p>
 		</div>
-		<Button href="/invoices/create" class="w-full sm:w-auto">
+		<a href="/invoices/create" class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2 w-full sm:w-auto">
 			Create Invoice
-		</Button>
+		</a>
 	</div>
 
 	<!-- Statistics Cards -->
@@ -168,11 +171,11 @@
 					
 					<div class="flex gap-2">
 						{#if invoice.status === 'Draft'}
-							<Button variant="outline" size="sm" href="/invoices/{invoice.invoiceId}/edit">
+							<Button variant="outline" size="sm" onclick={() => window.location.href = `/invoices/${invoice.invoiceId}/edit`}>
 								Edit
 							</Button>
 						{/if}
-						<Button variant="outline" size="sm" href="/invoices/{invoice.invoiceId}">
+						<Button variant="outline" size="sm" onclick={() => window.location.href = `/invoices/${invoice.invoiceId}`}>
 							View Details
 						</Button>
 					</div>
@@ -183,7 +186,7 @@
 				<p class="text-muted-foreground mb-4">
 					{invoiceStore.searchTerm || invoiceStore.statusFilter ? 'No invoices match your search criteria.' : 'No invoices found.'}
 				</p>
-				<Button href="/invoices/create">Create Your First Invoice</Button>
+				<a href="/invoices/create" class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2">Create Your First Invoice</a>
 			</Card>
 		{/each}
 	</div>

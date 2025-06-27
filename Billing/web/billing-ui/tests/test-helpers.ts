@@ -99,6 +99,18 @@ interface MockData {
 		updatedDateUtc: string;
 		version: number;
 	}>;
+	invoices?: Array<{
+		invoiceId: string;
+		name: string;
+		status: string;
+		amount: number;
+		currency: string;
+		dueDate?: string;
+		cashierId?: string;
+		createdDateUtc: string;
+		updatedDateUtc: string;
+		version: number;
+	}>;
 }
 
 /**
@@ -117,6 +129,32 @@ export async function mockApiResponses(page: Page, mockData: MockData = {}): Pro
 				createdDateUtc: new Date().toISOString(),
 				updatedDateUtc: new Date().toISOString(),
 				version: 1
+			}
+		],
+		invoices: [
+			{
+				invoiceId: "mock-invoice-1",
+				name: "Test Invoice 1",
+				status: "Draft",
+				amount: 100.00,
+				currency: "USD",
+				dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days from now
+				cashierId: "test-id-1",
+				createdDateUtc: new Date().toISOString(),
+				updatedDateUtc: new Date().toISOString(),
+				version: 1
+			},
+			{
+				invoiceId: "mock-invoice-2",
+				name: "Test Invoice 2",
+				status: "Paid",
+				amount: 250.50,
+				currency: "USD",
+				dueDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(), // 2 days ago
+				cashierId: "test-id-1",
+				createdDateUtc: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(),
+				updatedDateUtc: new Date().toISOString(),
+				version: 2
 			}
 		]
 	};
@@ -144,6 +182,33 @@ export async function mockApiResponses(page: Page, mockData: MockData = {}): Pro
 				status: 200,
 				contentType: 'application/json',
 				body: JSON.stringify(cashier)
+			});
+		} else {
+			await route.continue();
+		}
+	});
+
+	// Mock GET /api/invoices  
+	await page.route('**/api/invoices', async (route) => {
+		if (route.request().method() === 'GET') {
+			await route.fulfill({
+				status: 200,
+				contentType: 'application/json',
+				body: JSON.stringify(data.invoices)
+			});
+		} else {
+			await route.continue();
+		}
+	});
+	
+	// Mock GET /api/invoices/:id
+	await page.route('**/api/invoices/*', async (route) => {
+		if (route.request().method() === 'GET') {
+			const invoice = data.invoices?.[0]; // Return first invoice for any ID
+			await route.fulfill({
+				status: 200,
+				contentType: 'application/json',
+				body: JSON.stringify(invoice)
 			});
 		} else {
 			await route.continue();

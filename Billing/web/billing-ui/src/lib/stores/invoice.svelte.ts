@@ -11,8 +11,8 @@ class InvoiceStore {
 	statusFilter = $state('');
 	errorMessage = $state<string | null>(null);
 
-	// Computed properties using $derived
-	filteredInvoices = $derived(() => {
+	// Computed properties using getter
+	get filteredInvoices() {
 		return this.invoices.filter(invoice => {
 			const matchesSearch = invoice.name.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
 				invoice.invoiceId.toLowerCase().includes(this.searchTerm.toLowerCase());
@@ -21,26 +21,40 @@ class InvoiceStore {
 			
 			return matchesSearch && matchesStatus;
 		});
-	});
+	}
 
-	// Statistics
-	totalInvoices = $derived(() => this.invoices.length);
-	totalAmount = $derived(() => this.invoices.reduce((sum, invoice) => sum + invoice.amount, 0));
-	paidInvoices = $derived(() => this.invoices.filter(i => i.status === 'Paid').length);
-	draftInvoices = $derived(() => this.invoices.filter(i => i.status === 'Draft').length);
-	cancelledInvoices = $derived(() => this.invoices.filter(i => i.status === 'Cancelled').length);
+	// Statistics - using getter properties for proper reactivity
+	get totalInvoices() {
+		return this.invoices.length;
+	}
+
+	get totalAmount() {
+		return this.invoices.reduce((sum, invoice) => sum + invoice.amount, 0);
+	}
+
+	get paidInvoices() {
+		return this.invoices.filter(i => i.status === 'Paid').length;
+	}
+
+	get draftInvoices() {
+		return this.invoices.filter(i => i.status === 'Draft').length;
+	}
+
+	get cancelledInvoices() {
+		return this.invoices.filter(i => i.status === 'Cancelled').length;
+	}
 
 	// Available statuses derived from data
-	availableStatuses = $derived(() => {
+	get availableStatuses() {
 		const statuses = new Set(this.invoices.map(i => i.status));
 		return Array.from(statuses).sort();
-	});
+	}
 
 	// Available currencies derived from data
-	availableCurrencies = $derived(() => {
+	get availableCurrencies() {
 		const currencies = new Set(this.invoices.map(i => i.currency).filter(Boolean));
 		return Array.from(currencies).sort();
-	});
+	}
 
 	// Methods
 	initializeInvoices(invoices: Invoice[]) {

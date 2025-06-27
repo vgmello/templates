@@ -7,6 +7,9 @@ import type {
 	Invoice, CreateInvoiceRequest, MarkInvoiceAsPaidRequest, SimulatePaymentRequest
 } from '../../app';
 
+// Mock mode for testing
+const MOCK_API = env.MOCK_API === 'true' || process.env.MOCK_API === 'true' || (typeof process !== 'undefined' && process.env?.MOCK_API === 'true');
+
 // Configuration
 const GRPC_HOST = env.GRPC_HOST || 'localhost';
 const GRPC_PORT = env.GRPC_PORT || '8102';
@@ -142,12 +145,25 @@ function promisifyCall<T>(client: any, methodName: string, request: any): Promis
  */
 export const cashierGrpcService = {
 	async getCashiers(): Promise<Cashier[]> {
+		if (MOCK_API) {
+			return getMockCashiers();
+		}
+
 		const client = await initializeCashierClient();
 		const response = await promisifyCall<{ cashiers: Cashier[] }>(client, 'GetCashiers', { limit: 100, offset: 0 });
 		return response.cashiers || [];
 	},
 
 	async getCashier(cashierId: string): Promise<Cashier> {
+		if (MOCK_API) {
+			const mockCashiers = getMockCashiers();
+			const cashier = mockCashiers.find(c => c.cashierId === cashierId);
+			if (!cashier) {
+				throw new GrpcError('Cashier not found', grpc.status.NOT_FOUND);
+			}
+			return cashier;
+		}
+
 		const client = await initializeCashierClient();
 		return await promisifyCall<Cashier>(client, 'GetCashier', { id: cashierId });
 	},
@@ -195,10 +211,62 @@ export const cashierGrpcService = {
 };
 
 /**
+ * Mock data for testing
+ */
+function getMockInvoices(): Invoice[] {
+	return [
+		{
+			invoiceId: "mock-invoice-1",
+			name: "Mock Invoice 1",
+			status: "Draft",
+			amount: 100.00,
+			currency: "USD",
+			dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+			cashierId: "mock-cashier-1",
+			createdDateUtc: new Date().toISOString(),
+			updatedDateUtc: new Date().toISOString(),
+			version: 1
+		},
+		{
+			invoiceId: "mock-invoice-2",
+			name: "Mock Invoice 2",
+			status: "Paid",
+			amount: 250.50,
+			currency: "USD",
+			dueDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+			createdDateUtc: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(),
+			updatedDateUtc: new Date().toISOString(),
+			version: 2
+		}
+	];
+}
+
+function getMockCashiers(): Cashier[] {
+	return [
+		{
+			cashierId: "mock-cashier-1", 
+			name: "Mock Cashier",
+			email: "mock@example.com",
+			cashierPayments: [
+				{ currency: "USD", isActive: true, createdDateUtc: new Date().toISOString() }
+			],
+			createdDateUtc: new Date().toISOString(),
+			updatedDateUtc: new Date().toISOString(),
+			version: 1
+		}
+	];
+}
+
+/**
  * Invoice service using gRPC
  */
 export const invoiceGrpcService = {
 	async getInvoices(limit = 100, offset = 0, status?: string): Promise<Invoice[]> {
+		if (MOCK_API) {
+			const mockInvoices = getMockInvoices();
+			return status ? mockInvoices.filter(inv => inv.status === status) : mockInvoices;
+		}
+
 		const client = await initializeInvoiceClient();
 		const request: any = { limit, offset };
 		if (status) request.status = status;
@@ -208,6 +276,15 @@ export const invoiceGrpcService = {
 	},
 
 	async getInvoice(invoiceId: string): Promise<Invoice> {
+		if (MOCK_API) {
+			const mockInvoices = getMockInvoices();
+			const invoice = mockInvoices.find(inv => inv.invoiceId === invoiceId);
+			if (!invoice) {
+				throw new GrpcError('Invoice not found', grpc.status.NOT_FOUND);
+			}
+			return invoice;
+		}
+
 		const client = await initializeInvoiceClient();
 		const grpcInvoice = await promisifyCall<any>(client, 'GetInvoice', { id: invoiceId });
 		return transformGrpcInvoice(grpcInvoice);
