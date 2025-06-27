@@ -1,6 +1,14 @@
 - name: Architecture
   href: architecture.md
-- name: Extensions
-  href: extensions.md
+- name: API Extensions
+  href: api/
+- name: Health Checks
+  href: healthchecks/
+- name: Logging
+  href: logging/
+- name: Messaging
+  href: messaging/
+- name: OpenTelemetry
+  href: opentelemetry/
 - name: Source Generators
-  href: source-generators.md
+  href: source-generators/
