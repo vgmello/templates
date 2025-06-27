@@ -56,8 +56,9 @@ public class DbCommandSourceGenerator : IIncrementalGenerator
     private static void GenerateHandlerPart(SourceProductionContext spc, DbCommandTypeInfo dbCommandTypeInfo)
     {
         if (string.IsNullOrWhiteSpace(dbCommandTypeInfo.DbCommandAttribute.Sp) &&
-            string.IsNullOrWhiteSpace(dbCommandTypeInfo.DbCommandAttribute.Sql))
-            return; // No handler needed if Sp or Sql is not provided
+            string.IsNullOrWhiteSpace(dbCommandTypeInfo.DbCommandAttribute.Sql) &&
+            string.IsNullOrWhiteSpace(dbCommandTypeInfo.DbCommandAttribute.Fn))
+            return; // No handler needed if Sp, Sql, or Fn is not provided
 
         var generatedHandlerSource = DbCommandHandlerSourceGenWriter.Write(dbCommandTypeInfo);
 

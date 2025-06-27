@@ -13,7 +13,7 @@ internal class DbCommandHandlerSourceGenWriter : SourceGenBaseWriter
             ? "global::System.Threading.Tasks.Task"
             : $"global::System.Threading.Tasks.Task<{dbCommandTypeInfo.ResultType!.QualifiedTypeName}>";
 
-        var dapperCall = CreateDapperCall(dbCommandTypeInfo.ResultType, dbCommandTypeInfo.DbCommandAttribute);
+        var dapperCall = CreateDapperCall(dbCommandTypeInfo.ResultType, dbCommandTypeInfo.DbCommandAttribute, dbCommandTypeInfo);
 
         var sourceBuilder = new StringBuilder();
 
@@ -56,9 +56,9 @@ internal class DbCommandHandlerSourceGenWriter : SourceGenBaseWriter
         return sourceBuilder.ToString();
     }
 
-    private static string CreateDapperCall(DbCommandTypeInfo.ResultTypeInfo? resultTypeInfo, DbCommandAttribute commandAttributesValues)
+    private static string CreateDapperCall(DbCommandTypeInfo.ResultTypeInfo? resultTypeInfo, DbCommandAttribute commandAttributesValues, DbCommandTypeInfo dbCommandTypeInfo)
     {
-        var commandText = commandAttributesValues.Sp ?? commandAttributesValues.Sql!;
+        var commandText = GetCommandText(commandAttributesValues, dbCommandTypeInfo);
         var commandType = string.IsNullOrEmpty(commandAttributesValues.Sp)
             ? "System.Data.CommandType.Text"
             : "System.Data.CommandType.StoredProcedure";
@@ -70,6 +70,18 @@ internal class DbCommandHandlerSourceGenWriter : SourceGenBaseWriter
         var methodCall = CreateMethodDapperCall(resultTypeInfo, commandAttributesValues);
 
         return $"global::Dapper.SqlMapper.{methodCall}(connection, {commandDefinitionCall});";
+    }
+
+    private static string GetCommandText(DbCommandAttribute commandAttributesValues, DbCommandTypeInfo dbCommandTypeInfo)
+    {
+        if (!string.IsNullOrEmpty(commandAttributesValues.Fn))
+        {
+            var baseCommand = commandAttributesValues.Fn;
+            var parameters = string.Join(", ", dbCommandTypeInfo.DbProperties.Select(p => $"@{p.ParameterName}"));
+            return $"{baseCommand}({parameters})";
+        }
+
+        return commandAttributesValues.Sp ?? commandAttributesValues.Sql!;
     }
 
     private static string CreateMethodDapperCall(DbCommandTypeInfo.ResultTypeInfo? resultTypeInfo,

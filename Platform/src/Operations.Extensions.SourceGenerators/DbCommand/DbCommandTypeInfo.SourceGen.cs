@@ -39,7 +39,7 @@ internal class DbCommandTypeInfoSourceGen : DbCommandTypeInfo
 
         DbCommandAnalyzers.ExecuteMissingInterfaceAnalyzer(typeSymbol, ResultType, DbCommandAttribute, diagnostics);
         DbCommandAnalyzers.ExecuteNonQueryWithNonIntegralResultAnalyzer(typeSymbol, ResultType, DbCommandAttribute, diagnostics);
-        DbCommandAnalyzers.ExecuteSpAndSqlAnalyzer(typeSymbol, DbCommandAttribute, diagnostics);
+        DbCommandAnalyzers.ExecuteMutuallyExclusivePropertiesAnalyzer(typeSymbol, DbCommandAttribute, diagnostics);
 
         return diagnostics.ToImmutableList();
     }
@@ -50,13 +50,15 @@ internal class DbCommandTypeInfoSourceGen : DbCommandTypeInfo
 
         var spValue = attributeData.GetConstructorArgument<string>(index: 0);
         var sqlValue = attributeData.GetConstructorArgument<string>(index: 1);
-        var dbParamCaseValue = attributeData.GetConstructorArgument<int>(index: 2);
-        var nonQueryValue = attributeData.GetConstructorArgument<bool>(index: 3);
-        var dataSourceValue = attributeData.GetConstructorArgument<string>(index: 4);
+        var fnValue = attributeData.GetConstructorArgument<string>(index: 2);
+        var dbParamCaseValue = attributeData.GetConstructorArgument<int>(index: 3);
+        var nonQueryValue = attributeData.GetConstructorArgument<bool>(index: 4);
+        var dataSourceValue = attributeData.GetConstructorArgument<string>(index: 5);
 
         return new DbCommandAttribute(
             sp: spValue,
             sql: sqlValue,
+            fn: fnValue,
             paramsCase: (DbParamsCase)dbParamCaseValue,
             nonQuery: nonQueryValue,
             dataSource: dataSourceValue);

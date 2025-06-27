@@ -153,6 +153,50 @@ public class DbCommandSourceGenHandlerTests : DbCommandSourceGenTestsBase
                 }
             }
             """
+        ),
+        TestCase(
+            name: "Function query with auto-generated parameters",
+            source:
+            """
+            [DbCommand(fn: "select * from billing.invoices_get")]
+            public partial record GetInvoicesDbQuery(int Limit, int Offset, string Status) : IQuery<System.Collections.Generic.IEnumerable<Invoice>>;
+
+            public record Invoice(int Id, string Status);
+            """,
+            expected:
+            """
+            public static class GetInvoicesDbQueryHandler
+            {
+                public static async global::System.Threading.Tasks.Task<global::System.Collections.Generic.IEnumerable<global::TestNamespace.Invoice>> HandleAsync(global::TestNamespace.GetInvoicesDbQuery command, global::System.Data.Common.DbDataSource datasource, global::System.Threading.CancellationToken cancellationToken = default)
+                {
+                    await using var connection = await datasource.OpenConnectionAsync(cancellationToken);
+                    var dbParams = command.ToDbParams();
+                    return await global::Dapper.SqlMapper.QueryAsync<global::TestNamespace.Invoice>(connection, new global::Dapper.CommandDefinition("select * from billing.invoices_get(@Limit, @Offset, @Status)", dbParams, commandType: global::System.Data.CommandType.Text, cancellationToken: cancellationToken));
+                }
+            }
+            """
+        ),
+        TestCase(
+            name: "Function query with snake_case parameters",
+            source:
+            """
+            [DbCommand(fn: "select * from billing.invoices_get", paramsCase: DbParamsCase.SnakeCase)]
+            public partial record GetInvoicesDbQuery(int Limit, int Offset, string Status) : IQuery<System.Collections.Generic.IEnumerable<Invoice>>;
+
+            public record Invoice(int Id, string Status);
+            """,
+            expected:
+            """
+            public static class GetInvoicesDbQueryHandler
+            {
+                public static async global::System.Threading.Tasks.Task<global::System.Collections.Generic.IEnumerable<global::TestNamespace.Invoice>> HandleAsync(global::TestNamespace.GetInvoicesDbQuery command, global::System.Data.Common.DbDataSource datasource, global::System.Threading.CancellationToken cancellationToken = default)
+                {
+                    await using var connection = await datasource.OpenConnectionAsync(cancellationToken);
+                    var dbParams = command.ToDbParams();
+                    return await global::Dapper.SqlMapper.QueryAsync<global::TestNamespace.Invoice>(connection, new global::Dapper.CommandDefinition("select * from billing.invoices_get(@limit, @offset, @status)", dbParams, commandType: global::System.Data.CommandType.Text, cancellationToken: cancellationToken));
+                }
+            }
+            """
         )
     ];
 
@@ -170,24 +214,6 @@ public class DbCommandSourceGenHandlerTests : DbCommandSourceGenTestsBase
         GeneratedCodeShouldMatchExpected(generated[1], expectedCode);
     }
 
-    [Fact]
-    public void NoHandlerGeneration_ForCommandWithoutSpOrSql()
-    {
-        // Arrange
-        const string source = """
-                              [DbCommand]
-                              public partial record ManualCommand(int Id, string Name) : ICommand<string>;
-                              """;
-
-        // Act
-        var (generated, diagnostics) = TestHelpers.GetGeneratedSources<DbCommandSourceGenerator>(SourceImports + source);
-
-        // Assert
-        diagnostics.ShouldNotContain(d => d.Severity == DiagnosticSeverity.Error);
-
-        generated.Length.ShouldBe(1);
-        generated.ShouldNotContain(g => g.Contains("Handler"));
-    }
 
     [Fact]
     public void BothSpAndSqlSpecified_ShouldHandleGracefully()
@@ -203,6 +229,41 @@ public class DbCommandSourceGenHandlerTests : DbCommandSourceGenTestsBase
         // Assert
         diagnostics.ShouldContain(d => d.Severity == DiagnosticSeverity.Error && d.Id == "DB_COMMAND_GEN003");
         diagnostics.Length.ShouldBe(1);
+    }
+
+    [Fact]
+    public void MultipleCommandPropertiesSpecified_ShouldHandleGracefully()
+    {
+        // Arrange
+        const string source = $"""
+                               [DbCommand(sp: "create_user", fn: "select * from users_create")]
+                               public partial record CreateUserCommand(string Name) : ICommand<int>;
+                               """;
+        // Act
+        var (_, diagnostics) = TestHelpers.GetGeneratedSources<DbCommandSourceGenerator>(SourceImports + source);
+
+        // Assert
+        diagnostics.ShouldContain(d => d.Severity == DiagnosticSeverity.Error && d.Id == "DB_COMMAND_GEN003");
+        diagnostics.Length.ShouldBe(1);
+    }
+
+    [Fact]
+    public void NoHandlerGeneration_ForCommandWithoutSpSqlOrFn()
+    {
+        // Arrange
+        const string source = """
+                              [DbCommand]
+                              public partial record ManualCommand(int Id, string Name) : ICommand<string>;
+                              """;
+
+        // Act
+        var (generated, diagnostics) = TestHelpers.GetGeneratedSources<DbCommandSourceGenerator>(SourceImports + source);
+
+        // Assert
+        diagnostics.ShouldNotContain(d => d.Severity == DiagnosticSeverity.Error);
+
+        generated.Length.ShouldBe(1);
+        generated.ShouldNotContain(g => g.Contains("Handler"));
     }
 
     private static TheoryDataRow<string, string> TestCase(string name, string source, string expected) =>
