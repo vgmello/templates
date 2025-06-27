@@ -1,112 +1,286 @@
----
-title: Source Generators
-description: Compile-time code generation for zero-allocation database operations with type-safe parameter binding and automatic handler creation.
----
-
 # Source generators
 
-Compile-time code generation that creates high-performance database operation code. You annotate your command classes and get zero-allocation parameter providers, typed handlers, and service registration extensions automatically generated.
+Platform source generators create high-performance database operation code at compile time. Instead of using reflection to map object properties to database parameters at runtime, the generators produce optimized code that eliminates allocations and provides compile-time validation.
 
-:::moniker range=">= operations-1.0"
+## Getting started with DbCommand
 
-## Concept
+The primary source generator works with the `[DbCommand]` attribute to create database command handlers. Start by marking your command class:
 
-Platform source generators eliminate runtime reflection and boxing by generating database access code at compile time. Instead of using slow reflection to map properties to database parameters, the generator creates optimized code that directly binds values with zero allocations.
+```csharp
+[DbCommand("cashier_create")]
+public partial class CreateCashierCommand : ICommand
+{
+    public required string Name { get; init; }
+    public required string Email { get; init; }
+    public required string[] Currencies { get; init; }
+    public required Guid CreatedBy { get; init; }
+}
+```
 
-The generators work with these patterns:
-- Mark classes with `[DbCommand]` to generate database handlers
-- Use `[Column]` attributes to control parameter mapping
-- Generated code integrates seamlessly with dependency injection
+The `partial` keyword is essential - it allows the generator to add implementation code to your class.
 
-## End-to-end example
+## Generated code overview
 
-:::code language="csharp" source="~/samples/source-generators/DbCommandExample.cs" id="command_class" highlight="1,7-8":::
+For the `CreateCashierCommand` above, the generator produces several pieces:
 
-> [!TIP]
-> The `[DbCommand]` attribute generates a complete handler implementation with zero runtime overhead.
+### Parameter provider implementation
 
-The generator creates:
-- `IDbParamsProvider` implementation for parameter binding
-- Command handler interface with `ExecuteAsync` method
-- Service registration extensions
-- Diagnostic information for build-time validation
+```csharp
+partial class CreateCashierCommand : IDbParamsProvider
+{
+    public void AddParameters(DynamicParameters parameters)
+    {
+        parameters.Add("name", Name);
+        parameters.Add("email", Email);
+        parameters.Add("currencies", Currencies);
+        parameters.Add("created_by", CreatedBy);
+    }
+}
+```
 
-## Targets and scopes
+### Command handler interface
 
-Source generators target these code elements:
+```csharp
+public interface ICreateCashierCommandHandler
+{
+    Task<Result> ExecuteAsync(CreateCashierCommand command, CancellationToken cancellationToken = default);
+}
+```
 
-| Attribute | Target | Generates |
-|-----------|--------|-----------|
-| `[DbCommand]` | Class implementing `ICommand` | Handler interface, parameter provider, registration |
-| `[Column]` | Property | Custom parameter name mapping |
+### Service registration extensions
 
-### Generated code scope
+```csharp
+public static class CreateCashierCommandExtensions
+{
+    public static IServiceCollection AddCreateCashierCommandHandler(
+        this IServiceCollection services,
+        ServiceLifetime lifetime = ServiceLifetime.Scoped)
+    {
+        return services.Add(new ServiceDescriptor(
+            typeof(ICreateCashierCommandHandler), 
+            typeof(CreateCashierCommandHandler), 
+            lifetime));
+    }
+}
+```
 
-For each `[DbCommand]` class, the generator produces:
+This generated code integrates seamlessly with dependency injection and provides zero-allocation parameter binding.
 
-:::code language="csharp" source="~/samples/source-generators/GeneratedCode.cs" id="generated_scope":::
+## Customizing parameter mapping
 
-### Parameter mapping scope
+By default, property names are converted to snake_case for database parameters. Use the `[Column]` attribute to override this:
 
-The generator handles these property types automatically:
+```csharp
+[DbCommand("user_update")]
+public partial class UpdateUserCommand : ICommand
+{
+    [Column("user_id")]
+    public Guid Id { get; init; }
+    
+    [Column("full_name")]
+    public string Name { get; init; } = string.Empty;
+    
+    // This becomes "email" automatically
+    public string Email { get; init; } = string.Empty;
+}
+```
 
-:::code language="csharp" source="~/samples/source-generators/ParameterMapping.cs" id="parameter_types":::
+## Handling complex types
 
-## Customization
+The generator supports various parameter types including arrays, nullable types, and JSON serialization:
 
-### Custom parameter names
+```csharp
+[DbCommand("invoice_create")]
+public partial class CreateInvoiceCommand : ICommand
+{
+    public Guid CashierId { get; init; }
+    public decimal Amount { get; init; }
+    public string? Description { get; init; }  // Nullable reference type
+    public string[] Tags { get; init; } = [];  // Array parameter
+    public DateTimeOffset? DueDate { get; init; }  // Nullable value type
+    
+    [Column("metadata")]
+    [JsonSerialized]
+    public InvoiceMetadata Metadata { get; init; } = new();  // JSON serialization
+}
+```
 
-Override default parameter naming with `[Column]` attributes:
+The `[JsonSerialized]` attribute tells the generator to serialize complex objects as JSON parameters.
 
-:::code language="csharp" source="~/samples/source-generators/CustomMapping.cs" id="column_attributes":::
+## Generator configuration
 
-### Complex parameter types
+Control the generator's behavior through MSBuild properties in your project file:
 
-Handle JSON and array parameters with custom mappings:
+```xml
+<PropertyGroup>
+  <DbCommandGenerateHandlers>true</DbCommandGenerateHandlers>
+  <DbCommandGenerateParams>true</DbCommandGenerateParams>
+  <DbCommandDefaultSchema>billing</DbCommandDefaultSchema>
+</PropertyGroup>
+```
 
-:::code language="csharp" source="~/samples/source-generators/ComplexTypes.cs" id="complex_parameters":::
+Available options:
+- `DbCommandGenerateHandlers` - Generate handler interfaces and implementations
+- `DbCommandGenerateParams` - Generate parameter provider implementations  
+- `DbCommandDefaultSchema` - Default database schema for procedures
+- `DbCommandNullableContext` - Enable nullable reference type annotations
 
-### Generator configuration
+## Integration with database operations
 
-Control code generation through MSBuild properties:
+The generated parameter providers work directly with Platform database extensions:
 
-:::code language="csharp" source="~/samples/source-generators/GeneratorConfig.cs" id="msbuild_config":::
+```csharp
+public class CashierService
+{
+    private readonly DbDataSource _dataSource;
+    
+    public async Task<Guid> CreateCashierAsync(CreateCashierCommand command)
+    {
+        // The command implements IDbParamsProvider automatically
+        return await _dataSource.SpExecute("cashier_create", command);
+    }
+}
+```
 
-> [!WARNING]
-> Source generators require partial classes. Ensure your command classes are declared as `partial`.
+No manual parameter binding required - the generated code handles everything.
 
-### Diagnostic handling
+## Diagnostic information
 
-Configure how the generator reports issues:
+The generator provides helpful diagnostics during compilation:
 
-:::code language="csharp" source="~/samples/source-generators/Diagnostics.cs" id="diagnostic_config":::
+- **Info**: Reports discovered command classes and generated files
+- **Warning**: Missing partial keyword, unsupported parameter types
+- **Error**: Invalid attribute usage, conflicting configurations
 
-## Performance considerations
+Enable detailed diagnostics in your project:
 
-Source generators provide significant performance improvements:
+```xml
+<PropertyGroup>
+  <DbCommandVerboseLogging>true</DbCommandVerboseLogging>
+</PropertyGroup>
+```
 
-- **Zero allocations** - No boxing or reflection during parameter binding
-- **Compile-time validation** - Parameter type mismatches caught at build time
-- **Optimal IL generation** - Generated code produces minimal bytecode
-- **Fast startup** - No runtime discovery or registration overhead
+## Performance benefits
 
-Performance comparison with manual implementations:
+Source generation provides significant performance improvements over reflection-based approaches:
 
-| Scenario | Source Generated | Manual Reflection | Improvement |
-|----------|------------------|-------------------|-------------|
-| Parameter binding | 1.2μs | 15.8μs | 13x faster |
-| Memory allocation | 0 bytes | 120 bytes | Zero allocation |
-| Startup time | +0ms | +50ms | No overhead |
-| IL code size | Minimal | Verbose | 60% smaller |
+### Zero allocations
 
-> [!NOTE]
-> Benchmarks measured with BenchmarkDotNet on .NET 9 with 1000 iterations.
+Generated parameter binding eliminates boxing and reflection overhead:
 
-:::moniker-end
+```csharp
+// Generated code (zero allocations)
+parameters.Add("amount", command.Amount);  // Direct value assignment
 
-## Additional resources
+// Reflection-based approach (multiple allocations)
+var property = typeof(Command).GetProperty("Amount");
+var value = property.GetValue(command);
+parameters.Add("amount", value);  // Boxing occurs here
+```
 
-- [Platform architecture](architecture.md) - Code generation patterns and performance optimization
-- [Database integration](database-integration.md) - Using generated code with database operations
-- [Source generator API reference](https://docs.microsoft.com/dotnet/csharp/roslyn-sdk/source-generators-overview) - .NET source generator concepts
-- [Generator samples](https://github.com/operations-platform/source-generator-samples) - Complete examples and benchmarks
+### Compile-time validation
+
+Parameter names and types are validated at build time:
+
+```csharp
+[DbCommand("nonexistent_procedure")]  // Build error if procedure doesn't exist
+public partial class InvalidCommand : ICommand
+{
+    public UnsupportedType Value { get; init; }  // Build warning for unsupported type
+}
+```
+
+### Optimal IL generation
+
+The generated code produces minimal, efficient bytecode that's identical to hand-written parameter binding.
+
+## Advanced scenarios
+
+### Custom parameter providers
+
+For complex scenarios, implement additional logic in your command class:
+
+```csharp
+[DbCommand("complex_operation")]
+public partial class ComplexCommand : ICommand
+{
+    public string BasicParameter { get; init; } = string.Empty;
+    
+    // Generated AddParameters method is partial, so you can extend it
+    partial void AddParametersCore(DynamicParameters parameters)
+    {
+        // Add computed or transformed parameters
+        parameters.Add("computed_value", BasicParameter.ToUpperInvariant());
+        parameters.Add("current_timestamp", DateTimeOffset.UtcNow);
+    }
+}
+```
+
+### Conditional compilation
+
+Use preprocessor directives to generate different code for different environments:
+
+```csharp
+[DbCommand(
+#if DEBUG
+    "debug_procedure"
+#else
+    "production_procedure"
+#endif
+)]
+public partial class EnvironmentSpecificCommand : ICommand
+{
+    public string Data { get; init; } = string.Empty;
+}
+```
+
+## Troubleshooting
+
+### Common issues
+
+**Missing partial keyword**: Ensure your command class is declared as `partial`:
+```csharp
+// Wrong
+[DbCommand("procedure")]
+public class MyCommand : ICommand { }
+
+// Correct  
+[DbCommand("procedure")]
+public partial class MyCommand : ICommand { }
+```
+
+**Parameter name conflicts**: Use `[Column]` to resolve naming conflicts:
+```csharp
+[DbCommand("user_create")]
+public partial class CreateUserCommand : ICommand
+{
+    [Column("user_name")]  // Avoids conflict with reserved word
+    public string Name { get; init; } = string.Empty;
+}
+```
+
+**Unsupported types**: The generator supports most common types, but complex objects need explicit handling:
+```csharp
+// Unsupported
+public Dictionary<string, object> Data { get; init; }
+
+// Supported with JSON serialization
+[JsonSerialized]
+public MyDataObject Data { get; init; }
+```
+
+### Build output
+
+Check the build output for generator messages:
+
+```
+DbCommand generator: Processing 5 command classes
+DbCommand generator: Generated ICreateCashierCommandHandler
+DbCommand generator: Generated CreateCashierCommand.g.cs
+```
+
+## See also
+
+- [Database integration](database-integration.md)
+- [Platform architecture](architecture.md)
+- [.NET Source Generators documentation](https://docs.microsoft.com/dotnet/csharp/roslyn-sdk/source-generators-overview)

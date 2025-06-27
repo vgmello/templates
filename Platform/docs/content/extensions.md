@@ -1,114 +1,194 @@
----
-title: Platform Extensions
-description: Extension methods that provide production-ready infrastructure for .NET microservices with minimal configuration.
----
-
 # Platform extensions
 
-Extension methods that configure logging, messaging, health checks, and API capabilities for .NET microservices. You get production-ready infrastructure with a few method calls instead of hundreds of lines of boilerplate configuration.
+Platform extensions provide production-ready infrastructure for .NET microservices through extension methods that configure logging, messaging, health checks, and API capabilities. Instead of writing hundreds of lines of boilerplate setup code, you can get a fully configured microservice with just a few method calls.
 
-:::moniker range=">= operations-1.0"
+## Getting started with service defaults
 
-## Concept
+The foundation of any Platform-based service starts with `AddServiceDefaults()`. This single method call configures the essential infrastructure that every microservice needs:
 
-Platform extensions eliminate infrastructure setup complexity by providing opinionated defaults for microservice concerns. Each extension method configures multiple related services with consistent patterns across your entire system.
+```csharp
+var builder = WebApplication.CreateBuilder(args);
+builder.AddServiceDefaults();
 
-The extensions follow composition patterns where you build up capabilities:
-- Start with `AddServiceDefaults()` for core infrastructure
-- Add `AddApiServiceDefaults()` for web APIs
-- Include messaging, validation, or custom features as needed
+var app = builder.Build();
+await app.RunAsync();
+```
 
-## End-to-end example
-
-:::code language="csharp" source="~/samples/extensions/CompleteService.cs" id="complete_setup" highlight="3-4,8-10":::
-
-> [!TIP]
-> The `AddServiceDefaults()` call configures logging, OpenTelemetry, health checks, and messaging in one line.
-
-This example sets up:
+This automatically sets up:
 - Structured logging with Serilog
-- OpenTelemetry metrics and distributed tracing
-- Health checks with Kubernetes endpoints
+- OpenTelemetry for distributed tracing and metrics
+- Health checks with Kubernetes-ready endpoints
 - Wolverine messaging with PostgreSQL transport
-- OpenAPI documentation with Scalar UI
-- gRPC auto-discovery
+- Service discovery for .NET Aspire
 
-## Targets and scopes
+## Building web APIs
 
-Platform extensions target these service builder types:
+For services that expose HTTP endpoints, add API capabilities on top of the service defaults:
 
-| Extension | Target | Configures |
-|-----------|--------|------------|
-| `AddServiceDefaults()` | `WebApplicationBuilder` | Logging, telemetry, messaging, health checks |
-| `AddApiServiceDefaults()` | `WebApplicationBuilder` | Controllers, OpenAPI, gRPC, validation |
-| `ConfigureApiUsingDefaults()` | `WebApplication` | Middleware pipeline, endpoints |
-| `MapGrpcServices()` | `WebApplication` | gRPC service auto-discovery |
-| `MapDefaultHealthCheckEndpoints()` | `WebApplication` | Health check endpoints |
+```csharp
+var builder = WebApplication.CreateBuilder(args);
+builder.AddServiceDefaults();
+builder.AddApiServiceDefaults();
 
-### Service infrastructure scope
+var app = builder.Build();
+app.ConfigureApiUsingDefaults();
+app.MapDefaultHealthCheckEndpoints();
 
-The `AddServiceDefaults()` extension configures:
+await app.RunAsync();
+```
 
-:::code language="csharp" source="~/samples/extensions/ServiceScope.cs" id="service_defaults_scope":::
+The `AddApiServiceDefaults()` extension configures:
+- MVC controllers with automatic model validation
+- OpenAPI documentation with XML comment integration
+- gRPC services with automatic discovery
+- Problem Details (RFC 7807) for consistent error responses
+- Authentication and authorization infrastructure
 
-### API infrastructure scope
+## Configuring the middleware pipeline
 
-The `AddApiServiceDefaults()` extension adds:
+The `ConfigureApiUsingDefaults()` method sets up an optimized middleware pipeline that adapts to your environment:
 
-:::code language="csharp" source="~/samples/extensions/ApiScope.cs" id="api_defaults_scope":::
+```csharp
+app.ConfigureApiUsingDefaults();
+```
 
-## Customization
+In development, this provides:
+- OpenAPI endpoints at `/openapi/v1.json`
+- Interactive documentation with Scalar UI
+- gRPC reflection for testing tools
+- Detailed error pages with stack traces
 
-### Custom service configuration
+In production, it enables:
+- HTTPS enforcement with HSTS headers
+- Global exception handling
+- Request logging and correlation
+- Security headers
 
-Override defaults through configuration or options patterns:
+## Health check endpoints
 
-:::code language="csharp" source="~/samples/extensions/CustomConfiguration.cs" id="custom_config":::
+Platform services expose three health check endpoints optimized for different monitoring scenarios:
 
-### Custom middleware pipeline
+```csharp
+app.MapDefaultHealthCheckEndpoints();
+```
 
-Insert middleware into the default pipeline:
+This creates:
+- `/status` - Lightweight liveness check for load balancers
+- `/health/internal` - Detailed readiness check (localhost only)
+- `/health` - Comprehensive health status (requires authentication)
 
-:::code language="csharp" source="~/samples/extensions/CustomMiddleware.cs" id="custom_middleware":::
+The endpoints are designed for Kubernetes probes and provide different levels of detail based on the monitoring requirements.
 
-### Custom health checks
+## gRPC service discovery
 
-Add application-specific health checks:
+gRPC services are automatically discovered and registered without manual configuration:
 
-:::code language="csharp" source="~/samples/extensions/CustomHealthChecks.cs" id="custom_health":::
+```csharp
+app.MapGrpcServices();
+```
 
-> [!WARNING]
-> Custom middleware must be added after `ConfigureApiUsingDefaults()` to maintain proper ordering.
+This scans the entry assembly for classes with the `BindServiceMethodAttribute` (generated by Protocol Buffers) and registers them automatically. You can also specify assemblies explicitly:
 
-### Authentication configuration
+```csharp
+app.MapGrpcServices(typeof(BillingService).Assembly);
+```
 
-Configure authentication requirements:
+## Message handling with Wolverine
 
-:::code language="csharp" source="~/samples/extensions/AuthConfiguration.cs" id="auth_config":::
+For services that process commands and events, add Wolverine messaging:
 
-## Performance considerations
+```csharp
+var builder = WebApplication.CreateBuilder(args);
+builder.AddServiceDefaults();
+builder.AddWolverine(connectionString);
 
-Platform extensions optimize for production workloads:
+var app = builder.Build();
+await app.RunAsync();
+```
 
-- **Connection pooling** - Npgsql pools configured for high concurrency
-- **Prepared statements** - Database commands use prepared statements when possible
-- **Batched telemetry** - OpenTelemetry exports are batched to reduce overhead
-- **Efficient serialization** - System.Text.Json with source generators
+This configures:
+- CQRS command and query handling
+- PostgreSQL-based message transport
+- Transactional outbox pattern for reliable messaging
+- Dead letter handling and retry policies
+- Health checks for message processing
 
-Typical overhead compared to manual configuration:
-- Service registration: ~2ms additional startup time
-- Request processing: <1% performance impact
-- Memory usage: ~5MB additional for telemetry and validation
+## Validation with FluentValidation
 
-> [!NOTE]
-> Performance measurements taken with .NET 9 on production-equivalent hardware.
+The platform automatically discovers and registers validators across your domain assemblies:
 
-:::moniker-end
+```csharp
+builder.AddValidators();
+```
 
-## Additional resources
+This uses the `DomainAssemblyAttribute` to find validators in referenced assemblies, ensuring consistent validation patterns across service boundaries.
 
-- [Platform architecture](architecture.md) - Core design principles and patterns
-- [API development](api/overview.md) - Building REST and gRPC services
-- [Database integration](database-integration.md) - High-performance data access
-- [Messaging patterns](messaging/overview.md) - Event-driven architecture
-- [Extension samples](https://github.com/operations-platform/extension-samples) - Complete usage examples
+## Customizing service configuration
+
+You can override defaults through configuration or options patterns:
+
+```csharp
+builder.AddServiceDefaults(configureOptions: options =>
+{
+    options.ServiceName = "CustomService";
+    options.EnableDetailedMetrics = true;
+});
+```
+
+For API services, you can control authentication requirements:
+
+```csharp
+builder.AddApiServiceDefaults(requireAuth: false); // For public APIs
+```
+
+## Database integration
+
+Platform extensions integrate seamlessly with the database layer:
+
+```csharp
+var builder = WebApplication.CreateBuilder(args);
+builder.AddServiceDefaults();
+builder.Services.AddNpgsqlDataSource(connectionString);
+
+var app = builder.Build();
+await app.RunAsync();
+```
+
+This automatically:
+- Configures connection pooling with optimal settings
+- Registers health checks for database connectivity
+- Enables distributed tracing for database operations
+- Sets up prepared statement caching
+
+## Environment-specific behavior
+
+Extensions adapt their behavior based on the hosting environment. In development, you get rich debugging tools and detailed error information. In production, the focus shifts to security, performance, and operational monitoring.
+
+The extensions use standard .NET configuration patterns, so you can control behavior through `appsettings.json`:
+
+```json
+{
+  "ServiceDefaults": {
+    "ServiceName": "MyService",
+    "EnableMetrics": true,
+    "HealthCheckTimeout": "00:00:30"
+  }
+}
+```
+
+## Observability integration
+
+All Platform extensions include comprehensive observability:
+
+- **Logs** are structured with correlation IDs and contextual information
+- **Metrics** track request rates, error rates, and performance
+- **Traces** follow requests across service boundaries automatically
+
+This works out of the box with any OpenTelemetry-compatible observability platform.
+
+## See also
+
+- [Platform architecture](architecture.md)
+- [Database integration](database-integration.md)
+- [API development guide](api/overview.md)
+- [Messaging patterns](messaging/overview.md)
