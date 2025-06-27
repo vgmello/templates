@@ -1,185 +1,177 @@
-# OpenAPI Documentation - Getting Started
+---
+title: OpenAPI & XML Documentation
+description: Learn how to enhance your OpenAPI documentation with automatic response types and rich XML comments.
+---
 
-This guide covers the OpenAPI documentation features in the Operations platform.
+# OpenAPI & XML documentation
 
-## Overview
+The `Operations.ServiceDefaults.Api` project provides powerful features to improve your OpenAPI documentation, making it more accurate and descriptive with minimal effort.
 
-The Operations platform provides comprehensive OpenAPI documentation support through built-in transformers, XML documentation integration, and automatic response type generation.
+## Automatic success response types
 
-## Quick Start
+When you build APIs, it's crucial to document the expected responses for each endpoint. The `AutoProducesResponseTypeConvention` automatically adds a `[ProducesResponseType]` attribute to your controller actions that return an `ActionResult<T>`.
 
-### Basic Setup
+This convention inspects your actions and, if no existing success (2xx) response attribute is found, it infers the response type from the `T` in `ActionResult<T>`. This saves you from manually decorating every action, ensuring your OpenAPI specification is always in sync with your code.
 
-```csharp
-var builder = WebApplication.CreateBuilder(args);
+It uses a special, non-standard status code (`-299`) as a marker. This marker is later processed by the `XmlDocumentationOperationTransformer` to replace it with the correct 200 (OK) status code and description from your XML comments.
 
-// Add service defaults (includes OpenAPI)
-builder.AddServiceDefaults();
+### How it works
 
-// Add controllers
-builder.Services.AddControllers();
+1.  The convention scans all controller actions.
+2.  It checks if an action returns `Task<ActionResult<T>>`, `ValueTask<ActionResult<T>>`, or `ActionResult<T>`.
+3.  If no `[ProducesResponseType]` for a 2xx status code is already present, it adds one using the type `T` and the special `-299` status code.
 
-var app = builder.Build();
+This process is entirely automatic when you use `AddOpenApiWithXmlDocSupport()`.
 
-// Map OpenAPI endpoints
-app.MapOpenApi();
+## Rich documentation from XML comments
 
-// Optional: Add Swagger UI
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwaggerUI(options =>
-    {
-        options.SwaggerEndpoint("/openapi/v1.json", "Operations API v1");
-    });
-}
+Beyond automatic response types, the system integrates deeply with your XML documentation comments to enrich the OpenAPI output. By enabling XML documentation in your project, you can add detailed descriptions, summaries, and examples to your actions, parameters, and schemas.
 
-app.Run();
-```
+### Setup
 
-### XML Documentation
+To enable this feature, you need to:
 
-Enable XML documentation in your project file:
+1.  **Enable XML documentation** in your `.csproj` file:
 
-```xml
-<Project Sdk="Microsoft.NET.Sdk.Web">
-  <PropertyGroup>
-    <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <DocumentationFile>bin\$(Configuration)\$(TargetFramework)\$(AssemblyName).xml</DocumentationFile>
-  </PropertyGroup>
-</Project>
-```
+    ```xml
+    <PropertyGroup>
+      <GenerateDocumentationFile>true</GenerateDocumentationFile>
+      <NoWarn>$(NoWarn);1591</NoWarn>
+    </PropertyGroup>
+    ```
 
-## Features
+2.  **Register the services** in your `Program.cs`:
 
-### Automatic Response Types
+    [!code-csharp[](~/samples/api-service/Program.cs?highlight=6)]
 
-Controllers automatically generate appropriate response types:
+### How it works
 
-```csharp
-[ApiController]
-[Route("api/[controller]")]
-public class CashiersController : ControllerBase
-{
-    /// <summary>
-    /// Creates a new cashier
-    /// </summary>
-    /// <param name="command">The cashier creation command</param>
-    /// <returns>The created cashier</returns>
-    [HttpPost]
-    public async Task<ActionResult<CashierResponse>> CreateCashier(CreateCashierCommand command)
-    {
-        // Implementation
-    }
-}
-```
+The `AddOpenApiWithXmlDocSupport` extension method registers several key components:
 
-### XML Documentation Integration
+-   **`XmlDocumentationService`**: A singleton service that parses and caches all the XML documentation files from your application's assemblies.
+-   **Transformers**: A set of `IDocument`, `IOperation`, and `ISchema` transformers that read the cached XML comments and apply them to the corresponding OpenAPI elements.
+    -   `XmlDocumentationDocumentTransformer`: Adds descriptions to tags (controllers).
+    -   `XmlDocumentationOperationTransformer`: Adds summaries and remarks to operations (actions) and replaces the `-299` status code with a proper 200 OK response from your `<response>` tags.
+    -   `XmlDocumentationSchemaTransformer`: Adds descriptions and examples to schemas and their properties.
 
-The platform automatically incorporates XML documentation comments into the OpenAPI specification:
+## Usage example
 
-```csharp
-/// <summary>
-/// Retrieves a cashier by ID
-/// </summary>
-/// <param name="id">The unique identifier of the cashier</param>
-/// <returns>The cashier details</returns>
-/// <response code="200">Returns the cashier</response>
-/// <response code="404">If the cashier is not found</response>
-[HttpGet("{id}")]
-[ProducesResponseType<CashierResponse>(StatusCodes.Status200OK)]
-[ProducesResponseType(StatusCodes.Status404NotFound)]
-public async Task<ActionResult<CashierResponse>> GetCashier(Guid id)
-{
-    // Implementation
-}
-```
+By combining XML comments with the automated conventions, you can produce a rich and accurate OpenAPI specification.
 
-### Custom Transformers
+Consider the following controller action:
 
-The platform includes several built-in transformers:
+[!code-csharp[](~/samples/api-service/Controllers/WeatherForecastController.cs?name=controller)]
 
-- **XmlDocumentationDocumentTransformer**: Applies XML documentation to the OpenAPI document
-- **XmlDocumentationOperationTransformer**: Applies XML documentation to operations
-- **XmlDocumentationSchemaTransformer**: Applies XML documentation to schemas
+And the corresponding `WeatherForecast` model:
 
-## Configuration
+[!code-csharp[](~/samples/api-service/WeatherForecast.cs)]
 
-### OpenAPI Options
+When the OpenAPI documentation is generated, it will automatically include:
+-   The summary and remarks for the `GET` endpoint.
+-   A 200 OK response with the description from the `<response>` tag.
+-   The description for the `WeatherForecast` schema and its properties.
 
-```csharp
-builder.Services.Configure<OpenApiOptions>(options =>
-{
-    options.AddDocumentTransformer<XmlDocumentationDocumentTransformer>();
-    options.AddOperationTransformer<XmlDocumentationOperationTransformer>();
-    options.AddSchemaTransformer<XmlDocumentationSchemaTransformer>();
-});
-```
+## XML documentation service
 
-### Document Information
+The `XmlDocumentationService` is the core component responsible for parsing and providing access to your XML documentation comments. It's registered as a singleton service and exposes the `IXmlDocumentationService` interface.
 
-```csharp
-builder.Services.ConfigureOpenApi(options =>
-{
-    options.Info = new OpenApiInfo
-    {
-        Title = "Operations API",
-        Version = "v1",
-        Description = "Operations platform API documentation",
-        Contact = new OpenApiContact
-        {
-            Name = "Operations Team",
-            Email = "team@operations.com"
-        }
-    };
-});
-```
+### Loading documentation
 
-## Best Practices
+The service can load an XML documentation file asynchronously with the `LoadDocumentationAsync` method. It reads the file, parses the XML, and stores the documentation for each member (types, methods, properties) in an in-memory cache.
 
-1. **Comprehensive Documentation**: Include detailed XML comments for all public APIs
-2. **Response Types**: Use `ProducesResponseType` attributes for all possible responses
-3. **Parameter Documentation**: Document all parameters, especially complex types
-4. **Examples**: Include request/response examples where helpful
-5. **Error Handling**: Document all error scenarios and status codes
+### Retrieving documentation
 
-## Advanced Features
+Once loaded, you can retrieve the documentation for a specific code element using methods like:
+-   `GetMethodDocumentation(MethodInfo)`
+-   `GetTypeDocumentation(Type)`
+-   `GetPropertyDocumentation(PropertyInfo)`
 
-### Custom Response Types
+These methods return an `XmlDocumentationInfo` object, which contains the parsed summary, remarks, parameters, responses, and example text.
 
-```csharp
-/// <summary>
-/// Updates a cashier
-/// </summary>
-/// <param name="id">The cashier ID</param>
-/// <param name="command">The update command</param>
-/// <returns>The updated cashier</returns>
-/// <response code="200">Cashier updated successfully</response>
-/// <response code="400">Invalid request data</response>
-/// <response code="404">Cashier not found</response>
-[HttpPut("{id}")]
-[ProducesResponseType<CashierResponse>(StatusCodes.Status200OK)]
-[ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
-[ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
-public async Task<ActionResult<CashierResponse>> UpdateCashier(Guid id, UpdateCashierCommand command)
-{
-    // Implementation
-}
-```
+### Caching
 
-### Tags and Grouping
+The parsed documentation is cached in a `ConcurrentDictionary` for fast retrieval. The cache is cleared when `ClearCache()` is called, which typically happens after a request in the `OpenApiCachingMiddleware` to ensure documentation is up-to-date during development.
 
-```csharp
-[ApiController]
-[Route("api/[controller]")]
-[Tags("Cashiers")]
-public class CashiersController : ControllerBase
-{
-    // Controller actions
-}
-```
+## Enriching OpenAPI schema
 
-## See Also
+The `OpenApiDocExtensions` class provides extension methods to enrich your OpenAPI schema with information from the XML documentation.
 
-- [XML Documentation](xml-documentation.md)
-- [Transformers](transformers.md)
-- [API Overview](../overview.md)
+### Converting types
+
+The `ConvertToOpenApiType` method converts a string value to its corresponding `IOpenApiPrimitive` type. This is used to set the `Example` field in the OpenAPI schema.
+
+### Enriching with XML documentation
+
+The `EnrichWithXmlDocInfo` method takes an `OpenApiSchema` and an `XmlDocumentationInfo` object and enriches the schema with the summary, remarks, and example from the XML documentation.
+
+## Adding OpenAPI with XML documentation support
+
+The `AddOpenApiWithXmlDocSupport` extension method is the easiest way to add OpenAPI to your application with XML documentation support. It registers the `XmlDocumentationService`, the OpenAPI transformers, and the `AutoProducesResponseTypeConvention`.
+
+## Document transformers
+
+The `XmlDocumentationDocumentTransformer` enriches the OpenAPI document with information from the assembly and XML documentation.
+
+### Enriching tags
+
+The transformer enriches the tags in the OpenAPI document with the summary and remarks from the XML documentation of the corresponding controller.
+
+### Enriching document info
+
+The transformer enriches the document info with the company and copyright information from the assembly.
+
+### Adding metadata
+
+The transformer adds the assembly version to the OpenAPI document.
+
+## Operation transformers
+
+The `XmlDocumentationOperationTransformer` enriches the operations in the OpenAPI document with information from the XML documentation.
+
+### Enriching operations
+
+The transformer enriches the operations with the summary, remarks, and operation ID from the XML documentation.
+
+### Enriching parameters
+
+The transformer enriches the parameters with the description and example from the XML documentation.
+
+### Enriching responses
+
+The transformer enriches the responses with the description from the XML documentation.
+
+## Schema transformers
+
+The `XmlDocumentationSchemaTransformer` is responsible for enriching the OpenAPI schemas of your data models with information from your XML documentation comments.
+
+### Enriching schemas
+
+For each type, the transformer fetches the corresponding XML documentation and applies the summary, remarks, and example to the schema's description and example fields.
+
+### Enriching properties
+
+The transformer iterates through each property of a schema and applies the XML documentation from the corresponding class property. It correctly handles property names that are customized with the `[JsonPropertyName]` attribute.
+
+Additionally, it adds type-specific information:
+-   **Nullable types**: It correctly marks properties of nullable types (e.g., `string?`, `int?`) as `nullable: true` in the OpenAPI schema.
+-   **Enums**: It populates the `enum` field of the schema with the names of the enum members.
+
+## Caching for performance
+
+To improve the performance of your development environment, the `OpenApiCachingMiddleware` is included when you use `ConfigureApiUsingDefaults`. This middleware intercepts requests to your OpenAPI endpoint (e.g., `/openapi/v1.json`) and caches the generated JSON or YAML document on disk.
+
+### How it works
+
+1.  **Request Interception**: The middleware checks if an incoming request is for an OpenAPI document.
+2.  **Cache Check**: It generates a cache key based on the request path and checks if a corresponding cached file exists.
+3.  **Serve from Cache**: If a valid cache file is found, it serves the document directly from the disk, using `ETag` and `Last-Modified` headers for efficient browser caching. This avoids re-generating the document on every request.
+4.  **Generate and Cache**: If no cache file exists, it executes the request pipeline to generate the OpenAPI document, saves the response to a cache file in a temporary directory, and then serves it to the client.
+
+This caching mechanism significantly speeds up the load times of tools like Scalar and Swagger UI during development.
+
+> [!NOTE]
+> The `OpenApiCachingMiddleware` is only active in the development environment.
+
+## See also
+
+-   [API Service Defaults](./service-defaults.md)

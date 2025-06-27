@@ -1,3 +1,8 @@
+---
+title: Endpoint Filters
+description: Learn about endpoint filters in the Operations platform, including built-in filters and creating custom filters.
+---
+
 # Endpoint Filters
 
 This guide covers endpoint filters in the Operations platform, including built-in filters and creating custom filters.
@@ -487,6 +492,6 @@ public async Task CashierEndpoint_WithFilters_WorksCorrectly()
 
 ## See Also
 
-- [API Overview](overview.md)
-- [OpenAPI Documentation](openapi/overview.md)
-- [Service Defaults](../architecture/service-defaults.md)
+- [Service Defaults](../../architecture/service-defaults.md)
+- [OpenAPI Documentation](../openapi/overview.md)
+- [gRPC Integration](grpc.md)

@@ -51,5 +51,5 @@ To apply the default configurations, call `AddApiServiceDefaults` on your `WebAp
 
 ## See also
 
--   [OpenAPI & XML Documentation](./openapi.md)
+-   [OpenAPI & XML Documentation](./openapi/overview.md)
 -   [gRPC Services](./grpc.md)

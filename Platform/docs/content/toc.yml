@@ -1,5 +1,3 @@
-- name: Platform Documentation
-  href: overview.md
 - name: Architecture
   href: architecture/
   items:
@@ -8,23 +6,7 @@
   - name: Service Defaults
     href: architecture/service-defaults.md
 - name: API
-  href: api/
-  items:
-  - name: Overview
-    href: api/overview.md
-  - name: OpenAPI Documentation
-    href: api/openapi/
-    items:
-    - name: Getting Started
-      href: api/openapi/overview.md
-    - name: XML Documentation
-      href: api/openapi/xml-documentation.md
-    - name: Transformers
-      href: api/openapi/transformers.md
-  - name: gRPC Integration
-    href: api/grpc-integration.md
-  - name: Endpoint Filters
-    href: api/endpoint-filters.md
+  href: api/toc.yml
 - name: Database Integration
   href: database-integration/
   items:
