@@ -5,11 +5,12 @@ import type { Invoice } from '../../app';
  * Client-side state management for invoices
  */
 class InvoiceStore {
+	// Public reactive state using class properties
 	invoices = $state<Invoice[]>([]);
 	selectedInvoice = $state<Invoice | null>(null);
-	searchTerm = $state('');
-	statusFilter = $state('');
-	errorMessage = $state.raw<string | null>(null); // Use $state.raw for non-reactive error messages
+	searchTerm = $state<string>('');
+	statusFilter = $state<string>('');
+	error = $state.raw<string | null>(null); // Use $state.raw for non-reactive error messages
 
 	// Computed properties using $derived runes - Svelte 5 best practice
 	filteredInvoices = $derived.by(() => {
@@ -57,7 +58,7 @@ class InvoiceStore {
 	// Actions for initializing from SSR data
 	initializeInvoices(invoices: Invoice[]): void {
 		this.invoices = $state.snapshot(invoices || []);
-		this.errorMessage = null;
+		this.error = null;
 	}
 
 	initializeSelectedInvoice(invoice: Invoice | null): void {
@@ -82,11 +83,11 @@ class InvoiceStore {
 	}
 
 	setError(message: string | null): void {
-		this.errorMessage = message;
+		this.error = message;
 	}
 
 	clearError(): void {
-		this.errorMessage = null;
+		this.error = null;
 	}
 
 	// Method to update store after successful server operations

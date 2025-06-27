@@ -24,21 +24,23 @@
 
 	// Real-time validation using $derived - Svelte 5 best practice
 	const nameValidation = $derived.by(() => {
-		if (!name.trim()) {
+		const trimmedName = String(name || '').trim();
+		if (!trimmedName) {
 			return { isValid: false, message: 'Invoice name is required' };
 		}
-		if (name.trim().length < 2) {
+		if (trimmedName.length < 2) {
 			return { isValid: false, message: 'Invoice name must be at least 2 characters' };
 		}
-		if (name.trim().length > 100) {
+		if (trimmedName.length > 100) {
 			return { isValid: false, message: 'Invoice name must be less than 100 characters' };
 		}
 		return { isValid: true, message: '' };
 	});
 
 	const amountValidation = $derived.by(() => {
-		const numAmount = parseFloat(amount);
-		if (!amount.trim()) {
+		const amountStr = String(amount || '').trim();
+		const numAmount = parseFloat(amountStr);
+		if (!amountStr) {
 			return { isValid: false, message: 'Amount is required' };
 		}
 		if (isNaN(numAmount) || numAmount <= 0) {
@@ -132,9 +134,9 @@
 						bind:value={name}
 						required
 						disabled={isSubmitting}
-						class={!nameValidation.isValid && name.trim() ? 'border-destructive' : ''}
+						class={!nameValidation.isValid && String(name || '').trim() ? 'border-destructive' : ''}
 					/>
-					{#if !nameValidation.isValid && name.trim()}
+					{#if !nameValidation.isValid && String(name || '').trim()}
 						<p class="text-sm text-destructive">{nameValidation.message}</p>
 					{:else}
 						<p class="text-sm text-muted-foreground">
@@ -156,9 +158,9 @@
 						bind:value={amount}
 						required
 						disabled={isSubmitting}
-						class={!amountValidation.isValid && amount.trim() ? 'border-destructive' : ''}
+						class={!amountValidation.isValid && String(amount || '').trim() ? 'border-destructive' : ''}
 					/>
-					{#if !amountValidation.isValid && amount.trim()}
+					{#if !amountValidation.isValid && String(amount || '').trim()}
 						<p class="text-sm text-destructive">{amountValidation.message}</p>
 					{:else}
 						<p class="text-sm text-muted-foreground">
@@ -243,7 +245,7 @@
 				</div>
 				
 				<!-- Form validity indicator -->
-				{#if !isFormValid && (name.trim() || amount.trim() || dueDate)}
+				{#if !isFormValid && (String(name || '').trim() || String(amount || '').trim() || dueDate)}
 					<div class="text-sm text-muted-foreground text-center mt-2">
 						Please fix the validation errors above to continue
 					</div>

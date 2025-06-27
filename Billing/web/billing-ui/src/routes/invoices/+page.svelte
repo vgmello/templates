@@ -127,9 +127,9 @@
 	</div>
 
 	<!-- Error Message -->
-	{#if invoiceStore.errorMessage}
+	{#if invoiceStore.error}
 		<div class="bg-destructive/15 text-destructive px-4 py-3 rounded-md mb-6">
-			{invoiceStore.errorMessage}
+			{invoiceStore.error}
 			<Button variant="ghost" size="sm" onclick={() => invoiceStore.clearError()} class="ml-2">
 				Dismiss
 			</Button>
