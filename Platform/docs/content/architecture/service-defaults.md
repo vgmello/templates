@@ -12,7 +12,7 @@ Service Defaults provides a single method to configure all the common infrastruc
 
 Add Service Defaults to any web application with a single call:
 
-[!code-csharp[](~/samples/service-defaults/QuickStart.cs)]
+[!code-csharp[](~/samples/service-defaults/ServiceDefaultsSetup.cs#ServiceDefaultsConfiguration)]
 
 This one line configures:
 - **Structured logging** with Serilog
@@ -39,7 +39,7 @@ The logging configuration includes:
 ### OpenTelemetry integration  
 Comprehensive observability is set up automatically:
 
-[!code-csharp[](~/samples/service-defaults/OpenTelemetrySetup.cs)]
+[!code-csharp[](~/samples/service-defaults/ServiceDefaultsSetup.cs#ServiceDefaultsConfiguration)]
 
 OpenTelemetry provides:
 - Distributed tracing across service boundaries
@@ -136,12 +136,12 @@ While Service Defaults provides sensible defaults, you can customize specific ar
 ### Custom logging configuration
 Override specific logging settings after calling `AddServiceDefaults`:
 
-[!code-csharp[](~/samples/service-defaults/CustomLogging.cs)]
+[!code-csharp[](~/samples/service-defaults/CustomConfiguration.cs#CustomLogging)]
 
 ### Additional OpenTelemetry sources
 Add custom tracing sources and metrics:
 
-[!code-csharp[](~/samples/service-defaults/CustomTelemetry.cs)]
+[!code-csharp[](~/samples/service-defaults/CustomConfiguration.cs#CustomTelemetry)]
 
 ### Extended Wolverine configuration
 Configure additional Wolverine features:

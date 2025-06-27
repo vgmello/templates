@@ -12,7 +12,7 @@ The Platform Extensions provide essential utility libraries that form the founda
 
 Use Platform extensions to write more expressive and type-safe code:
 
-[!code-csharp[](~/samples/extensions/QuickStart.cs)]
+[!code-csharp[](~/samples/extensions/ResultPattern.cs#ResultUsage)]
 
 The extensions provide:
 - **Result pattern** for error handling without exceptions
@@ -26,7 +26,7 @@ The extensions provide:
 ### Type-safe error handling
 Handle success and failure scenarios explicitly:
 
-[!code-csharp[](~/samples/extensions/ResultPattern.cs)]
+[!code-csharp[](~/samples/extensions/ResultPattern.cs#ResultUsage)]
 
 Result benefits:
 - **Explicit error handling** without exceptions
@@ -37,7 +37,7 @@ Result benefits:
 ### Validation integration
 Seamlessly integrate with FluentValidation:
 
-[!code-csharp[](~/samples/extensions/ValidationIntegration.cs)]
+[!code-csharp[](~/samples/extensions/ResultPattern.cs#ValidationIntegration)]
 
 Validation features:
 - **Automatic conversion** from ValidationResult
@@ -48,7 +48,7 @@ Validation features:
 ### Pattern matching
 Use pattern matching for clean error handling:
 
-[!code-csharp[](~/samples/extensions/PatternMatching.cs)]
+[!code-csharp[](~/samples/extensions/ResultPattern.cs#PatternMatching)]
 
 Pattern matching provides:
 - **Readable code** for handling different outcomes
@@ -61,7 +61,7 @@ Pattern matching provides:
 ### Case conversion utilities
 Efficient string case conversion for database and API conventions:
 
-[!code-csharp[](~/samples/extensions/CaseConversion.cs)]
+[!code-csharp[](~/samples/extensions/StringExtensions.cs#CaseConversion)]
 
 Case conversion features:
 - **snake_case** conversion for database columns

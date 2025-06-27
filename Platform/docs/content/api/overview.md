@@ -12,7 +12,7 @@ The Platform provides comprehensive API development capabilities, combining REST
 
 Set up a complete API service with just a few lines:
 
-[!code-csharp[](~/samples/api/QuickStart.cs)]
+[!code-csharp[](~/samples/api/ApiSetup.cs)]
 
 This setup provides:
 - **REST API controllers** with automatic model binding
@@ -27,7 +27,7 @@ This setup provides:
 ### Automatic OpenAPI generation
 Your controllers automatically generate comprehensive OpenAPI documentation:
 
-[!code-csharp[](~/samples/api/OpenApiController.cs)]
+[!code-csharp[](~/samples/api/OpenApiController.cs#OpenApiController)]
 
 The Platform automatically generates:
 - Request/response schemas

@@ -12,7 +12,7 @@ The Platform provides a comprehensive messaging foundation built on Wolverine, e
 
 Enable messaging in your application with built-in reliability and observability:
 
-[!code-csharp[](~/samples/messaging/QuickStart.cs)]
+[!code-csharp[](~/samples/service-defaults/ServiceDefaultsSetup.cs#ServiceDefaultsConfiguration)]
 
 This setup provides:
 - **CQRS command and query handling** with automatic discovery
@@ -27,7 +27,8 @@ This setup provides:
 ### Command and Query Separation (CQRS)
 Separate commands (write operations) from queries (read operations):
 
-[!code-csharp[](~/samples/messaging/CqrsPattern.cs)]
+[!code-csharp[](~/samples/messaging/CqrsPattern.cs#CommandDefinition)]
+[!code-csharp[](~/samples/messaging/CqrsPattern.cs#QueryDefinition)]
 
 CQRS benefits:
 - **Clear separation** of concerns
@@ -38,7 +39,8 @@ CQRS benefits:
 ### Message handlers
 Implement handlers for commands, queries, and events:
 
-[!code-csharp[](~/samples/messaging/MessageHandlers.cs)]
+[!code-csharp[](~/samples/messaging/CqrsPattern.cs#CommandHandler)]
+[!code-csharp[](~/samples/messaging/CqrsPattern.cs#QueryHandler)]
 
 Handler features:
 - **Automatic discovery** via assembly scanning
@@ -49,7 +51,7 @@ Handler features:
 ### Event-driven communication
 Publish events for loosely coupled communication:
 
-[!code-csharp[](~/samples/messaging/EventDrivenCommunication.cs)]
+[!code-csharp[](~/samples/messaging/CqrsPattern.cs#EventDefinition)]
 
 Event benefits:
 - **Loose coupling** between services

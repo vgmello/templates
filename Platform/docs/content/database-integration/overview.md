@@ -12,7 +12,7 @@ The Platform provides a comprehensive database integration layer built on top of
 
 Define a command record and let the Platform generate the database access code:
 
-[!code-csharp[](~/samples/database-integration/QuickStart.cs)]
+[!code-csharp[](~/samples/database-integration/DbCommandExamples.cs#StoredProcedureCommand)]
 
 This simple record generates:
 - **Parameter mapping** method (`ToDbParams()`)
@@ -25,7 +25,8 @@ This simple record generates:
 ### DbCommand attribute
 The `[DbCommand]` attribute configures how your commands interact with the database:
 
-[!code-csharp[](~/samples/database-integration/DbCommandExamples.cs)]
+[!code-csharp[](~/samples/database-integration/DbCommandExamples.cs#SqlQueryCommand)]
+[!code-csharp[](~/samples/database-integration/DbCommandExamples.cs#FunctionCommand)]
 
 Key features:
 - **Stored procedures** with `sp` parameter
@@ -111,12 +112,12 @@ Leverage built-in connection pooling for optimal performance:
 ### Snake case conversion
 Automatically convert C# property names to database conventions:
 
-[!code-csharp[](~/samples/database-integration/SnakeCaseConversion.cs)]
+[!code-csharp[](~/samples/database-integration/DbCommandExamples.cs#SnakeCaseMapping)]
 
 ### Custom column names
 Override automatic naming with explicit column attributes:
 
-[!code-csharp[](~/samples/database-integration/CustomColumnNames.cs)]
+[!code-csharp[](~/samples/database-integration/DbCommandExamples.cs#CustomColumnNames)]
 
 ### Global settings
 Configure default parameter case conversion:
