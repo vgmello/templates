@@ -1,159 +1,153 @@
-# Platform Extensions
+# Platform extensions
 
-The Platform service provides a comprehensive set of extension methods that enable rapid development of .NET microservices with built-in observability, messaging, database integration, and API capabilities. These extensions follow .NET's configuration pattern and provide opinionated defaults while maintaining flexibility for customization.
+Platform extensions provide comprehensive infrastructure for .NET microservices development. You get production-ready observability, messaging, database integration, and API capabilities through standardized extension methods that follow .NET configuration patterns.
 
-## Core Service Configuration
+:::moniker range=">= operations-1.0"
 
-The core service configuration extensions provide the foundation for all Platform-based services, establishing consistent patterns for logging, observability, messaging, and service discovery.
+## Concept
+
+Platform extensions eliminate infrastructure setup complexity by providing opinionated defaults for common microservice concerns. Instead of configuring dozens of services manually, you add extension methods that handle logging, health checks, messaging, and API development with consistent patterns across your entire system.
+
+The extensions follow these principles:
+
+- **Configuration over code** - Settings drive behavior, not hardcoded values
+- **Composition-friendly** - Extensions work together seamlessly
+- **Environment-aware** - Different behavior for development vs production
+- **Observable by default** - All components emit telemetry automatically
+
+## Example
+
+Here's a complete microservice setup using Platform extensions:
+
+:::code language="csharp" source="~/samples/extensions/CompleteService.cs" highlight="3-4,8-10":::
+
+This example provides:
+- Structured logging with Serilog
+- OpenTelemetry metrics and tracing  
+- Health checks with Kubernetes endpoints
+- Wolverine messaging with PostgreSQL
+- OpenAPI documentation with Scalar UI
+- gRPC services with automatic discovery
+
+> [!TIP]
+> Start with `AddServiceDefaults()` for any service type, then add `AddApiServiceDefaults()` for web APIs or background processing capabilities.
+
+## Core service extensions
+
+Platform extensions are organized into logical groups based on functionality.
 
 ### AddServiceDefaults
 
 Configures essential service infrastructure with production-ready defaults:
 
-```csharp
-var builder = WebApplication.CreateBuilder(args);
-builder.AddServiceDefaults();
+:::code language="csharp" source="~/samples/extensions/ServiceDefaults.cs" id="basic_setup":::
 
-var app = builder.Build();
-await app.RunAsync();
-```
+**Key features:**
+- **Comprehensive setup** - Logging, OpenTelemetry, Wolverine messaging, validators, and health checks
+- **Production ready** - Resilience patterns for HTTP clients and error handling
+- **Service discovery** - Automatic registration with .NET Aspire
+- **Extensible** - Customization options for specific requirements
 
-**Benefits:**
-- **Comprehensive Setup**: Automatically configures logging, OpenTelemetry, Wolverine messaging, validators, health checks, and service discovery
-- **Production Ready**: Includes resilience patterns for HTTP clients and standard error handling
-- **Convention Over Configuration**: Reduces boilerplate while maintaining customization options
-- **Service Discovery**: Automatic registration with .NET Aspire for seamless inter-service communication
-
-**Configuration Options:**
-- Service discovery endpoints
-- Resilience handler policies
-- Health check configurations
-- Wolverine command-line integration
+> [!NOTE]
+> `AddServiceDefaults()` should be the first extension called in any Platform-based service.
 
 ### AddValidators
 
-Automatically discovers and registers FluentValidation validators across domain boundaries:
+Automatically discovers and registers FluentValidation validators:
 
-```csharp
-var builder = WebApplication.CreateBuilder(args);
-builder.AddValidators();
-```
+:::code language="csharp" source="~/samples/extensions/Validators.cs" id="validator_setup":::
 
-**Benefits:**
-- **Auto-Discovery**: Scans entry assembly and domain assemblies for validator types
-- **Domain Boundary Awareness**: Uses `DomainAssemblyAttribute` to discover validators across microservice boundaries
-- **Consistent Validation**: Ensures uniform validation patterns across all services
-- **Performance Optimized**: Single-pass registration with assembly caching
+**Key features:**
+- **Auto-discovery** - Scans assemblies for validator types automatically
+- **Domain boundaries** - Uses `DomainAssemblyAttribute` for cross-service validation
+- **Performance optimized** - Single-pass registration with assembly caching
+- **Consistent patterns** - Uniform validation across all services
 
-### Enhanced Application Runner
+### RunAsync extension
 
-The `RunAsync` extension provides enhanced application lifecycle management:
+Provides enhanced application lifecycle management:
 
-```csharp
-var app = builder.Build();
-await app.RunAsync(); // Enhanced runner with Wolverine integration
-```
+:::code language="csharp" source="~/samples/extensions/EnhancedRunner.cs" id="run_async":::
 
-**Benefits:**
-- **Wolverine Integration**: Handles command-line operations (check-env, codegen, db-apply)
-- **Graceful Shutdown**: Proper resource cleanup and connection management
-- **Exception Handling**: Centralized error handling with observability integration
-- **Development Tools**: Built-in support for code generation and environment validation
+**Key features:**
+- **Wolverine integration** - Command-line operations (check-env, codegen, db-apply)
+- **Graceful shutdown** - Proper resource cleanup and connection management
+- **Exception handling** - Centralized error handling with observability
+- **Development tools** - Code generation and environment validation
 
-## API & Web Configuration
+## API extensions
 
-API extensions provide opinionated defaults for building RESTful APIs and gRPC services with comprehensive documentation and security features.
+API extensions provide opinionated defaults for REST and gRPC services with comprehensive documentation and security.
 
 ### AddApiServiceDefaults
 
 Configures complete API infrastructure for web applications:
 
-```csharp
-var builder = WebApplication.CreateBuilder(args);
-builder.AddServiceDefaults();
-builder.AddApiServiceDefaults();
+:::code language="csharp" source="~/samples/extensions/ApiDefaults.cs" id="api_setup":::
 
-var app = builder.Build();
-app.ConfigureApiUsingDefaults();
-```
+**Key features:**
+- **Complete API stack** - Controllers, OpenAPI, gRPC, authentication, and problem details
+- **Security first** - Optional authentication with proper error handling
+- **Documentation ready** - Automatic OpenAPI with XML documentation
+- **Developer experience** - Rich development tools with Scalar viewer
 
-**Benefits:**
-- **Complete API Stack**: Controllers, OpenAPI, gRPC, authentication, and problem details
-- **Security First**: Optional authentication requirement with proper error handling
-- **Documentation Ready**: Automatic OpenAPI generation with XML documentation support
-- **gRPC Integration**: Seamless REST and gRPC service hosting
-- **Developer Experience**: Rich development tools with Scalar documentation viewer
+:::code language="csharp" source="~/samples/extensions/ApiDefaults.cs" id="auth_config":::
 
-**Configuration Options:**
-```csharp
-builder.AddApiServiceDefaults(requireAuth: true); // Enforce authentication
-```
+> [!WARNING]
+> Set `requireAuth: false` only for public APIs that don't need authentication.
 
 ### ConfigureApiUsingDefaults
 
 Establishes the complete request pipeline with environment-specific optimizations:
 
-```csharp
-app.ConfigureApiUsingDefaults();
-```
+:::code language="csharp" source="~/samples/extensions/ApiPipeline.cs" id="pipeline_config":::
 
-**Benefits:**
-- **Environment Optimization**: Different behaviors for development vs production
-- **Security Headers**: HSTS and security headers in production
-- **Development Tools**: OpenAPI UI, gRPC reflection, and debugging tools
-- **Performance**: Optimized middleware pipeline ordering
-- **Observability**: Integrated request tracking and error monitoring
+**Key features:**
+- **Environment optimization** - Different behaviors for development vs production
+- **Security headers** - HSTS and security headers in production
+- **Development tools** - OpenAPI UI, gRPC reflection, debugging tools
+- **Optimized ordering** - Middleware pipeline for best performance
 
-**Features by Environment:**
-- **Development**: OpenAPI UI, Scalar documentation, gRPC reflection, detailed error pages
-- **Production**: HSTS headers, exception handlers, security optimizations
+**Environment differences:**
+- **Development** - OpenAPI UI, Scalar docs, gRPC reflection, detailed errors
+- **Production** - HSTS headers, exception handlers, security optimizations
 
-## gRPC Service Registration
+## gRPC extensions
 
 Automatic discovery and registration of gRPC services using reflection-based patterns.
 
 ### MapGrpcServices
 
-Automatically discovers and maps gRPC services in assemblies:
+Automatically discovers and maps gRPC services:
 
-```csharp
-// Auto-discover from entry assembly
-app.MapGrpcServices();
+:::code language="csharp" source="~/samples/extensions/GrpcServices.cs" id="grpc_discovery":::
 
-// Discover from specific assembly
-app.MapGrpcServices(typeof(MyService).Assembly);
+**Key features:**
+- **Zero configuration** - Automatic service discovery eliminates manual registration
+- **Reflection-based** - Uses `BindServiceMethodAttribute` for service detection
+- **Assembly boundaries** - Supports discovery across multiple assemblies
+- **Type safety** - Compile-time verification of implementations
 
-// Discover using type marker
-app.MapGrpcServices<MyServiceMarker>();
-```
-
-**Benefits:**
-- **Zero Configuration**: Automatic service discovery eliminates manual registration
-- **Reflection-Based**: Uses `BindServiceMethodAttribute` for precise service detection
-- **Assembly Boundaries**: Supports discovery across multiple assemblies
-- **Type Safety**: Compile-time verification of service implementations
-- **Maintainability**: Services are automatically included without code changes
-
-**Discovery Mechanisms:**
-- Entry assembly scanning
+**Discovery options:**
+- Entry assembly scanning (default)
 - Explicit assembly specification
 - Type marker-based discovery
 - Attribute-based service detection
 
-## Health Checks
+> [!NOTE]
+> gRPC services are discovered using the `BindServiceMethodAttribute` from Protocol Buffers code generation.
 
-The health check extensions implement a three-tier health monitoring strategy optimized for containerized microservices.
+## Health check extensions
+
+Three-tier health monitoring strategy optimized for containerized microservices.
 
 ### MapDefaultHealthCheckEndpoints
 
-Creates standardized health check endpoints with security and performance considerations:
+Creates standardized health check endpoints:
 
-```csharp
-var app = builder.Build();
-app.MapDefaultHealthCheckEndpoints();
-```
+:::code language="csharp" source="~/samples/extensions/HealthChecks.cs" id="health_endpoints":::
 
-**Health Check Endpoints:**
+**Endpoint strategy:**
 
 | Endpoint | Purpose | Access | Response |
 |----------|---------|--------|----------|
@@ -161,12 +155,11 @@ app.MapDefaultHealthCheckEndpoints();
 | `/health/internal` | Readiness probe | Localhost only | Container readiness |
 | `/health` | Detailed status | Authenticated | Full health details |
 
-**Benefits:**
-- **Container Optimized**: Designed for Kubernetes liveness and readiness probes
-- **Security Conscious**: Sensitive health data requires authentication
-- **Performance Aware**: Lightweight endpoints for high-frequency checks
-- **Observability Integration**: Health status tracking and metrics collection
-- **Standards Compliant**: Follows microservice health check best practices
+**Key features:**
+- **Container optimized** - Designed for Kubernetes probes
+- **Security conscious** - Sensitive data requires authentication
+- **Performance aware** - Lightweight endpoints for high-frequency checks
+- **Standards compliant** - Follows microservice best practices
 
 **Response Examples:**
 ```json
@@ -604,14 +597,19 @@ app.MapDefaultHealthCheckEndpoints();
 await app.RunAsync();
 ```
 
-4. **Add Messaging:**
-```csharp
-var builder = WebApplication.CreateBuilder(args);
-builder.AddServiceDefaults();
-builder.AddWolverine(connectionString);
+4. **Add messaging:**
+:::code language="csharp" source="~/samples/extensions/MessagingSetup.cs" id="messaging_config":::
 
-var app = builder.Build();
-await app.RunAsync();
-```
+> [!TIP]
+> Use `builder.AddServiceDefaults()` as the foundation, then layer additional capabilities like APIs, messaging, or background processing.
 
-This extension ecosystem provides a complete foundation for microservices development with observability, messaging, database integration, and API development capabilities built-in, following .NET best practices and industry standards.
+:::moniker-end
+
+## Additional resources
+
+- [Platform architecture](../architecture.md) - Core design principles and patterns
+- [API development](../api/overview.md) - Building REST and gRPC services  
+- [Messaging patterns](../messaging/overview.md) - Event-driven architecture with Wolverine
+- [Database integration](../database-integration.md) - Data access patterns and performance
+- [Source generators](../source-generators/overview.md) - High-performance code generation
+- [Extension samples](https://github.com/operations-platform/extension-samples) - Complete usage examples
