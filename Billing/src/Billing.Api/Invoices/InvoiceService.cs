@@ -1,5 +1,6 @@
 // Copyright (c) ABCDEG. All rights reserved.
 
+using Billing.Api.Invoices.Mappers;
 using Billing.Invoices.Grpc;
 using Billing.Invoices.Commands;
 using Billing.Invoices.Queries;

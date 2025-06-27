@@ -40,5 +40,46 @@ export interface UpdateCashierRequest {
 	currencies?: string[];
 }
 
+// Invoice types
+export interface Invoice {
+	invoiceId: string;
+	name: string;
+	status: string;
+	amount: number;
+	currency: string;
+	dueDate?: string;
+	cashierId?: string;
+	createdDateUtc: string;
+	updatedDateUtc: string;
+	version: number;
+}
+
+export interface CreateInvoiceRequest {
+	name: string;
+	amount: number;
+	currency?: string;
+	dueDate?: string;
+	cashierId?: string;
+}
+
+export interface UpdateInvoiceRequest {
+	name?: string;
+	amount?: number;
+	currency?: string;
+	dueDate?: string;
+	cashierId?: string;
+}
+
+export interface MarkInvoiceAsPaidRequest {
+	amountPaid: number;
+	paymentDate?: string;
+}
+
+export interface SimulatePaymentRequest {
+	amount: number;
+	currency?: string;
+	paymentMethod?: string;
+	paymentReference?: string;
+}
 
 export {};

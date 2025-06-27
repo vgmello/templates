@@ -8,6 +8,10 @@
 		goto('/cashiers');
 	}
 
+	function navigateToInvoices() {
+		goto('/invoices');
+	}
+
 	// Keyboard navigation support
 	function handleKeydown(event: KeyboardEvent, callback: () => void) {
 		if (event.key === 'Enter' || event.key === ' ') {
@@ -57,10 +61,17 @@
 				</div>
 			</Card>
 
-			<Card class="p-6 opacity-60" role="gridcell" aria-label="Invoices module - Coming soon">
+			<Card 
+				class="p-6 hover:shadow-lg transition-shadow cursor-pointer focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2" 
+				role="button"
+				tabindex={0}
+				onkeydown={(e) => handleKeydown(e, navigateToInvoices)}
+				onclick={navigateToInvoices}
+				aria-label="Manage Invoices"
+			>
 				<div class="space-y-4">
 					<div class="flex items-center gap-3">
-						<div class="flex h-10 w-10 items-center justify-center rounded-lg bg-muted text-muted-foreground">
+						<div class="flex h-10 w-10 items-center justify-center rounded-lg bg-primary text-primary-foreground">
 							<FileText class="h-5 w-5" aria-hidden="true" />
 						</div>
 						<h3 class="text-xl font-semibold">Invoices</h3>
@@ -68,8 +79,9 @@
 					<p class="text-sm text-muted-foreground">
 						Create and track invoices for customers.
 					</p>
-					<div class="flex items-center text-muted-foreground text-sm font-medium">
-						<span>Coming Soon</span>
+					<div class="flex items-center text-primary text-sm font-medium">
+						<span>Manage Invoices</span>
+						<ArrowRight class="ml-2 h-4 w-4" aria-hidden="true" />
 					</div>
 				</div>
 			</Card>
