@@ -65,7 +65,8 @@
         "repo": "https://github.com/your-org/platform-operations-service",
         "branch": "main"
       },
-      "_gitUrlPattern": "github"
+      "_gitUrlPattern": "github",
+      "_enableBreadcrumb": true
     },
     "fileMetadata": {
       "_enableSearch": {

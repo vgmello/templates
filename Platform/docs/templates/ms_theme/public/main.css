@@ -414,3 +414,68 @@ table {
 .search-results .search-list a:hover {
     color: var(--link-hover-color);
 }
+
+/* Custom Breadcrumb Navigation Styles */
+.breadcrumb-container {
+    margin-bottom: 1rem;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.breadcrumb {
+    background-color: transparent;
+    padding: 0;
+    margin: 0;
+    font-size: 0.875rem;
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.breadcrumb-item {
+    display: inline-flex;
+    align-items: center;
+}
+
+.breadcrumb-item + .breadcrumb-item::before {
+    content: ">";
+    color: var(--text-color);
+    opacity: 0.6;
+    font-weight: bold;
+    padding: 0 0.5rem;
+}
+
+.breadcrumb-item a {
+    color: var(--main-color);
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.breadcrumb-item a:hover {
+    color: var(--link-hover-color);
+    text-decoration: underline;
+}
+
+.breadcrumb-item.active {
+    color: var(--text-color);
+    opacity: 0.8;
+    font-weight: 500;
+}
+
+.breadcrumb-item .bi-house-door {
+    font-size: 1rem;
+}
+
+.sr-only {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    padding: 0 !important;
+    margin: -1px !important;
+    overflow: hidden !important;
+    clip: rect(0, 0, 0, 0) !important;
+    white-space: nowrap !important;
+    border: 0 !important;
+}

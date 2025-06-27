@@ -1,0 +1,29 @@
+{{!Copyright (c) Microsoft. All rights reserved. Licensed under the MIT license. See LICENSE file in the project root for full license information.}}
+
+<div class="breadcrumb-container">
+  <nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item">
+        <a href="{{_rel}}index.html" title="Home">
+          <i class="bi bi-house-door"></i>
+          <span class="sr-only">Home</span>
+        </a>
+      </li>
+      {{#_breadcrumbPath}}
+      <li class="breadcrumb-item">
+        {{#href}}
+        <a href="{{_rel}}{{href}}" title="{{name}}">{{name}}</a>
+        {{/href}}
+        {{^href}}
+        <span>{{name}}</span>
+        {{/href}}
+      </li>
+      {{/_breadcrumbPath}}
+      {{#_title}}
+      <li class="breadcrumb-item active" aria-current="page">
+        {{_title}}
+      </li>
+      {{/_title}}
+    </ol>
+  </nav>
+</div>
