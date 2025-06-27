@@ -1,7 +1,7 @@
 services:
+  # Base services - no profile assigned, will be started if a dependent service is run.
   billing-db:
     image: postgres:17-alpine
-    container_name: billing-db
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
@@ -15,20 +15,8 @@ services:
       timeout: 5s
       retries: 5
 
-  aspire-dashboard:
-    image: mcr.microsoft.com/dotnet/aspire-dashboard:9.3
-    container_name: billing-aspire-dashboard
-    ports:
-      - "18100:18080"
-      - "18110:18081"
-    environment:
-      - DOTNET_DASHBOARD_UNSECURED_ALLOW_ANONYMOUS=true
-      - ASPNETCORE_ENVIRONMENT=Development
-    restart: unless-stopped
-
   billing-db-migrations:
     image: liquibase/liquibase:4.32-alpine
-    container_name: billing-db-migrations
     volumes:
       - ./infra/Billing.Database:/app
     depends_on:
@@ -43,23 +31,28 @@ services:
       - -c
       - |
         echo 'Running database migrations...'
-
-        # Step 1: Setup databases
         liquibase update --defaults-file liquibase.setup.properties --url=jdbc:postgresql://billing-db:5432/postgres
-
-        # Step 2: Service bus schema
         liquibase update --defaults-file liquibase.servicebus.properties --url=jdbc:postgresql://billing-db:5432/service_bus
-
-        # Step 3: Domain schema
         liquibase update --url=jdbc:postgresql://billing-db:5432/billing
-
         echo 'Database migrations completed successfully!'
+
+  # Profiled Services
+  aspire-dashboard:
+    image: mcr.microsoft.com/dotnet/aspire-dashboard:9.3
+    profiles: ["aspire"]
+    ports:
+      - "18100:18080"
+      - "18110:18081"
+    environment:
+      - DOTNET_DASHBOARD_UNSECURED_ALLOW_ANONYMOUS=true
+      - ASPNETCORE_ENVIRONMENT=Development
+    restart: unless-stopped
 
   billing-api:
     build:
-      context: .
-      dockerfile: ./src/Billing.Api/Dockerfile
-    container_name: billing-api
+      context: ../                                     #TODO: Update for the actual template
+      dockerfile: ./Billing/src/Billing.Api/Dockerfile #TODO: update for the actual template
+    profiles: ["api"]
     ports:
       - "8101:8080"
       - "8102:8102"
@@ -88,7 +81,7 @@ services:
     build:
       context: .
       dockerfile: ./src/Billing.BackOffice/Dockerfile
-    container_name: billing-backoffice
+    profiles: ["backoffice"]
     ports:
       - "8103:8080"
     depends_on:
@@ -110,9 +103,9 @@ services:
 
   billing-docs:
     build:
-      context: .
+      context: ../
       dockerfile: ./docs/Dockerfile
-    container_name: billing-docs
+    profiles: ["docs"]
     ports:
       - "8119:8080"
     volumes:
