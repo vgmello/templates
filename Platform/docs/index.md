@@ -45,13 +45,13 @@ The platform targets these service types:
 
 API services handle HTTP requests and expose REST or gRPC endpoints:
 
-[!code-csharp[](~/samples/api-service/Program.cs#api_setup)]
+[!code-csharp[](~/samples/api-service/Program.cs)]
 
 ### Background services
 
 Background services process messages and handle scheduled work:
 
-[!code-csharp[](~/samples/background-service/Program.cs#background_setup)]
+[!code-csharp[](~/samples/background-service/Program.cs)]
 
 ## Core components
 
@@ -67,7 +67,7 @@ Provides core infrastructure for all service types:
 -   **Messaging** - Wolverine integration with PostgreSQL transport
 -   **Configuration** - Environment-based settings with validation
 
-[!code-csharp[](~/samples/service-defaults/ServiceConfiguration.cs#core_config)]
+[!code-csharp[](~/samples/service-defaults/ServiceConfiguration.cs)]
 
 ### Operations.ServiceDefaults.Api
 
@@ -79,7 +79,7 @@ Adds API-specific features on top of core infrastructure:
 -   **Authentication** - JWT token validation and authorization
 -   **CORS** - Cross-origin request handling
 
-[!code-csharp[](~/samples/api-defaults/ApiConfiguration.cs#api_config)]
+[!code-csharp[](~/samples/api-defaults/ApiConfiguration.cs)]
 
 ### Operations.Extensions.SourceGenerators
 
@@ -89,7 +89,7 @@ Generates high-performance database code at compile time:
 -   **Parameter binding** - Type-safe parameter generation for stored procedures
 -   **Command builders** - Compile-time SQL command construction
 
-[!code-csharp[](~/samples/source-generators/DatabaseQuery.cs#generated_query)]
+[!code-csharp[](~/samples/source-generators/DatabaseQuery.cs)]
 
 ## Request flow
 
@@ -113,19 +113,19 @@ Here's how requests flow through a Platform service:
 
 Add service-specific health checks:
 
-[!code-csharp[](~/samples/customization/CustomHealthChecks.cs#custom_health)]
+[!code-csharp[](~/samples/customization/CustomHealthChecks.cs)]
 
 ### Message handling
 
 Configure custom message handlers with Wolverine:
 
-[!code-csharp[](~/samples/customization/MessageHandlers.cs#message_config)]
+[!code-csharp[](~/samples/customization/MessageHandlers.cs)]
 
 ### Database integration
 
 Use source generators for custom database operations:
 
-[!code-csharp[](~/samples/customization/DatabaseOperations.cs#database_ops)]
+[!code-csharp[](~/samples/customization/DatabaseOperations.cs)]
 
 > [!WARNING]
 > Source generators require partial classes and specific naming conventions. See [Source Generators Overview](content/source-generators/overview.md) for details.
