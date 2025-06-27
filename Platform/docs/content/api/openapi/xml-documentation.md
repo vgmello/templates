@@ -213,4 +213,4 @@ This caching mechanism significantly speeds up the load times of tools like Scal
 
 ## See also
 
--   [API Service Defaults](./service-defaults.md)
+-   [API Service Defaults](../service-defaults.md)

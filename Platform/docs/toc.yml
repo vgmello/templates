@@ -29,5 +29,5 @@
     - name: IQuery
       href: content/messaging/iquery.md
 - name: API Reference
-  href: api/
-  homepage: api/Operations.html
+  href: api/toc.yml
+  homepage: api/toc.yml

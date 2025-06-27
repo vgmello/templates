@@ -283,7 +283,7 @@ Gradually migrate existing Dapper code to use Platform features:
 [!code-csharp[](~/samples/database-integration/BeforeMigration.cs)]
 
 ### After (Platform)
-[!code-csharp[](~/samples/database-integration/AfterMigration.cs)]
+<!-- Code snippet for AfterMigration.cs is missing -->
 
 ## Source generator configuration
 
@@ -312,7 +312,7 @@ Control source generator warnings and errors:
 - Learn about [Dapper Extensions](dapper-extensions.md) for advanced scenarios
 - Explore [Source Generators](source-generators.md) in detail
 - Understand [Messaging](../messaging/overview.md) for CQRS patterns
-- Review [API development](../api/overview.md) for complete application architecture
+- Review [API development ../api/overview.md] for complete application architecture
 
 ## Additional resources
 

@@ -5,7 +5,7 @@
 - name: gRPC
   href: grpc.md
 - name: OpenAPI
-  href: openapi/
+  href: openapi/overview.md
   items:
   - name: Overview
     href: openapi/overview.md

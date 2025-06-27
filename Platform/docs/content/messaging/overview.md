@@ -460,7 +460,7 @@ Migrate from existing messaging infrastructure:
 -   Explore [CloudEvents](cloudevents.md) for standardized events
 -   Understand [Kafka](kafka.md) configuration and patterns
 -   Review [Middlewares](middlewares.md) for cross-cutting concerns
--   Study [Telemetry](telemetry.md) for monitoring and observability
+-   Study [Telemetry telemetry/toc.yml] for monitoring and observability
 
 ## Additional resources
 

@@ -58,4 +58,4 @@ Replace the standard `app.Run()` with `app.RunAsync(args)`:
 - [Domain Assembly Attribute](../domain-assembly-attribute.md)
 - [Logging](../logging/overview.md)
 - [OpenTelemetry](../opentelemetry/overview.md)
-- [Wolverine Integration](../messaging/wolverine-integration.md)
+- [Wolverine Integration ../messaging/wolverine-integration.md]

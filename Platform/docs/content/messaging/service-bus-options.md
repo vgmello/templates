@@ -64,4 +64,4 @@ app.Run();
 ## See also
 
 - [Messaging Overview](./overview.md)
-- [Wolverine Integration](./wolverine-integration.md)
+- [Wolverine Integration ../wolverine-setup.md]

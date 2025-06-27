@@ -331,7 +331,7 @@ Optimize health check execution performance:
 ### Debugging health failures
 Debug failing health checks effectively:
 
-[!code-csharp[](../samples/healthchecks/DebuggingFailures.cs#DebuggingTechniques)]
+[!code-csharp[](~/samples/healthchecks/DebuggingFailures.cs#DebuggingTechniques)]
 
 ## Next steps
 

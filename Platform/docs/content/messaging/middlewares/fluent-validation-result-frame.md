@@ -64,4 +64,4 @@ If `CreateUserCommand` fails validation, the `FluentValidationResultFrame` will 
 
 - [Fluent Validation Policy](./fluent-validation-policy.md)
 - [FluentValidation Executor](./fluent-validation-executor.md)
-- [Result Pattern](../../extensions/result-pattern.md)
+- [Result Pattern ../../extensions/result-pattern.md]

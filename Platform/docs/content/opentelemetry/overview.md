@@ -12,7 +12,7 @@ The Platform provides comprehensive OpenTelemetry integration with automatic ins
 
 OpenTelemetry is automatically configured when you add Service Defaults:
 
-[!code-csharp[](~/samples/opentelemetry/BasicSetup.cs#BasicOTel)]
+<!-- Code snippet for BasicSetup.cs is missing -->
 
 This setup provides:
 - **Distributed tracing** across service boundaries
@@ -395,7 +395,7 @@ Debug telemetry export problems:
 ### Performance tuning
 Optimize telemetry performance for production:
 
-[!code-csharp[](~/samples/opentelemetry/PerformanceTuning.cs#TuningTechniques)]
+<!-- Code snippet for PerformanceTuning.cs is missing -->
 
 ## Next steps
 

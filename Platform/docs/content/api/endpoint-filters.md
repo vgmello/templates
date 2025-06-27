@@ -17,7 +17,7 @@ Endpoint filters in the Operations platform provide a way to execute code before
 
 The platform includes a `LocalhostEndpointFilter` that restricts access to certain endpoints when running in production:
 
-[!code-csharp[](../samples/api/endpoint-filters/LocalhostEndpointFilter.cs)]
+[!code-csharp[](~/samples/api/endpoint-filters/LocalhostEndpointFilter.cs)]
 
 ### Usage with Service Defaults
 
@@ -74,17 +74,17 @@ public class LoggingEndpointFilter : IEndpointFilter
 ### Validation Filter
 
 ```csharp
-[!code-csharp[](../samples/api/endpoint-filters/ValidationEndpointFilter.cs)]
+[!code-csharp[](~/samples/api/endpoint-filters/ValidationEndpointFilter.cs)]
 ```
 
 ### Authentication Filter
 
-[!code-csharp[](../samples/api/endpoint-filters/RequireRoleEndpointFilter.cs)]
+[!code-csharp[](~/samples/api/endpoint-filters/RequireRoleEndpointFilter.cs)]
 
 ### Rate Limiting Filter
 
 ```csharp
-[!code-csharp[](../samples/api/endpoint-filters/RateLimitEndpointFilter.cs)]
+[!code-csharp[](~/samples/api/endpoint-filters/RateLimitEndpointFilter.cs)]
 ```
 
 ## Filter Registration
@@ -144,16 +144,16 @@ cashierGroup.MapPut("{id}", UpdateCashier)
 ### Conditional Filters
 
 ```csharp
-[!code-csharp[](../samples/api/endpoint-filters/ConditionalLoggingFilter.cs)]
+[!code-csharp[](~/samples/api/endpoint-filters/ConditionalLoggingFilter.cs)]
 ```
 
 ### Filter with Dependencies
 
-[!code-csharp[](../samples/api/endpoint-filters/CacheEndpointFilter.cs)]
+[!code-csharp[](~/samples/api/endpoint-filters/CacheEndpointFilter.cs)]
 
 ### Async Filter with Cancellation
 
-[!code-csharp[](../samples/api/endpoint-filters/TimeoutEndpointFilter.cs)]
+[!code-csharp[](~/samples/api/endpoint-filters/TimeoutEndpointFilter.cs)]
 
 ## Filter Order and Pipeline
 
@@ -161,23 +161,23 @@ cashierGroup.MapPut("{id}", UpdateCashier)
 
 Filters execute in the order they are added:
 
-[!code-csharp[](../samples/api/endpoint-filters/ExecutionOrder.cs)]
+[!code-csharp[](~/samples/api/endpoint-filters/ExecutionOrder.cs)]
 
 ### Short-Circuiting
 
 Filters can short-circuit the pipeline:
 
-[!code-csharp[](../samples/api/endpoint-filters/ShortCircuitFilter.cs)]
+[!code-csharp[](~/samples/api/endpoint-filters/ShortCircuitFilter.cs)]
 
 ## Testing Endpoint Filters
 
 ### Unit Testing
 
-[!code-csharp[](../samples/api/endpoint-filters/ValidationFilter_InvalidModel_ReturnsValidationProblem.cs)]
+[!code-csharp[](~/samples/api/endpoint-filters/ValidationFilter_InvalidModel_ReturnsValidationProblem.cs)]
 
 ### Integration Testing
 
-[!code-csharp[](../samples/api/endpoint-filters/CashierEndpoint_WithFilters_WorksCorrectly.cs)]
+[!code-csharp[](~/samples/api/endpoint-filters/CashierEndpoint_WithFilters_WorksCorrectly.cs)]
 
 ## Best Practices
 
@@ -191,6 +191,6 @@ Filters can short-circuit the pipeline:
 
 ## See Also
 
-- [Service Defaults](../../architecture/service-defaults.md)
-- [OpenAPI Documentation](../openapi/overview.md)
+- [Service Defaults](../../content/architecture/service-defaults.md)
+- [OpenAPI Documentation openapi/overview.md
 - [gRPC Integration](grpc.md)
