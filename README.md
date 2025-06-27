@@ -137,23 +137,20 @@ The system uses a structured port allocation optimized for macOS compatibility:
 - **Accounting**: 8120-8139 (20 ports)
 - **Operations**: 8140-8159 (20 ports)
 
-#### **Port Pattern Within Each Service**
-```
-XX00: Aspire Resource Service (HTTP)
-XX01: Main API (HTTP)
-XX02: Main API (gRPC)
-XX03: BackOffice (HTTP)
-XX04: Orleans (HTTP)
-XX10: Aspire Resource Service (HTTPS)
-XX11: Main API (HTTPS)
-XX13: BackOffice (HTTPS)
-XX14: Orleans (HTTPS)
-XX19: Documentation (last port of range)
-```
-
 #### **Aspire Dashboard Ports**
 - **HTTP**: Service base + 10,000 (e.g., 8100 → 18100)
 - **HTTPS**: Service base + 10,010 (e.g., 8100 → 18110)
+
+#### **Port Pattern Within Each Service**
+```
+Aspire Resource Service: XX00 (HTTP) / XX10 (HTTPS)
+Main API: XX01 (HTTP) / XX11 (HTTPS) / XX02 (gRPC-HTTP)
+BackOffice: XX03 (HTTP) / XX13 (HTTPS)
+Orleans: XX04 (HTTP) / XX14 (HTTPS)
+Documentation: XX19 (reserved for last port of range)
+```
+
+> **Note**: HTTPS ports follow the pattern of HTTP port + 10 (e.g., HTTP 8101 → HTTPS 8111)
 
 #### **Service Access Points**
 - **Billing Service**: http://localhost:8101 (API), http://localhost:8119 (Docs)
