@@ -143,6 +143,56 @@ Schema features:
 ### External messaging
 Connect to Kafka for inter-service communication:
 
+```mermaid
+graph TD
+    subgraph "Kafka Integration Architecture"
+        subgraph "Service A"
+            A_HANDLER[Message Handler]
+            A_OUTBOX[Outbox Pattern]
+        end
+        
+        subgraph "Platform Messaging"
+            WOLVERINE[Wolverine Router]
+            POSTGRES[(PostgreSQL)]
+        end
+        
+        subgraph "Kafka Cluster"
+            TOPIC1[billing.events]
+            TOPIC2[accounting.events]
+            TOPIC3[operations.events]
+        end
+        
+        subgraph "Service B"
+            B_CONSUMER[Kafka Consumer]
+            B_HANDLER[Event Handler]
+        end
+        
+        subgraph "Service C"
+            C_CONSUMER[Kafka Consumer]
+            C_HANDLER[Event Handler]
+        end
+    end
+    
+    A_HANDLER --> A_OUTBOX
+    A_OUTBOX --> WOLVERINE
+    WOLVERINE --> POSTGRES
+    WOLVERINE --> TOPIC1
+    WOLVERINE --> TOPIC2
+    
+    TOPIC1 --> B_CONSUMER
+    TOPIC2 --> C_CONSUMER
+    
+    B_CONSUMER --> B_HANDLER
+    C_CONSUMER --> C_HANDLER
+    
+    style A_HANDLER fill:#e3f2fd
+    style WOLVERINE fill:#fff3e0
+    style POSTGRES fill:#e8f5e8
+    style TOPIC1 fill:#f3e5f5
+    style B_CONSUMER fill:#fce4ec
+    style C_CONSUMER fill:#e0f2f1
+```
+
 [!code-csharp[](~/samples/messaging/KafkaIntegration.cs)]
 
 Kafka features:

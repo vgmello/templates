@@ -23,7 +23,59 @@ This simple record generates:
 ## Core concepts
 
 ### DbCommand attribute
-The `[DbCommand]` attribute configures how your commands interact with the database:
+The `[DbCommand]` attribute configures how your commands interact with the database through an automated workflow:
+
+```mermaid
+graph LR
+    subgraph "Database Integration Workflow"
+        RECORD[Command Record]
+        ATTR[DbCommand Attribute]
+        
+        subgraph "Generation Process"
+            PARAMS[Parameter Provider]
+            HANDLER[Command Handler]
+            MAPPING[Case Conversion]
+        end
+        
+        subgraph "Execution Types"
+            SP[Stored Procedure]
+            SQL[SQL Query]
+            FUNC[Function Call]
+        end
+        
+        subgraph "Data Sources"
+            DEFAULT[Default DataSource]
+            KEYED[Keyed DataSource]
+        end
+        
+        EXECUTION[Database Execution]
+    end
+    
+    RECORD --> ATTR
+    ATTR --> PARAMS
+    ATTR --> HANDLER
+    ATTR --> MAPPING
+    
+    ATTR --> SP
+    ATTR --> SQL
+    ATTR --> FUNC
+    
+    HANDLER --> DEFAULT
+    HANDLER --> KEYED
+    
+    SP --> EXECUTION
+    SQL --> EXECUTION
+    FUNC --> EXECUTION
+    
+    DEFAULT --> EXECUTION
+    KEYED --> EXECUTION
+    
+    style RECORD fill:#e3f2fd
+    style ATTR fill:#fff3e0
+    style PARAMS fill:#e8f5e8
+    style HANDLER fill:#f3e5f5
+    style EXECUTION fill:#e0f2f1
+```
 
 [!code-csharp[](~/samples/database-integration/DbCommandExamples.cs#SqlQueryCommand)]
 [!code-csharp[](~/samples/database-integration/DbCommandExamples.cs#FunctionCommand)]
