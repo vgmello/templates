@@ -58,10 +58,10 @@
 	}
 
 	// Can perform actions
-	$derived: canCancel = data.invoice.status === 'Draft';
-	$derived: canMarkPaid = data.invoice.status === 'Draft';
-	$derived: canSimulate = data.invoice.status === 'Draft';
-	$derived: canEdit = data.invoice.status === 'Draft';
+	let canCancel = $derived(data.invoice.status === 'Draft');
+	let canMarkPaid = $derived(data.invoice.status === 'Draft');
+	let canSimulate = $derived(data.invoice.status === 'Draft');
+	let canEdit = $derived(data.invoice.status === 'Draft');
 </script>
 
 <svelte:head>

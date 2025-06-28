@@ -24,12 +24,17 @@ public static partial class InvoiceMapper
 
     private static Timestamp DateTimeToTimestamp(DateTime dateTime)
     {
-        return dateTime.ToTimestamp();
+        // Ensure DateTime is treated as UTC for gRPC conversion
+        var utcDateTime = dateTime.Kind == DateTimeKind.Utc ? dateTime : DateTime.SpecifyKind(dateTime, DateTimeKind.Utc);
+        return utcDateTime.ToTimestamp();
     }
 
     private static Timestamp? NullableDateTimeToTimestamp(DateTime? dateTime)
     {
-        return dateTime?.ToTimestamp();
+        if (dateTime == null) return null;
+        // Ensure DateTime is treated as UTC for gRPC conversion
+        var utcDateTime = dateTime.Value.Kind == DateTimeKind.Utc ? dateTime.Value : DateTime.SpecifyKind(dateTime.Value, DateTimeKind.Utc);
+        return utcDateTime.ToTimestamp();
     }
 
     private static string GuidToString(Guid guid)
