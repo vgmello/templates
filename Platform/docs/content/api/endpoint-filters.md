@@ -17,127 +17,49 @@ Endpoint filters in the Operations platform provide a way to execute code before
 
 The platform includes a `LocalhostEndpointFilter` that restricts access to certain endpoints when running in production:
 
-[!code-csharp[](~/samples/api/endpoint-filters/LocalhostEndpointFilter.cs)]
+[!code-csharp[](~/samples/api/endpoint-filters/LocalhostEndpointFilter.cs?highlight=6,16-18)]
 
 ### Usage with Service Defaults
 
 The service defaults automatically apply appropriate filters:
 
-```csharp
-var builder = WebApplication.CreateBuilder(args);
-
-// Automatically includes endpoint filters
-builder.AddServiceDefaults();
-
-var app = builder.Build();
-
-// Development-only endpoint with localhost filter
-app.MapGet("/debug/config", () => builder.Configuration.AsEnumerable())
-    .AddEndpointFilter<LocalhostEndpointFilter>();
-```
+[!code-csharp[](~/samples/api/endpoint-filters/UsageWithServiceDefaults.cs?highlight=4,9)]
 
 ## Creating Custom Filters
 
 ### Basic Endpoint Filter
 
-```csharp
-public class LoggingEndpointFilter : IEndpointFilter
-{
-    private readonly ILogger<LoggingEndpointFilter> _logger;
-
-    public LoggingEndpointFilter(ILogger<LoggingEndpointFilter> logger)
-    {
-        _logger = logger;
-    }
-
-    public async ValueTask<object?> InvokeAsync(
-        EndpointFilterInvocationContext context, 
-        EndpointFilterDelegate next)
-    {
-        var httpContext = context.HttpContext;
-        var endpoint = httpContext.GetEndpoint()?.DisplayName;
-        
-        _logger.LogInformation("Executing endpoint: {Endpoint}", endpoint);
-        
-        var stopwatch = Stopwatch.StartNew();
-        var result = await next(context);
-        stopwatch.Stop();
-        
-        _logger.LogInformation("Endpoint {Endpoint} completed in {ElapsedMs}ms", 
-            endpoint, stopwatch.ElapsedMilliseconds);
-        
-        return result;
-    }
-}
-```
+[!code-csharp[](~/samples/api/endpoint-filters/BasicLoggingEndpointFilter.cs?highlight=5,15,20,26)]
 
 ### Validation Filter
 
 ```csharp
-[!code-csharp[](~/samples/api/endpoint-filters/ValidationEndpointFilter.cs)]
+[!code-csharp[](~/samples/api/endpoint-filters/ValidationEndpointFilter.cs?highlight=11,22,25,33)]
 ```
 
 ### Authentication Filter
 
-[!code-csharp[](~/samples/api/endpoint-filters/RequireRoleEndpointFilter.cs)]
+[!code-csharp[](~/samples/api/endpoint-filters/RequireRoleEndpointFilter.cs?highlight=6,17,20)]
 
 ### Rate Limiting Filter
 
 ```csharp
-[!code-csharp[](~/samples/api/endpoint-filters/RateLimitEndpointFilter.cs)]
+[!code-csharp[](~/samples/api/endpoint-filters/RateLimitEndpointFilter.cs?highlight=10,20,23,33)]
 ```
 
 ## Filter Registration
 
 ### Global Registration
 
-```csharp
-var builder = WebApplication.CreateBuilder(args);
-
-// Register filters with DI
-builder.Services.AddScoped<LoggingEndpointFilter>();
-builder.Services.AddScoped<ValidationEndpointFilter<CreateCashierCommand>>();
-builder.Services.AddSingleton<IMemoryCache, MemoryCache>();
-
-var app = builder.Build();
-```
+[!code-csharp[](~/samples/api/endpoint-filters/GlobalFilterRegistration.cs?highlight=5-8)]
 
 ### Endpoint-Specific Application
 
-```csharp
-// Apply single filter
-app.MapPost("/cashiers", CreateCashier)
-    .AddEndpointFilter<ValidationEndpointFilter<CreateCashierCommand>>();
-
-// Apply multiple filters
-app.MapGet("/admin/health", GetDetailedHealth)
-    .AddEndpointFilter<LocalhostEndpointFilter>()
-    .AddEndpointFilter<LoggingEndpointFilter>();
-
-// Apply filter with parameters
-app.MapPost("/payments", ProcessPayment)
-    .AddEndpointFilter(new RequireRoleEndpointFilter("payment-processor"));
-
-// Apply filter factory
-app.MapGet("/limited", GetData)
-    .AddEndpointFilter<RateLimitEndpointFilter>();
-```
+[!code-csharp[](~/samples/api/endpoint-filters/EndpointSpecificApplication.cs?highlight=7-8,11-13,17,21)]
 
 ### Group-Level Filters
 
-```csharp
-var cashierGroup = app.MapGroup("/cashiers")
-    .AddEndpointFilter<LoggingEndpointFilter>()
-    .RequireAuthorization();
-
-cashierGroup.MapPost("", CreateCashier)
-    .AddEndpointFilter<ValidationEndpointFilter<CreateCashierCommand>>();
-
-cashierGroup.MapGet("{id}", GetCashier);
-
-cashierGroup.MapPut("{id}", UpdateCashier)
-    .AddEndpointFilter<ValidationEndpointFilter<UpdateCashierCommand>>();
-```
+[!code-csharp[](~/samples/api/endpoint-filters/GroupLevelFilters.cs?highlight=9-11,14,19)]
 
 ## Advanced Patterns
 

@@ -256,7 +256,7 @@ Health check endpoints are available at:
 
 ## Next steps
 
-- Explore [API development](../api/overview.md) with Platform extensions
+- Explore [API development](../api/service-defaults.md) with Platform extensions
 - Learn about [Database integration](../database-integration/overview.md) patterns
 - Understand [Messaging](../messaging/overview.md) with Wolverine
 - Review [Logging](../logging/overview.md) configuration options
