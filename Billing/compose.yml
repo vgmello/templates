@@ -79,8 +79,8 @@ services:
 
   billing-backoffice:
     build:
-      context: .
-      dockerfile: ./src/Billing.BackOffice/Dockerfile
+      context: ../
+      dockerfile: ./Billing/src/Billing.BackOffice/Dockerfile
     profiles: ["backoffice"]
     ports:
       - "8103:8080"

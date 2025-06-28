@@ -62,8 +62,14 @@ export const actions: Actions = {
 
 			const invoice = await invoiceGrpcService.createInvoice(invoiceData);
 			
-			throw redirect(303, `/invoices/${invoice.invoiceId}`);
+			// Success - redirect to the newly created invoice
+			redirect(303, `/invoices/${invoice.invoiceId}`);
 		} catch (err: any) {
+			// Re-throw SvelteKit redirect errors - they should not be caught
+			if (err?.status === 303 || err?.location) {
+				throw err;
+			}
+			
 			console.error('Failed to create invoice:', err);
 			
 			let errorMessage = 'Failed to create invoice';
