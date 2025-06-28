@@ -1,33 +1,7 @@
 - name: Home
   href: index.md
 - name: Content
-  href: content/
-  articles:
-  - name: Overview
-    href: content/overview.md
-  - name: Extensions
-    href: content/extensions/
-    articles:
-    - name: Result Type
-      href: content/extensions/result.md
-    - name: String Extensions
-      href: content/extensions/string-extensions.md
-  - name: Database
-    href: content/database/
-    articles:
-    - name: DbCommandAttribute
-      href: content/database/dbcommand-attribute.md
-    - name: ColumnAttribute
-      href: content/database/column-attribute.md
-    - name: IDbParamsProvider
-      href: content/database/idbparams-provider.md
-  - name: Messaging
-    href: content/messaging/
-    articles:
-    - name: ICommand
-      href: content/messaging/icommand.md
-    - name: IQuery
-      href: content/messaging/iquery.md
+  href: content/toc.yml
 - name: API Reference
   href: api/toc.yml
   homepage: api/toc.yml

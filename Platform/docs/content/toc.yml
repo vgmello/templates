@@ -1,49 +1,22 @@
-- name: Domain Assembly Attribute
-  href: domain-assembly-attribute.md
+- name: Overview
+  href: overview.md
 - name: Architecture
-  href: architecture/
-  items:
-  - name: Overview
-    href: architecture/overview.md
-  - name: Service Defaults
-    href: architecture/service-defaults.md
+  href: architecture/toc.yml
 - name: API
   href: api/toc.yml
 - name: Database Integration
-  href: database-integration/
-  items:
-  - name: Overview
-    href: database-integration/overview.md
-  - name: Dapper Extensions
-    href: database-integration/dapper-extensions.md
-  - name: Source Generators
-    href: database-integration/source-generators.md
-- name: Messaging
-  href: messaging/toc.yml
-- name: Health Checks
-  href: healthchecks/
-  items:
-  - name: Overview
-    href: healthchecks/overview.md
-  - name: Setup and Configuration
-    href: healthchecks/setup.md
-  - name: Setup and Configuration
-    href: healthchecks/setup.md
-- name: Logging
-  href: logging/
-  items:
-  - name: Overview
-    href: logging/overview.md
-  - name: Dynamic Log Levels
-    href: logging/dynamic-log-levels.md
-- name: OpenTelemetry
-  href: opentelemetry/
-  items:
-  - name: Overview
-    href: opentelemetry/overview.md
-  - name: Setup and Configuration
-    href: opentelemetry/setup.md
-- name: Source Generators
-  href: source-generators/toc.yml
+  href: database-integration/toc.yml
 - name: Extensions
   href: extensions/toc.yml
+- name: Health Checks
+  href: healthchecks/toc.yml
+- name: Logging
+  href: logging/toc.yml
+- name: Messaging
+  href: messaging/toc.yml
+- name: OpenTelemetry
+  href: opentelemetry/toc.yml
+- name: Source Generators
+  href: source-generators/toc.yml
+- name: Domain Assembly Attribute
+  href: domain-assembly-attribute.md

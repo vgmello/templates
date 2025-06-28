@@ -60,7 +60,7 @@ public class ApplicationService
     {
         var command = new CreateUserCommand(userName, email);
         // Highlight the usage of InvokeCommandAsync
-        [!code-csharp[InvokeCommandExample](docs/samples/messaging/message-bus-extensions-sample.cs?name=InvokeCommandExample)]
+        [!code-csharp[InvokeCommandExample](~/samples/messaging/message-bus-extensions-sample.cs?name=InvokeCommandExample)]
         return userId;
     }
 
@@ -68,7 +68,7 @@ public class ApplicationService
     {
         var query = new GetUserByIdQuery(userId);
         // Highlight the usage of InvokeQueryAsync
-        [!code-csharp[InvokeQueryExample](docs/samples/messaging/message-bus-extensions-sample.cs?name=InvokeQueryExample)]
+        [!code-csharp[InvokeQueryExample](~/samples/messaging/message-bus-extensions-sample.cs?name=InvokeQueryExample)]
         return user;
     }
 }

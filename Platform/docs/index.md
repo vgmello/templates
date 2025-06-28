@@ -159,9 +159,9 @@ The platform includes security defaults:
 
 ## Additional resources
 
--   [Architecture overview](../../architecture/overview.md) - Core design principles and patterns
-- Explore [API development](../../api/overview.md) - Building REST and gRPC services
+-   [Architecture overview](content/architecture/overview.md) - Core design principles and patterns
+- Explore [API development](content/api/service-defaults.md) - Building REST and gRPC services
 -   [Messaging patterns](content/messaging/overview.md) - Event-driven architecture with Wolverine
 -   [Observability setup](content/opentelemetry/overview.md) - Monitoring and tracing configuration
--   [Source generator reference](../../source-generators/overview.md) - High-performance database operations
+-   [Source generator reference](content/source-generators/overview.md) - High-performance database operations
 -   [Sample applications](https://github.com/operations-platform/samples) - Complete example services
