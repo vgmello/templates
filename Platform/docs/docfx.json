@@ -46,6 +46,15 @@
         ]
       }
     ],
+    "src": [
+      {
+        "src": "../samples",
+        "files": [
+          "**/*.cs"
+        ],
+        "name": "samples"
+      }
+    ],
     "output": "_site",
     "template": [
       "default",

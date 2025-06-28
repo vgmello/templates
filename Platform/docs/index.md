@@ -17,7 +17,7 @@ The platform follows these principles:
 
 Here's a complete microservice setup:
 
-[!code-csharp[](~/samples/basic-service/Program.cs?highlight=4-5,9-11)]
+[!code-csharp[](samples/basic-service/Program.cs?highlight=4-5,9-11)]
 
 This example configures:
 
@@ -45,13 +45,13 @@ The platform targets these service types:
 
 API services handle HTTP requests and expose REST or gRPC endpoints:
 
-[!code-csharp[](~/samples/api-service/Program.cs)]
+[!code-csharp[](samples/api-service/Program.cs)]
 
 ### Background services
 
 Background services process messages and handle scheduled work:
 
-[!code-csharp[](~/samples/background-service/Program.cs)]
+[!code-csharp[](samples/background-service/Program.cs)]
 
 ## Core components
 
@@ -67,7 +67,7 @@ Provides core infrastructure for all service types:
 -   **Messaging** - Wolverine integration with PostgreSQL transport
 -   **Configuration** - Environment-based settings with validation
 
-[!code-csharp[](~/samples/service-defaults/ServiceConfiguration.cs)]
+[!code-csharp[](samples/service-defaults/ServiceConfiguration.cs)]
 
 ### Operations.ServiceDefaults.Api
 
@@ -79,7 +79,7 @@ Adds API-specific features on top of core infrastructure:
 -   **Authentication** - JWT token validation and authorization
 -   **CORS** - Cross-origin request handling
 
-[!code-csharp[](~/samples/api-defaults/ApiConfiguration.cs)]
+[!code-csharp[](samples/api-defaults/ApiConfiguration.cs)]
 
 ### Operations.Extensions.SourceGenerators
 
@@ -89,7 +89,7 @@ Generates high-performance database code at compile time:
 -   **Parameter binding** - Type-safe parameter generation for stored procedures
 -   **Command builders** - Compile-time SQL command construction
 
-[!code-csharp[](~/samples/source-generators/DatabaseQuery.cs)]
+[!code-csharp[](samples/source-generators/DatabaseQuery.cs)]
 
 ## Request flow
 
@@ -159,9 +159,9 @@ The platform includes security defaults:
 
 ## Additional resources
 
--   [Architecture overview ../../architecture/overview.md] - Core design principles and patterns
-- Explore [API development ../../api/overview.md] - Building REST and gRPC services
+-   [Architecture overview](../../architecture/overview.md) - Core design principles and patterns
+- Explore [API development](../../api/overview.md) - Building REST and gRPC services
 -   [Messaging patterns](content/messaging/overview.md) - Event-driven architecture with Wolverine
 -   [Observability setup](content/opentelemetry/overview.md) - Monitoring and tracing configuration
--   [Source generator reference ../../source-generators/overview.md] - High-performance database operations
+-   [Source generator reference](../../source-generators/overview.md) - High-performance database operations
 -   [Sample applications](https://github.com/operations-platform/samples) - Complete example services
