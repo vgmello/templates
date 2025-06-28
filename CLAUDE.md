@@ -3,9 +3,11 @@
 ## API
 
 ### Docker Compose (Billing Service)
+
+#### Backend start command
+From the root folder (templates)
 ```bash
-# Run from repo root
-docker compose -f Billing/compose.yml --profile api up
+docker compose -f Billing/compose.yml --profile api up -d
 ```
 
 ## UI Integration
