@@ -11,7 +11,7 @@ Service Defaults provides a single method to configure all the common infrastruc
 
 Add Service Defaults to any web application with a single call:
 
-[!code-csharp[](../samples/service-defaults/ServiceDefaultsSetup.cs#ServiceDefaultsConfiguration)]
+[!code-csharp[](~/samples/service-defaults/ServiceDefaultsSetup.cs)]
 
 This one line configures:
 - **Structured logging** with Serilog
@@ -86,7 +86,7 @@ The logging configuration includes:
 ### OpenTelemetry integration  
 Comprehensive observability is set up automatically:
 
-[!code-csharp[](../samples/service-defaults/ServiceDefaultsSetup.cs#ServiceDefaultsConfiguration)]
+[!code-csharp[](~/samples/service-defaults/ServiceDefaultsSetup.cs)]
 
 OpenTelemetry provides:
 - Distributed tracing across service boundaries
@@ -183,7 +183,7 @@ While Service Defaults provides sensible defaults, you can customize specific ar
 ### Custom logging configuration
 Override specific logging settings after calling `AddServiceDefaults`:
 
-[!code-csharp[](../samples/service-defaults/CustomConfiguration.cs#CustomLogging)]
+[!code-csharp[](~/samples/service-defaults/CustomConfiguration.cs)]
 
 ### Additional OpenTelemetry sources
 Add custom tracing sources and metrics:
@@ -241,12 +241,12 @@ Service Defaults ensures consistent performance characteristics across all your 
 ### Assembly discovery issues
 If validators or handlers aren't being discovered, ensure assemblies are marked:
 
-[!code-csharp[](../samples/service-defaults/TroubleshootingAssembly.cs)]
+[!code-csharp[](~/samples/service-defaults/TroubleshootingAssembly.cs)]
 
 ### Configuration conflicts
 When customizing configuration, be aware of the order:
 
-[!code-csharp[](../samples/service-defaults/TroubleshootingConfiguration.cs)]
+[!code-csharp[](~/samples/service-defaults/TroubleshootingConfiguration.cs)]
 
 ### Missing health checks
 Health check endpoints are available at:

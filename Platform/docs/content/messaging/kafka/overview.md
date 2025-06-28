@@ -117,6 +117,6 @@ You can further configure Kafka settings, such as broker addresses, consumer gro
 
 ## See also
 
-*   [Wolverine Messaging](wolverine-integration.md)
-*   [CloudEvents](cloudevents.md)
+*   [Wolverine Messaging](../wolverine-setup.md)
+*   [CloudEvents](../cloudevents/overview.md)
 *   [Telemetry](../telemetry/overview.md)

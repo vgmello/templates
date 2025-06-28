@@ -19,20 +19,7 @@
   - name: Source Generators
     href: database-integration/source-generators.md
 - name: Messaging
-  href: messaging/
-  items:
-  - name: Overview
-    href: messaging/overview.md
-  - name: Wolverine Integration
-    href: messaging/wolverine-integration.md
-  - name: CloudEvents
-    href: messaging/cloudevents.md
-  - name: Kafka
-    href: messaging/kafka.md
-  - name: Middlewares
-    href: messaging/middlewares.md
-  - name: Telemetry
-    href: messaging/telemetry/toc.yml
+  href: messaging/toc.yml
 - name: Health Checks
   href: healthchecks/
   items:
@@ -59,9 +46,4 @@
 - name: Source Generators
   href: source-generators/toc.yml
 - name: Extensions
-  href: extensions/overview.md
-  items:
-  - name: String Extensions
-    href: extensions/string-extensions.md
-  - name: Result Pattern
-    href: extensions/result-pattern.md
+  href: extensions/toc.yml

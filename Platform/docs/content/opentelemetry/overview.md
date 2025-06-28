@@ -395,7 +395,7 @@ Debug telemetry export problems:
 ### Performance tuning
 Optimize telemetry performance for production:
 
-<!-- Code snippet for PerformanceTuning.cs is missing -->
+[!code-csharp[](~/samples/opentelemetry/PerformanceTuning.cs)]
 
 ## Next steps
 

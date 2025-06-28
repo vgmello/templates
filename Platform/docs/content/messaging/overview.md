@@ -456,11 +456,11 @@ Migrate from existing messaging infrastructure:
 
 ## Next steps
 
--   Learn about [Wolverine Integration](wolverine-integration.md) in detail
--   Explore [CloudEvents](cloudevents.md) for standardized events
--   Understand [Kafka](kafka.md) configuration and patterns
--   Review [Middlewares](middlewares.md) for cross-cutting concerns
--   Study [Telemetry telemetry/toc.yml] for monitoring and observability
+-   Learn about [Wolverine Integration](wolverine-setup.md) in detail
+-   Explore [CloudEvents](cloudevents/overview.md) for standardized events
+-   Understand [Kafka ../kafka/overview.md] configuration and patterns
+-   Review [Middlewares](middlewares/overview.md) for cross-cutting concerns
+-   Study [Telemetry ../opentelemetry/overview.md] for monitoring and observability
 
 ## Additional resources
 

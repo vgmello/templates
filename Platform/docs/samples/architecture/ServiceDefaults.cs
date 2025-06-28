@@ -1,13 +1,1 @@
-using Microsoft.Extensions.Hosting;
-using Operations.ServiceDefaults;
-
-public class ServiceDefaults
-{
-    public static void ConfigureServiceDefaults()
-    {
-        var builder = Host.CreateApplicationBuilder();
-        builder.AddServiceDefaults();
-        var app = builder.Build();
-        app.Run();
-    }
-}
+// This is a placeholder for ServiceDefaults.cs

@@ -12,7 +12,7 @@ The Platform follows a layered architecture designed to provide maximum flexibil
 ### Service Defaults pattern
 The Service Defaults pattern provides a central place to configure cross-cutting concerns that should be consistent across all services:
 
-[!code-csharp[](~/docs/samples/architecture/ServiceDefaults.cs)]
+[!code-csharp[](~/samples/architecture/ServiceDefaults.cs)]
 
 This pattern ensures that logging, health checks, OpenTelemetry, and other infrastructure concerns are configured consistently across your entire system.
 
@@ -125,7 +125,7 @@ Full service testing with TestContainers:
 ### Architecture testing
 Enforce architectural constraints with tests:
 
-[!code-csharp[](../samples/architecture/ArchitectureTesting.cs)]
+[!code-csharp[](~/samples/architecture/ArchitectureTesting.cs)]
 
 ## Best practices
 
@@ -139,7 +139,7 @@ Enforce architectural constraints with tests:
 ## Next steps
 
 - Learn about [Service Defaults](service-defaults.md) configuration
-- Explore [API development](../api/overview.md) patterns
+- Explore [API development ../../api/overview.md] patterns
 - Understand [Database integration](../database-integration/overview.md)
 - Review [Messaging patterns](../messaging/overview.md)
 

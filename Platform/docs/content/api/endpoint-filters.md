@@ -192,5 +192,5 @@ Filters can short-circuit the pipeline:
 ## See Also
 
 - [Service Defaults](../../content/architecture/service-defaults.md)
-- [OpenAPI Documentation openapi/overview.md
+- [[OpenAPI Documentation](openapi/overview.md)
 - [gRPC Integration](grpc.md)

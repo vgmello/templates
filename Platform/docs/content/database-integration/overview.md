@@ -283,7 +283,7 @@ Gradually migrate existing Dapper code to use Platform features:
 [!code-csharp[](~/samples/database-integration/BeforeMigration.cs)]
 
 ### After (Platform)
-<!-- Code snippet for AfterMigration.cs is missing -->
+[!code-csharp[](~/samples/database-integration/AfterMigration.cs)]
 
 ## Source generator configuration
 
