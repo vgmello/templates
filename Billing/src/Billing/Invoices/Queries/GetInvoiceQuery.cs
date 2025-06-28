@@ -1,7 +1,6 @@
 // Copyright (c) ABCDEG. All rights reserved.
 
 using FluentValidation.Results;
-using Operations.Extensions.Messaging;
 
 namespace Billing.Invoices.Queries;
 
@@ -9,23 +8,19 @@ using InvoiceModel = Billing.Contracts.Invoices.Models.Invoice;
 
 public record GetInvoiceQuery(Guid Id) : IQuery<Result<InvoiceModel>>;
 
-/// <summary>
-///     Invoice query handler with auto-generated DbCommand approach
-/// </summary>
-public static partial class GetInvoiceQueryHwandler
+public static partial class GetInvoiceQueryHandler
 {
-    [DbCommand("fn:billing.invoice_get")]
-    private sealed partial record GetInvoiceDbQuery(Guid InvoiceId) : IQuery<InvoiceModel?>;
+    [DbCommand(fn: "select * from billing.invoice_get")]
+    public partial record GetInvoiceDbQuery(Guid InvoiceId) : IQuery<InvoiceModel?>;
 
     public static async Task<Result<InvoiceModel>> Handle(GetInvoiceQuery query, IMessageBus messaging, CancellationToken cancellationToken)
     {
         var dbQuery = new GetInvoiceDbQuery(query.Id);
+
         var invoice = await messaging.InvokeQueryAsync(dbQuery, cancellationToken);
 
         if (invoice is not null)
-        {
             return invoice;
-        }
 
         return new List<ValidationFailure> { new("Id", "Invoice not found") };
     }

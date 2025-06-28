@@ -20,18 +20,7 @@ public class CashierService(IMessageBus bus) : CashiersService.CashiersServiceBa
         var query = new GetCashiersQuery { Limit = request.Limit, Offset = request.Offset };
         var cashiers = await bus.InvokeQueryAsync(query, context.CancellationToken);
 
-        // Manual mapping to avoid auto-generated mapper issues
-        var cashiersGrpc = cashiers.Select(c => 
-        {
-            Console.WriteLine($"[DEBUG] Cashier mapping: TenantId={c.TenantId}, CashierId={c.CashierId}, Name='{c.Name}', Email='{c.Email}'");
-            return new CashierModel
-            {
-                TenantId = c.TenantId.ToString(),
-                CashierId = c.CashierId.ToString(),
-                Name = c.Name,
-                Email = c.Email
-            };
-        });
+        var cashiersGrpc = cashiers.Select(c => c.ToGrpc());
 
         return new GetCashiersResponse
         {
