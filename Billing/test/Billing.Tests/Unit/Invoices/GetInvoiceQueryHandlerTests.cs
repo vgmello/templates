@@ -32,13 +32,13 @@ public class GetInvoiceQueryHandlerTests
             Version = 1
         };
 
-        messagingMock.InvokeQueryAsync(Arg.Any<GetInvoiceQueryHwandler.GetInvoiceDbQuery>(), Arg.Any<CancellationToken>())
+        messagingMock.InvokeQueryAsync(Arg.Any<GetInvoiceQueryHandler.GetInvoiceDbQuery>(), Arg.Any<CancellationToken>())
             .Returns(expectedInvoice);
 
         var query = new GetInvoiceQuery(invoiceId);
 
         // Act
-        var result = await GetInvoiceQueryHwandler.Handle(query, messagingMock, CancellationToken.None);
+        var result = await GetInvoiceQueryHandler.Handle(query, messagingMock, CancellationToken.None);
 
         // Assert
         var invoice = result.Match(success => success, _ => null!);
@@ -52,7 +52,7 @@ public class GetInvoiceQueryHandlerTests
 
         // Verify that messaging was called with correct parameters
         await messagingMock.Received(1).InvokeQueryAsync(
-            Arg.Is<GetInvoiceQueryHwandler.GetInvoiceDbQuery>(cmd => cmd.InvoiceId == invoiceId),
+            Arg.Is<GetInvoiceQueryHandler.GetInvoiceDbQuery>(cmd => cmd.InvoiceId == invoiceId),
             Arg.Any<CancellationToken>());
     }
 
@@ -63,13 +63,13 @@ public class GetInvoiceQueryHandlerTests
         var messagingMock = Substitute.For<IMessageBus>();
         var invoiceId = Guid.NewGuid();
 
-        messagingMock.InvokeQueryAsync(Arg.Any<GetInvoiceQueryHwandler.GetInvoiceDbQuery>(), Arg.Any<CancellationToken>())
+        messagingMock.InvokeQueryAsync(Arg.Any<GetInvoiceQueryHandler.GetInvoiceDbQuery>(), Arg.Any<CancellationToken>())
             .Returns((InvoiceModel?)null);
 
         var query = new GetInvoiceQuery(invoiceId);
 
         // Act
-        var result = await GetInvoiceQueryHwandler.Handle(query, messagingMock, CancellationToken.None);
+        var result = await GetInvoiceQueryHandler.Handle(query, messagingMock, CancellationToken.None);
 
         // Assert
         var failures = result.Match(_ => null!, validationFailures => validationFailures);
