@@ -13,6 +13,9 @@ public static partial class InvoiceMapper
     [MapProperty(nameof(Billing.Contracts.Invoices.Models.Invoice.UpdatedDateUtc), nameof(Billing.Invoices.Grpc.Models.Invoice.UpdatedDateUtc), Use = nameof(DateTimeToTimestamp))]
     [MapProperty(nameof(Billing.Contracts.Invoices.Models.Invoice.CashierId), nameof(Billing.Invoices.Grpc.Models.Invoice.CashierId), Use = nameof(NullableGuidToString))]
     [MapProperty(nameof(Billing.Contracts.Invoices.Models.Invoice.InvoiceId), nameof(Billing.Invoices.Grpc.Models.Invoice.InvoiceId), Use = nameof(GuidToString))]
+    [MapProperty(nameof(Billing.Contracts.Invoices.Models.Invoice.Currency), nameof(Billing.Invoices.Grpc.Models.Invoice.Currency), Use = nameof(NullableStringToString))]
+    [MapProperty(nameof(Billing.Contracts.Invoices.Models.Invoice.Name), nameof(Billing.Invoices.Grpc.Models.Invoice.Name), Use = nameof(NullableStringToString))]
+    [MapProperty(nameof(Billing.Contracts.Invoices.Models.Invoice.Status), nameof(Billing.Invoices.Grpc.Models.Invoice.Status), Use = nameof(NullableStringToString))]
     public static partial Billing.Invoices.Grpc.Models.Invoice ToGrpc(this Billing.Contracts.Invoices.Models.Invoice source);
 
     public static Billing.Invoices.Grpc.Models.Invoice ToGrpcWithTenant(this Billing.Contracts.Invoices.Models.Invoice source, string tenantId = "")
@@ -45,5 +48,10 @@ public static partial class InvoiceMapper
     private static string NullableGuidToString(Guid? guid)
     {
         return guid?.ToString() ?? string.Empty;
+    }
+
+    private static string NullableStringToString(string? value)
+    {
+        return value ?? string.Empty;
     }
 }

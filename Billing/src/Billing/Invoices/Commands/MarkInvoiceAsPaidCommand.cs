@@ -1,6 +1,7 @@
 // Copyright (c) ABCDEG. All rights reserved.
 
 using Billing.Contracts.Invoices.IntegrationEvents;
+using Billing.Invoices.Queries;
 using FluentValidation.Results;
 
 namespace Billing.Invoices.Commands;
@@ -38,17 +39,17 @@ public static partial class MarkInvoiceAsPaidCommandHandler
             return (failures, null);
         }
 
-        // In a real scenario, we'd need to fetch the updated invoice data
-        var result = new InvoiceModel
+        // Fetch the updated invoice from the database
+        var getInvoiceQuery = new GetInvoiceQuery(command.InvoiceId);
+        var invoiceResult = await messaging.InvokeQueryAsync(getInvoiceQuery, cancellationToken);
+
+        if (invoiceResult.IsT1)
         {
-            InvoiceId = command.InvoiceId,
-            Name = "Paid Invoice", // This should be fetched from DB
-            Status = "Paid",
-            Amount = command.AmountPaid,
-            CreatedDateUtc = DateTime.UtcNow, // This should be fetched from DB
-            UpdatedDateUtc = DateTime.UtcNow,
-            Version = 1 // This should be incremented
-        };
+            var failures = new List<ValidationFailure> { new("InvoiceId", "Failed to retrieve updated invoice") };
+            return (failures, null);
+        }
+
+        var updatedInvoice = invoiceResult.AsT0;
 
         var paidEvent = new InvoicePaid
         {
@@ -58,6 +59,6 @@ public static partial class MarkInvoiceAsPaidCommandHandler
             PaymentDate = paymentDate
         };
 
-        return (result, paidEvent);
+        return (updatedInvoice, paidEvent);
     }
 }
