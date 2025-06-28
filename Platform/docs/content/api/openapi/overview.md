@@ -187,4 +187,4 @@ public class CashiersController : ControllerBase
 
 - [XML Documentation](xml-documentation.md)
 - [Transformers](transformers.md)
-- [API Overview ../api/overview.md
+- [API Overview](../api/overview.md)

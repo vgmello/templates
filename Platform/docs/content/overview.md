@@ -125,7 +125,7 @@ The Platform is built on several key architectural principles:
 ## Next steps
 
 - Explore the [Architecture](architecture/overview.md) to understand the overall design
-- Explore [API development ../../api/overview.md] patterns for building web services
+- Explore [API development](../../api/overview.md) patterns for building web services
 - Learn about [Database integration](database-integration/overview.md) with Dapper extensions
 - Understand [Messaging patterns](messaging/overview.md) for event-driven architecture
 

@@ -458,7 +458,7 @@ Migrate from existing messaging infrastructure:
 
 -   Learn about [Wolverine Integration](wolverine-setup.md) in detail
 -   Explore [CloudEvents](cloudevents/overview.md) for standardized events
--   -   Understand [Kafka](kafka/overview.md) configuration and patterns
+-   Understand [Kafka](kafka/overview.md) configuration and patterns
 -   Review [Middlewares](middlewares/overview.md) for cross-cutting concerns
 -   Study [Telemetry](telemetry/overview.md) for monitoring and observability
 

@@ -51,4 +51,4 @@ public class ApplicationStartup
 
 ## See also
 
-- [Extensions ../../extensions/overview.md]
+- [Extensions](../../extensions/overview.md)

@@ -25,7 +25,7 @@ var serviceBusDb = pgsql.AddDatabase(name: "ServiceBus", databaseName: "service_
 builder.AddLiquibaseMigrations(pgsql, dbPassword);
 
 var kafka = builder
-    .AddKafka("messaging", port: 90920)
+    .AddKafka("messaging", port: 59092)
     .WithEndpointProxySupport(false)
     .WithKafkaUI(r => r.WithUrlForEndpoint("http", url => url.DisplayText = "Kafka UI"));
 
@@ -45,6 +45,7 @@ var billingApi = builder
     .WithReference(database)
     .WithReference(serviceBusDb)
     .WithReference(kafka)
+    .WaitFor(pgsql)
     .WithHttpHealthCheck("/health/internal");
 
 builder
@@ -63,6 +64,7 @@ builder
     .WithReference(database)
     .WithReference(serviceBusDb)
     .WithReference(kafka)
+    .WaitFor(pgsql)
     .WithHttpHealthCheck("/health/internal");
 
 builder
@@ -74,6 +76,7 @@ builder
     .WithReference(database)
     .WithReference(serviceBusDb)
     .WithReference(kafka)
+    .WaitFor(pgsql)
     .WithReplicas(3)
     .WithUrlForEndpoint("https", url =>
     {

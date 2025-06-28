@@ -338,7 +338,7 @@ Debug failing health checks effectively:
 - Learn about [Health Check Setup](setup.md) for advanced configuration
 - Explore [Logging](../logging/overview.md) for health check logging patterns
 - Understand [OpenTelemetry](../opentelemetry/overview.md) integration
-- Review [API development ../../api/overview.md] for health endpoint customization
+- Review [API development](../../api/overview.md) for health endpoint customization
 
 ## Additional resources
 

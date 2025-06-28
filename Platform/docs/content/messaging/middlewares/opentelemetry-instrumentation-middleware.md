@@ -54,5 +54,5 @@ For the instrumentation to be fully effective, ensure you have configured OpenTe
 
 ## See also
 
-- [OpenTelemetry Setup Extensions ../../opentelemetry/setup.md]
+- [OpenTelemetry Setup Extensions](../../opentelemetry/setup.md)
 - [Wolverine Setup Extensions](../wolverine-setup.md)

@@ -17,7 +17,7 @@ This is the primary extension method to add Wolverine to your application. It se
 
 Call `AddWolverine` on your `IHostApplicationBuilder`:
 
-[!code-csharp[](~/samples/basic-service/Program.cs?highlight=7)]
+[!code-csharp[](~/samples/messaging/wolverine-setup/Program.cs?highlight=3)]
 
 ### AddWolverineWithDefaults
 
@@ -87,8 +87,8 @@ Wolverine's behavior is heavily influenced by connection strings in your `appset
 ## See also
 
 - [Service Bus Options](./service-bus-options.md)
-- [CloudEvents Middleware ../cloudevents/overview.md]
-- - [Exception Handling Policy ../../middlewares/overview.md#exception-handling-policy]
-- - [Fluent Validation Policy ../../middlewares/overview.md#fluent-validation-policy]
-- - [Request Performance Middleware ../../middlewares/overview.md#request-performance-middleware]
-- - [OpenTelemetry Instrumentation Middleware ../../middlewares/overview.md#opentelemetry-instrumentation-middleware]
+- [CloudEvents Middleware](../cloudevents/overview.md)
+- [Exception Handling Policy](../../middlewares/overview.md#exception-handling-policy)
+- [Fluent Validation Policy](../../middlewares/overview.md#fluent-validation-policy)
+- [Request Performance Middleware](../../middlewares/overview.md#request-performance-middleware)
+- [OpenTelemetry Instrumentation Middleware](../../middlewares/overview.md#opentelemetry-instrumentation-middleware)

@@ -104,4 +104,4 @@ public class TelemetryConfiguration
 ## See also
 
 *   [OpenTelemetry Overview](../../opentelemetry/overview.md)
-*   [Wolverine Messaging ../wolverine-setup.md]
+*   [Wolverine Messaging](../wolverine-setup.md)

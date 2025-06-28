@@ -151,6 +151,6 @@ You can create your own custom middlewares by implementing the `IChainableHandle
 
 ## See also
 
-*   [Wolverine Messaging ../wolverine-setup.md]
+*   [Wolverine Messaging](../wolverine-setup.md)
 *   [FluentValidation](https://fluentvalidation.net/)
 *   [OpenTelemetry](https://opentelemetry.io/)
