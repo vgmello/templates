@@ -49,16 +49,6 @@ var billingApi = builder
     .WithHttpHealthCheck("/health/internal");
 
 builder
-    .AddNpmApp("billing-ui", "../../../Billing/web/billing-ui", "dev")
-    .WithEnvironment("GRPC_HOST", () => billingApi.GetGrpcEndpoint().Host)
-    .WithEnvironment("GRPC_PORT", () => billingApi.GetGrpcEndpoint().Port.ToString())
-    .WithHttpEndpoint(env: "PORT", port: 8105)
-    .WithExternalHttpEndpoints()
-    .WithReference(billingApi)
-    .WaitFor(billingApi)
-    .PublishAsDockerFile();
-
-builder
     .AddProject<Projects.Billing_BackOffice>("billing-backoffice")
     .WithEnvironment("ServiceName", "Billing")
     .WithReference(database)
@@ -84,6 +74,16 @@ builder
         url.Url = "/dashboard";
     })
     .WithHttpHealthCheck("/health/internal");
+
+builder
+    .AddNpmApp("billing-ui", "../../../Billing/web/billing-ui", "dev")
+    .WithEnvironment("GRPC_HOST", () => billingApi.GetGrpcEndpoint().Host)
+    .WithEnvironment("GRPC_PORT", () => billingApi.GetGrpcEndpoint().Port.ToString())
+    .WithHttpEndpoint(env: "PORT", port: 8105)
+    .WithUrlForEndpoint("http", url => url.DisplayText = "Billing UI")
+    .WithReference(billingApi)
+    .WaitFor(billingApi)
+    .PublishAsDockerFile();
 
 builder
     .AddContainer("billing-docs", "billing-docfx")
