@@ -19,94 +19,11 @@ These extensions provide a clean and type-safe way to interact with your messagi
 
 ## Usage examples
 
-To use these extensions, you typically inject `IMessageBus` into your services or controllers. Then, you can simply call `InvokeCommandAsync` or `InvokeQueryAsync` with your command or query objects.
+To use these extensions, you typically inject `IMessageBus` into your services or controllers. Then, call `InvokeCommandAsync` or `InvokeQueryAsync` with your command or query objects.
 
-```csharp
-using Operations.Extensions.Abstractions.Messaging;
-using Operations.Extensions.Messaging;
-using Wolverine;
-using System.Threading.Tasks;
-using System.Threading;
-using System;
+[!code-csharp[InvokeCommandExample](~/samples/messaging/message-bus-extensions-sample.cs?name=InvokeCommandExample&highlight=4)]
 
-// Assume IMessageBus is registered in your DI container
-// public class MyService(IMessageBus messageBus)
-// {
-//     private readonly IMessageBus _messageBus = messageBus;
-// }
-
-// Define a command and a query (as shown in ICommand and IQuery documentation)
-public record CreateUserCommand(string UserName, string Email) : ICommand<int>;
-public record GetUserByIdQuery(int UserId) : IQuery<User>;
-
-public class User
-{
-    public int Id { get; set; }
-    public string Name { get; set; }
-    public string Email { get; set; }
-}
-
-// Example of a service using the MessageBus extensions
-public class ApplicationService
-{
-    private readonly IMessageBus _messageBus;
-
-    public ApplicationService(IMessageBus messageBus)
-    {
-        _messageBus = messageBus;
-    }
-
-    public async Task<int> CreateNewUser(string userName, string email)
-    {
-        var command = new CreateUserCommand(userName, email);
-        // Highlight the usage of InvokeCommandAsync
-        [!code-csharp[InvokeCommandExample](~/samples/messaging/message-bus-extensions-sample.cs?name=InvokeCommandExample)]
-        return userId;
-    }
-
-    public async Task<User> GetUserDetails(int userId)
-    {
-        var query = new GetUserByIdQuery(userId);
-        // Highlight the usage of InvokeQueryAsync
-        [!code-csharp[InvokeQueryExample](~/samples/messaging/message-bus-extensions-sample.cs?name=InvokeQueryExample)]
-        return user;
-    }
-}
-
-// Sample code for the snippets (docs/samples/messaging/message-bus-extensions-sample.cs)
-// This file would contain:
-/*
-namespace SampleApp
-{
-    using Operations.Extensions.Abstractions.Messaging;
-    using Operations.Extensions.Messaging;
-    using Wolverine;
-    using System.Threading.Tasks;
-    using System.Threading;
-
-    public partial class ApplicationService
-    {
-        // <InvokeCommandExample>
-        public async Task<int> CreateUser(string userName, string email)
-        {
-            var command = new CreateUserCommand(userName, email);
-            var userId = await _messageBus.InvokeCommandAsync(command);
-            return userId;
-        }
-        // </InvokeCommandExample>
-
-        // <InvokeQueryExample>
-        public async Task<User> GetUser(int userId)
-        {
-            var query = new GetUserByIdQuery(userId);
-            var user = await _messageBus.InvokeQueryAsync(query);
-            return user;
-        }
-        // </InvokeQueryExample>
-    }
-}
-*/
-```
+[!code-csharp[InvokeQueryExample](~/samples/messaging/message-bus-extensions-sample.cs?name=InvokeQueryExample&highlight=4)]
 
 ## See also
 

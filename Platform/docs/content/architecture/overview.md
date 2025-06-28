@@ -139,7 +139,7 @@ Enforce architectural constraints with tests:
 ## Next steps
 
 - Learn about [Service Defaults](service-defaults.md) configuration
-- Explore [API development](../../api/overview.md) patterns
+- Explore [API development](../api/overview.md) patterns
 - Understand [Database integration](../database-integration/overview.md)
 - Review [Messaging patterns](../messaging/overview.md)
 
