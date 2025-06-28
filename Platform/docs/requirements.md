@@ -43,7 +43,7 @@ Your article must adhere to the following standards summarized below.
 
 ## 3 Code snippet guidelines
 
--   Store runnable samples under `/docs/samples/...`; redact secrets with `***`.
+-   Store runnable samples under `~/samples/...`; redact secrets with `***`.
 -   Reference code using DocFX snippet syntax:
     -   Whole file:
         `[!code-csharp[](Program.cs)]`
