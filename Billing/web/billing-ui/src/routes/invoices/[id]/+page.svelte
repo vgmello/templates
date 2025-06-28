@@ -188,11 +188,15 @@
 								action="?/markPaid"
 								use:enhance={() => {
 									isSubmitting = true;
-									return async ({ update }) => {
+									return async ({ result, update }) => {
 										await update();
 										isSubmitting = false;
-										showPaymentForm = false;
-										await invalidateAll();
+										
+										// Only close form and refresh data on success
+										if (result.type === 'success' && result.data?.success) {
+											showPaymentForm = false;
+											await invalidateAll();
+										}
 									};
 								}}
 								class="space-y-3 p-4 border rounded-lg"
@@ -244,10 +248,14 @@
 								action="?/simulatePayment"
 								use:enhance={() => {
 									isSubmitting = true;
-									return async ({ update }) => {
+									return async ({ result, update }) => {
 										await update();
 										isSubmitting = false;
-										showSimulateForm = false;
+										
+										// Only close form on success
+										if (result.type === 'success' && result.data?.success) {
+											showSimulateForm = false;
+										}
 									};
 								}}
 								class="space-y-3 p-4 border rounded-lg"
@@ -303,10 +311,14 @@
 						action="?/cancel"
 						use:enhance={() => {
 							isSubmitting = true;
-							return async ({ update }) => {
+							return async ({ result, update }) => {
 								await update();
 								isSubmitting = false;
-								await invalidateAll();
+								
+								// Only refresh data on success
+								if (result.type === 'success' && result.data?.success) {
+									await invalidateAll();
+								}
 							};
 						}}
 					>

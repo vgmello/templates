@@ -56,11 +56,13 @@
 		if (!dueDate) {
 			return { isValid: true, message: '' }; // Optional field
 		}
-		const selectedDate = new Date(dueDate);
-		const today = new Date();
-		today.setHours(0, 0, 0, 0);
 		
-		if (selectedDate < today) {
+		// Convert the date string to a proper date object and compare as date strings to avoid timezone issues
+		const selectedDateStr = dueDate; // Already in YYYY-MM-DD format
+		const today = new Date();
+		const todayStr = today.toISOString().split('T')[0]; // Get today in YYYY-MM-DD format
+		
+		if (selectedDateStr < todayStr) {
 			return { isValid: false, message: 'Due date cannot be in the past' };
 		}
 		return { isValid: true, message: '' };
