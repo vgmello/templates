@@ -12,7 +12,7 @@ The Platform provides comprehensive OpenTelemetry integration with automatic ins
 
 OpenTelemetry is automatically configured when you add Service Defaults:
 
-<!-- Code snippet for BasicSetup.cs is missing -->
+[!code-csharp[](~/samples/opentelemetry/BasicSetup.cs#L7-L19?highlight=9,10)]
 
 This setup provides:
 - **Distributed tracing** across service boundaries
