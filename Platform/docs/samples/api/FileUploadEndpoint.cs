@@ -12,7 +12,7 @@ public static class FileUploadEndpoint
         }
 
         var file = request.Form.Files[0];
-        // TODO: process the file
+        // Process the uploaded file
         return TypedResults.Ok();
     }
     // </FileUploadEndpoint>

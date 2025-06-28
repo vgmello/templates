@@ -88,7 +88,7 @@ Wolverine's behavior is heavily influenced by connection strings in your `appset
 
 - [Service Bus Options](./service-bus-options.md)
 - [CloudEvents Middleware](./cloudevents/overview.md)
-- [Exception Handling Policy](./middlewares/overview.md#exception-handling-policy)
-- [Fluent Validation Policy](./middlewares/overview.md#fluent-validation-policy)
+- [Exception Handling Frame](./middlewares/overview.md#exception-handling-frame)
+- [Fluent Validation Executor](./middlewares/overview.md#fluent-validation-executor)
 - [Request Performance Middleware](./middlewares/overview.md#request-performance-middleware)
 - [OpenTelemetry Instrumentation Middleware](./middlewares/overview.md#opentelemetry-instrumentation-middleware)
