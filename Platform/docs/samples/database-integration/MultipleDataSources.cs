@@ -1,1 +1,6 @@
-// This is a placeholder for MultipleDataSources.cs
+using System.Data;
+
+public static class MultipleDataSources
+{
+    public static string Sql => "SELECT 1";
+}

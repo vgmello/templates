@@ -1,1 +1,6 @@
-// This is a placeholder for DbCommandExamples.cs
+using System.Data;
+
+public static class DbCommandExamples
+{
+    public static string Sql => "SELECT 1";
+}

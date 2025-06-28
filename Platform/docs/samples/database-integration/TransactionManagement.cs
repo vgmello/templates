@@ -1,1 +1,6 @@
-// This is a placeholder for TransactionManagement.cs
+using System.Data;
+
+public static class TransactionManagement
+{
+    public static string Sql => "SELECT 1";
+}

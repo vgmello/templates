@@ -11,7 +11,7 @@ The Platform provides comprehensive API development capabilities, combining REST
 
 Set up a complete API service with just a few lines:
 
-[!code-csharp[](~/samples/api/ApiSetup.cs?highlight=4-5)]
+[!code-csharp[](~/samples/api/ApiSetup.cs?highlight=6-7)]
 
 This setup provides:
 

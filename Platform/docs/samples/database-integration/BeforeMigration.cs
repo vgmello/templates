@@ -1,1 +1,6 @@
-// This is a placeholder for BeforeMigration.cs
+using System.Data;
+
+public static class BeforeMigration
+{
+    public static string Sql => "SELECT 1";
+}

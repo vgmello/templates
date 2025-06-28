@@ -1,1 +1,6 @@
-// This is a placeholder for NonQueryOperations.cs
+using System.Data;
+
+public static class NonQueryOperations
+{
+    public static string Sql => "SELECT 1";
+}

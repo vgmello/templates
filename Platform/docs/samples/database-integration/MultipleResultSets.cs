@@ -1,1 +1,6 @@
-// This is a placeholder for MultipleResultSets.cs
+using System.Data;
+
+public static class MultipleResultSets
+{
+    public static string Sql => "SELECT 1";
+}

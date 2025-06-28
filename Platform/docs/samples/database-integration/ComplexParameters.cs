@@ -1,1 +1,6 @@
-// This is a placeholder for ComplexParameters.cs
+using System.Data;
+
+public static class ComplexParameters
+{
+    public static string Sql => "SELECT 1";
+}

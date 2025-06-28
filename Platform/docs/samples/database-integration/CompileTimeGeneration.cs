@@ -1,1 +1,6 @@
-// This is a placeholder for CompileTimeGeneration.cs
+using System.Data;
+
+public static class CompileTimeGeneration
+{
+    public static string Sql => "SELECT 1";
+}
