@@ -37,7 +37,7 @@ This extension method configures OpenTelemetry for your application, setting up 
 
 To add OpenTelemetry to your application, call `AddOpenTelemetry` on your `IHostApplicationBuilder`:
 
-[!code-csharp[](~/samples/basic-service/Program.cs?highlight=6)]
+[!code-csharp[](~/samples/opentelemetry/SetupProgram.cs?highlight=3)]
 
 ## Configuration
 

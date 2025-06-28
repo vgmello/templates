@@ -17,7 +17,7 @@ Once discovered, each service is automatically mapped using the underlying `MapG
 
 To register all gRPC services from the entry assembly, simply call `MapGrpcServices` on the `IEndpointRouteBuilder`.
 
-[!code-csharp[](~/samples/api-defaults/Program.cs?highlight=11)]
+[!code-csharp[](~/samples/api/grpc/MapGrpcServices.cs?highlight=3)]
 
 Alternatively, you can specify an assembly by providing a marker type:
 

@@ -39,7 +39,7 @@ It also enriches log contexts and directs logs to OpenTelemetry, making them ava
 
 Call `AddLogging` on your `IHostApplicationBuilder` (which `WebApplicationBuilder` implements):
 
-[!code-csharp[](~/samples/basic-service/Program.cs?highlight=6)]
+[!code-csharp[](~/samples/logging/Program.cs?highlight=3)]
 
 ### ConfigureLogger
 

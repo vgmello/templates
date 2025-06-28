@@ -28,7 +28,7 @@ This method performs the following key actions:
 
 To apply these defaults, simply call `AddServiceDefaults` on your `WebApplicationBuilder`:
 
-[!code-csharp[](~/samples/basic-service/Program.cs?highlight=5)]
+[!code-csharp[](~/samples/basic-service/Program.cs?highlight=7)]
 
 ### AddValidators
 
@@ -51,7 +51,7 @@ The `RunAsync` extension method for `WebApplication` provides a standardized way
 
 Replace the standard `app.Run()` with `app.RunAsync(args)`:
 
-[!code-csharp[](~/samples/basic-service/Program.cs?highlight=10)]
+[!code-csharp[](~/samples/extensions/RunAsyncExample.cs?highlight=4)]
 
 ## See also
 
