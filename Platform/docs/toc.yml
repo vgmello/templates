@@ -1,7 +1,7 @@
 - name: Home
   href: index.md
 - name: Content
-  href: content/toc.yml
+  href: content/
 - name: API Reference
-  href: api/toc.yml
-  homepage: api/toc.yml
+  href: api/
+  homepage: api/Operations.html

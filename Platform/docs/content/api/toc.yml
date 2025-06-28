@@ -1,5 +1,3 @@
-- name: API
-  href: service-defaults.md
 - name: Endpoint Filters
   href: endpoint-filters.md
 - name: gRPC
