@@ -1,10 +1,10 @@
 // Copyright (c) ABCDEG. All rights reserved.
 
-using System.ComponentModel.DataAnnotations;
 using Dapper;
 using Npgsql;
+using System.ComponentModel.DataAnnotations;
 
-namespace Billing.Cashier.Queries;
+namespace Billing.Cashiers.Queries;
 
 public record GetCashiersQuery : IQuery<IEnumerable<GetCashiersQuery.Result>>
 {

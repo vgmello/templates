@@ -46,6 +46,7 @@ public static partial class MarkInvoiceAsPaidCommandHandler
         if (invoiceResult.IsT1)
         {
             var failures = new List<ValidationFailure> { new("InvoiceId", "Failed to retrieve updated invoice") };
+
             return (failures, null);
         }
 

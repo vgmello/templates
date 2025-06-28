@@ -1,10 +1,11 @@
 // Copyright (c) ABCDEG. All rights reserved.
 
-using Billing.Contracts.Cashier.IntegrationEvents;
+using Billing.Contracts.Cashiers.IntegrationEvents;
+using Billing.Contracts.Cashiers.Models;
 
-namespace Billing.Cashier.Commands;
+namespace Billing.Cashiers.Commands;
 
-using CashierModel = Billing.Contracts.Cashier.Models.Cashier;
+using CashierModel = Cashier;
 
 public record CreateCashierCommand(string Name, string Email) : ICommand<Result<CashierModel>>;
 

@@ -1,9 +1,9 @@
 syntax = "proto3";
 
-import "Cashier/Protos/Models/cashier.proto";
+import "Cashiers/Protos/Models/cashier.proto";
 import "google/protobuf/empty.proto";
 
-option csharp_namespace = "Billing.Cashier.Grpc";
+option csharp_namespace = "Billing.Cashiers.Grpc";
 
 package billing.cashiers;
 

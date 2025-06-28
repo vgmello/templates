@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-option csharp_namespace = "Billing.Cashier.Grpc.Models";
+option csharp_namespace = "Billing.Cashiers.Grpc.Models";
 
 package billing.cashiers;
 

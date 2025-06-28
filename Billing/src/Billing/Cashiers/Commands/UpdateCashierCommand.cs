@@ -1,11 +1,12 @@
 // Copyright (c) ABCDEG. All rights reserved.
 
-using Billing.Contracts.Cashier.IntegrationEvents;
+using Billing.Contracts.Cashiers.IntegrationEvents;
+using Billing.Contracts.Cashiers.Models;
 using FluentValidation.Results;
 
-namespace Billing.Cashier.Commands;
+namespace Billing.Cashiers.Commands;
 
-using CashierModel = Billing.Contracts.Cashier.Models.Cashier;
+using CashierModel = Cashier;
 
 public record UpdateCashierCommand(Guid CashierId, string Name, string? Email) : ICommand<Result<CashierModel>>;
 

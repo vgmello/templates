@@ -1,9 +1,9 @@
 // Copyright (c) ABCDEG. All rights reserved.
 
-using Billing.Contracts.Cashier.IntegrationEvents;
+using Billing.Contracts.Cashiers.IntegrationEvents;
 using FluentValidation.Results;
 
-namespace Billing.Cashier.Commands;
+namespace Billing.Cashiers.Commands;
 
 public record DeleteCashierCommand(Guid CashierId) : ICommand<Result<bool>>;
 

@@ -1,10 +1,12 @@
 // Copyright (c) ABCDEG. All rights reserved.
 
-using Billing.Cashier.Grpc;
+using Billing.Cashiers.Commands;
+using Billing.Cashiers.Queries;
 using Google.Protobuf.WellKnownTypes;
-using CashierModel = Billing.Cashier.Grpc.Models.Cashier;
+using CashierMapper = Billing.Api.Cashiers.Mappers.CashierMapper;
+using CashierModel = Billing.Cashiers.Grpc.Models.Cashier;
 
-namespace Billing.Api.Cashier;
+namespace Billing.Api.Cashiers;
 
 public class CashierService(IMessageBus bus) : CashiersService.CashiersServiceBase
 {
@@ -12,7 +14,7 @@ public class CashierService(IMessageBus bus) : CashiersService.CashiersServiceBa
     {
         var result = await bus.InvokeQueryAsync(new GetCashierQuery(Guid.Parse(request.Id)), context.CancellationToken);
 
-        return result.ToGrpc();
+        return CashierMapper.ToGrpc(result);
     }
 
     public override async Task<GetCashiersResponse> GetCashiers(GetCashiersRequest request, ServerCallContext context)
@@ -20,7 +22,7 @@ public class CashierService(IMessageBus bus) : CashiersService.CashiersServiceBa
         var query = new GetCashiersQuery { Limit = request.Limit, Offset = request.Offset };
         var cashiers = await bus.InvokeQueryAsync(query, context.CancellationToken);
 
-        var cashiersGrpc = cashiers.Select(c => c.ToGrpc());
+        var cashiersGrpc = cashiers.Select(c => CashierMapper.ToGrpc(c));
 
         return new GetCashiersResponse
         {
@@ -34,7 +36,7 @@ public class CashierService(IMessageBus bus) : CashiersService.CashiersServiceBa
         var result = await bus.InvokeCommandAsync(command, context.CancellationToken);
 
         return result.Match(
-            cashier => cashier.ToGrpc(),
+            cashier => CashierMapper.ToGrpc(cashier),
             errors => throw new RpcException(new Status(StatusCode.InvalidArgument, string.Join("; ", errors))));
     }
 
@@ -44,7 +46,7 @@ public class CashierService(IMessageBus bus) : CashiersService.CashiersServiceBa
         var result = await bus.InvokeCommandAsync(command, context.CancellationToken);
 
         return result.Match(
-            cashier => cashier.ToGrpc(),
+            cashier => CashierMapper.ToGrpc(cashier),
             errors => throw new RpcException(new Status(StatusCode.InvalidArgument, string.Join("; ", errors))));
     }
 

@@ -1,5 +1,6 @@
 // Copyright (c) ABCDEG. All rights reserved.
 
+using Billing.Contracts.Cashiers.IntegrationEvents;
 using Operations.ServiceDefaults.Messaging.Kafka;
 using Operations.ServiceDefaults.Messaging.Wolverine;
 using Wolverine.Kafka;
@@ -23,10 +24,10 @@ public static class DependencyInjection
     private static void ConfigureKafkaPublishing(this WolverineOptions opts)
     {
         // Publish Cashier events to Kafka
-        opts.PublishMessage<Billing.Contracts.Cashier.IntegrationEvents.CashierCreated>()
+        opts.PublishMessage<CashierCreated>()
             .ToKafkaTopic(KafkaTopicNamingConvention.Billing.Cashier.Topic);
 
-        opts.PublishMessage<Billing.Contracts.Cashier.IntegrationEvents.CashierUpdated>()
+        opts.PublishMessage<CashierUpdated>()
             .ToKafkaTopic(KafkaTopicNamingConvention.Billing.Cashier.Topic);
 
         // Publish Invoice events to Kafka

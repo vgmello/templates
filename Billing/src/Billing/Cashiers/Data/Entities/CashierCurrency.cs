@@ -4,7 +4,7 @@ using Billing.Core.Data;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace Billing.Cashier.Data.Entities;
+namespace Billing.Cashiers.Data.Entities;
 
 public record CashierCurrency : Entity
 {

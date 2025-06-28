@@ -1,6 +1,6 @@
 // Copyright (c) ABCDEG. All rights reserved.
 
-namespace Billing.Contracts.Cashier.Models;
+namespace Billing.Contracts.Cashiers.Models;
 
 public record Cashier
 {

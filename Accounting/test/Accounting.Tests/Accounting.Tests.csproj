@@ -2,6 +2,7 @@
 
     <PropertyGroup>
         <IsTestProject>true</IsTestProject>
+        <NoWarn>$(NoWarn);CS0436;</NoWarn>
     </PropertyGroup>
 
     <ItemGroup>
@@ -9,7 +10,8 @@
         <PackageReference Include="NSubstitute"/>
         <PackageReference Include="NetArchTest.Rules"/>
         <PackageReference Include="Testcontainers"/>
-        <PackageReference Include="Testcontainers.PostgreSql" />
+        <PackageReference Include="Testcontainers.PostgreSql"/>
+        <PackageReference Include="Grpc.Tools"/>
     </ItemGroup>
 
     <ItemGroup>
@@ -17,6 +19,13 @@
         <ProjectReference Include="..\..\src\Accounting.BackOffice\Accounting.BackOffice.csproj"/>
         <ProjectReference Include="..\..\src\Accounting.Contracts\Accounting.Contracts.csproj"/>
         <ProjectReference Include="..\..\src\Accounting\Accounting.csproj"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <Protobuf Include="..\..\src\Accounting.Api\**\Protos\**\*.proto"
+                  ProtoRoot="..\..\src\Accounting.Api\"
+                  GrpcServices="Client"
+                  Link="Integration\%(RecursiveDir)%(Filename)%(Extension)"/>
     </ItemGroup>
 
 </Project>

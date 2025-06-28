@@ -10,6 +10,7 @@
         <PackageReference Include="NetArchTest.Rules"/>
         <PackageReference Include="Testcontainers"/>
         <PackageReference Include="Testcontainers.PostgreSql"/>
+        <PackageReference Include="Grpc.Tools"/>
     </ItemGroup>
 
     <ItemGroup>
@@ -20,7 +21,10 @@
     </ItemGroup>
 
     <ItemGroup>
-        <Folder Include="Integration\Invoices\" />
+        <Protobuf Include="..\..\src\Billing.Api\**\Protos\**\*.proto"
+                  ProtoRoot="..\..\src\Billing.Api\"
+                  GrpcServices="Client"
+                  Link="Integration\%(RecursiveDir)%(Filename)%(Extension)"/>
     </ItemGroup>
 
 </Project>

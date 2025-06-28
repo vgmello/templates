@@ -2,7 +2,7 @@
 
 using Billing.Core.Data;
 
-namespace Billing.Cashier.Data.Entities;
+namespace Billing.Cashiers.Data.Entities;
 
 public record Cashier : Entity
 {

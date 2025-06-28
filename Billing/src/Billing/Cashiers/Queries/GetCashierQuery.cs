@@ -1,11 +1,12 @@
 // Copyright (c) ABCDEG. All rights reserved.
 
+using Billing.Contracts.Cashiers.Models;
 using Dapper;
 using Npgsql;
 
-namespace Billing.Cashier.Queries;
+namespace Billing.Cashiers.Queries;
 
-public record GetCashierQuery(Guid Id) : IQuery<Contracts.Cashier.Models.Cashier>;
+public record GetCashierQuery(Guid Id) : IQuery<Cashier>;
 
 /// <summary>
 ///     Example of query handler with db query directly in the handler, with DbCommand attr with custom column.
@@ -15,7 +16,7 @@ public static partial class GetCashierQueryHandler
     [DbCommand]
     private sealed partial record DbCommand([Column("id")] Guid CashierId);
 
-    public static async Task<Contracts.Cashier.Models.Cashier> Handle(GetCashierQuery query, NpgsqlDataSource dataSource,
+    public static async Task<Cashier> Handle(GetCashierQuery query, NpgsqlDataSource dataSource,
         CancellationToken cancellationToken)
     {
         await using var connection = await dataSource.OpenConnectionAsync(cancellationToken);
@@ -33,7 +34,7 @@ public static partial class GetCashierQueryHandler
             throw new InvalidOperationException($"Cashier with ID {query.Id} not found");
         }
 
-        return new Contracts.Cashier.Models.Cashier
+        return new Cashier
         {
             CashierId = cashier.CashierId,
             Name = cashier.Name,

@@ -1,10 +1,8 @@
 // Copyright (c) ABCDEG. All rights reserved.
 
 using Billing.Api.Invoices.Mappers;
-using Billing.Invoices.Grpc;
 using Billing.Invoices.Commands;
 using Billing.Invoices.Queries;
-using Google.Protobuf.WellKnownTypes;
 using InvoiceModel = Billing.Invoices.Grpc.Models.Invoice;
 
 namespace Billing.Api.Invoices;
@@ -38,14 +36,14 @@ public class InvoiceService(IMessageBus bus) : InvoicesService.InvoicesServiceBa
     {
         var dueDate = request.DueDate?.ToDateTime();
         var cashierId = string.IsNullOrEmpty(request.CashierId) ? (Guid?)null : Guid.Parse(request.CashierId);
-        
+
         var command = new CreateInvoiceCommand(
-            request.Name, 
-            (decimal)request.Amount, 
-            request.Currency, 
-            dueDate, 
+            request.Name,
+            (decimal)request.Amount,
+            request.Currency,
+            dueDate,
             cashierId);
-        
+
         var result = await bus.InvokeCommandAsync(command, context.CancellationToken);
 
         return result.Match(
@@ -67,10 +65,10 @@ public class InvoiceService(IMessageBus bus) : InvoicesService.InvoicesServiceBa
     {
         var paymentDate = request.PaymentDate?.ToDateTime();
         var command = new MarkInvoiceAsPaidCommand(
-            Guid.Parse(request.InvoiceId), 
-            (decimal)request.AmountPaid, 
+            Guid.Parse(request.InvoiceId),
+            (decimal)request.AmountPaid,
             paymentDate);
-        
+
         var result = await bus.InvokeCommandAsync(command, context.CancellationToken);
 
         return result.Match(

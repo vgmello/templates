@@ -1,6 +1,6 @@
 // Copyright (c) ABCDEG. All rights reserved.
 
-using Billing.Cashier.Commands;
+using Billing.Cashiers.Commands;
 using FluentValidation.TestHelper;
 
 namespace Billing.Tests.Unit.Cashier;

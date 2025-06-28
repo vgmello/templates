@@ -12,7 +12,10 @@ namespace Operations.Extensions.Abstractions.Dapper;
 /// </remarks>
 /// <param name="sp">The name of the stored procedure. Mutually exclusive with <paramref name="sql" /> and <paramref name="fn" />.</param>
 /// <param name="sql">The SQL query text. Mutually exclusive with <paramref name="sp" /> and <paramref name="fn" />.</param>
-/// <param name="fn">The function SQL query text. Parameters will be auto-generated based on record properties. Mutually exclusive with <paramref name="sp" /> and <paramref name="sql" />.</param>
+/// <param name="fn">
+///     The function SQL query text. Parameters will be auto-generated based on record properties. Mutually exclusive with
+///     <paramref name="sp" /> and <paramref name="sql" />.
+/// </param>
 /// <param name="paramsCase">DB params case</param>
 /// <param name="nonQuery">
 ///     Indicates the nature of the command, with its primary effect on commands implementing ICommand&lt;int&gt;.
