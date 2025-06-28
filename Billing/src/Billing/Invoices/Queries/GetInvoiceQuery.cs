@@ -8,9 +8,9 @@ using InvoiceModel = Billing.Contracts.Invoices.Models.Invoice;
 
 public record GetInvoiceQuery(Guid Id) : IQuery<Result<InvoiceModel>>;
 
-public static partial class GetInvoiceQueryHwandler
+public static partial class GetInvoiceQueryHandler
 {
-    [DbCommand(sp: "billing.invoice_get")]
+    [DbCommand(fn: "select * from billing.invoice_get")]
     public partial record GetInvoiceDbQuery(Guid InvoiceId) : IQuery<InvoiceModel?>;
 
     public static async Task<Result<InvoiceModel>> Handle(GetInvoiceQuery query, IMessageBus messaging, CancellationToken cancellationToken)

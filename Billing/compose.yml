@@ -64,8 +64,8 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ServiceName=Billing
-      - ConnectionStrings__BillingDb=Host=billing-db;Port=5432;Database=billing;Username=postgres;Password=postgres
-      - ConnectionStrings__ServiceBus=Host=billing-db;Port=5432;Database=service_bus;Username=postgres;Password=postgres
+      - ConnectionStrings__BillingDb=Host=10.211.55.10;Port=54320;Database=billing;Username=postgres;Password=postgres
+      - ConnectionStrings__ServiceBus=Host=10.211.55.10;Port=54320;Database=service_bus;Username=postgres;Password=postgres
       - Kestrel__Endpoints__Http__Protocols=Http1
       - Kestrel__Endpoints__Http__Url=http://+:8080
       - Kestrel__Endpoints__Grpc__Protocols=Http2
