@@ -2,6 +2,7 @@ syntax = "proto3";
 
 import "Invoices/Protos/Models/invoice.proto";
 import "google/protobuf/timestamp.proto";
+import "google/protobuf/wrappers.proto";
 
 option csharp_namespace = "Billing.Invoices.Grpc";
 
@@ -23,7 +24,7 @@ message GetInvoiceRequest {
 message GetInvoicesRequest {
   int32 limit = 1;
   int32 offset = 2;
-  string status = 3;
+  google.protobuf.StringValue status = 3;
 }
 
 message GetInvoicesResponse {
@@ -34,7 +35,7 @@ message CreateInvoiceRequest {
   string name = 1;
   double amount = 2;
   string currency = 3;
-  google.protobuf.Timestamp due_date = 4;
+  optional google.protobuf.Timestamp due_date = 4;
   string cashierId = 5;
 }
 

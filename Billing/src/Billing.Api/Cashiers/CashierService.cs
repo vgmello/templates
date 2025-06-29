@@ -23,7 +23,7 @@ public class CashierService(IMessageBus bus) : CashiersService.CashiersServiceBa
         var query = new GetCashiersQuery { Limit = request.Limit, Offset = request.Offset };
         var cashiers = await bus.InvokeQueryAsync(query, context.CancellationToken);
 
-        var cashiersGrpc = cashiers.Select(c => CashierMapper.ToGrpc(c));
+        var cashiersGrpc = cashiers.Select(c => c.ToGrpc());
 
         return new GetCashiersResponse
         {

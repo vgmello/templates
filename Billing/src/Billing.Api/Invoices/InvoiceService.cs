@@ -82,7 +82,7 @@ public class InvoiceService(IMessageBus bus) : InvoicesService.InvoicesServiceBa
         var command = new SimulatePaymentCommand(
             Guid.Parse(request.InvoiceId),
             (decimal)request.Amount,
-            request.Currency ?? "USD",
+            request.Currency,
             request.PaymentMethod ?? "Credit Card",
             request.PaymentReference ?? $"SIM-{Guid.NewGuid():N}"[..8]
         );

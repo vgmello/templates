@@ -36,7 +36,6 @@
 		}
 	}
 
-
 	function handleDeleteCashier() {
 		if (!cashier || !confirm('Are you sure you want to delete this cashier? This action cannot be undone.')) {
 			return;

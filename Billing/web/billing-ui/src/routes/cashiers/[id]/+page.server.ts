@@ -28,7 +28,7 @@ export const actions: Actions = {
 	delete: async ({ params }) => {
 		try {
 			await cashierGrpcService.deleteCashier(params.id);
-			throw redirect(303, '/cashiers');
+			return redirect(303, '/cashiers');
 		} catch (err) {
 			console.error('Failed to delete cashier:', err);
 			

@@ -19,6 +19,7 @@ export interface CashierPayment {
 }
 
 export interface Cashier {
+	tenantId: string;
 	cashierId: string;
 	name: string;
 	email: string;

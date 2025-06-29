@@ -31,7 +31,7 @@ public static partial class GetCashiersQueryHandler
         await using var connection = await dataSource.OpenConnectionAsync(cancellationToken);
 
         const string sql = """
-                               SELECT null::uuid as TenantId, cashier_id AS CashierId, name AS Name, email AS Email
+                               SELECT null::uuid as tenant_id, cashier_id, name, email
                                FROM billing.cashiers
                                LIMIT @limit OFFSET @offset
                            """;

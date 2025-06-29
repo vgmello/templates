@@ -5,11 +5,10 @@ class CashierStore {
 	cashiers = $state<Cashier[]>([]);
 	selectedCashier = $state<Cashier | null>(null);
 	loading = $state<boolean>(false);
-	error = $state.raw<string | null>(null); // Use $state.raw for non-reactive error messages
+	error = $state.raw<string | null>(null);
 	searchTerm = $state<string>('');
 	currencyFilter = $state<string>('all');
 
-	// Computed properties using $derived runes - Svelte 5 best practice
 	filteredCashiers = $derived.by(() => {
 		let filtered = this.cashiers;
 		

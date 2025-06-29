@@ -10,7 +10,7 @@ export const load: PageServerLoad = async ({ params }) => {
 		};
 	} catch (error) {
 		console.error('Failed to load cashier:', error);
-		throw redirect(303, '/cashiers');
+		return redirect(303, '/cashiers');
 	}
 };
 
@@ -42,7 +42,7 @@ export const actions: Actions = {
 			const updatedCashier = await cashierGrpcService.updateCashier(params.id, cashierData);
 			
 			// Redirect to the updated cashier's detail page
-			throw redirect(303, `/cashiers/${updatedCashier.cashierId}`);
+			return redirect(303, `/cashiers/${updatedCashier.cashierId}`);
 		} catch (err) {
 			console.error('Failed to update cashier:', err);
 			

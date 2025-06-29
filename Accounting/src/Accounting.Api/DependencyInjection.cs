@@ -1,5 +1,6 @@
 // Copyright (c) ABCDEG. All rights reserved.
 
+using Dapper;
 using Operations.ServiceDefaults.Messaging.Kafka;
 using Operations.ServiceDefaults.Messaging.Wolverine;
 using Wolverine.Kafka;
@@ -10,6 +11,8 @@ public static class DependencyInjection
 {
     public static IHostApplicationBuilder AddApplicationServices(this IHostApplicationBuilder builder)
     {
+        DefaultTypeMap.MatchNamesWithUnderscores = true;
+
         builder.AddWolverine(opts =>
         {
             opts.ConfigureKafkaPublishing();

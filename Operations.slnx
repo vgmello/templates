@@ -25,6 +25,7 @@
     <Project Path="Billing\infra\Billing.Database\Billing.Database.csproj" Type="Classic C#" />
   </Folder>
   <Folder Name="/Billing/Solution Items/">
+    <Project Path="Billing\docs\Billing.Docs.csproj" Type="Classic C#" />
     <File Path="Billing\README.md" />
     <File Path="Billing\compose.yml" />
   </Folder>

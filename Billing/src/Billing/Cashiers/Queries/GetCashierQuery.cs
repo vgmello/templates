@@ -21,11 +21,7 @@ public static partial class GetCashierQueryHandler
     {
         await using var connection = await dataSource.OpenConnectionAsync(cancellationToken);
 
-        const string sql = """
-                               SELECT cashier_id AS CashierId, name AS Name, email AS Email, created_date_utc, updated_date_utc, version
-                               FROM billing.cashiers
-                               WHERE cashier_id = @id
-                           """;
+        const string sql = "SELECT cashier_id, name, email FROM billing.cashiers WHERE cashier_id = @id";
 
         var cashier = await connection.QuerySingleOrDefaultAsync<Data.Entities.Cashier>(sql, new DbCommand(query.Id).ToDbParams());
 

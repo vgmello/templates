@@ -30,7 +30,7 @@ export const actions: Actions = {
 			const newCashier = await cashierGrpcService.createCashier(cashierData);
 			
 			// Redirect to the new cashier's detail page
-			throw redirect(303, `/cashiers/${newCashier.cashierId}`);
+			return redirect(303, `/cashiers/${newCashier.cashierId}`);
 		} catch (err) {
 			console.error('Failed to create cashier:', err);
 			

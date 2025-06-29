@@ -1,6 +1,7 @@
 // Copyright (c) ABCDEG. All rights reserved.
 
 using Billing.Contracts.Cashiers.IntegrationEvents;
+using Dapper;
 using Operations.ServiceDefaults.Messaging.Kafka;
 using Operations.ServiceDefaults.Messaging.Wolverine;
 using Wolverine.Kafka;
@@ -11,6 +12,8 @@ public static class DependencyInjection
 {
     public static IHostApplicationBuilder AddApplicationServices(this IHostApplicationBuilder builder)
     {
+        DefaultTypeMap.MatchNamesWithUnderscores = true;
+
         builder.AddNpgsqlDataSource("BillingDb");
 
         builder.AddWolverine(opts =>
