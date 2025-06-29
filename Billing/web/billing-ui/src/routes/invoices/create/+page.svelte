@@ -6,7 +6,7 @@
 	import type { ActionData, PageData } from './$types';
 
 	let { data, form }: { data: PageData; form: ActionData } = $props();
-	
+
 	let isSubmitting = $state(false);
 	let name = $state(form?.name || '');
 	let amount = $state(form?.amount || '');
@@ -56,12 +56,12 @@
 		if (!dueDate) {
 			return { isValid: true, message: '' }; // Optional field
 		}
-		
+
 		// Convert the date string to a proper date object and compare as date strings to avoid timezone issues
 		const selectedDateStr = dueDate; // Already in YYYY-MM-DD format
 		const today = new Date();
 		const todayStr = today.toISOString().split('T')[0]; // Get today in YYYY-MM-DD format
-		
+
 		if (selectedDateStr < todayStr) {
 			return { isValid: false, message: 'Due date cannot be in the past' };
 		}
@@ -70,8 +70,8 @@
 
 	// Overall form validity
 	const isFormValid = $derived(
-		nameValidation.isValid && 
-		amountValidation.isValid && 
+		nameValidation.isValid &&
+		amountValidation.isValid &&
 		dueDateValidation.isValid
 	);
 
@@ -113,8 +113,8 @@
 				Enter the details for the new invoice
 			</p>
 		</div>
-			<form 
-				method="POST" 
+			<form
+				method="POST"
 				use:enhance={() => {
 					isSubmitting = true;
 					return async ({ update }) => {
@@ -233,9 +233,9 @@
 
 				<!-- Actions -->
 				<div class="flex gap-4 pt-4">
-					<Button 
-						type="submit" 
-						disabled={isSubmitting || !isFormValid} 
+					<Button
+						type="submit"
+						disabled={isSubmitting || !isFormValid}
 						class="flex-1"
 						title={!isFormValid ? 'Please fix validation errors before submitting' : ''}
 					>
@@ -245,7 +245,7 @@
 						Cancel
 					</Button>
 				</div>
-				
+
 				<!-- Form validity indicator -->
 				{#if !isFormValid && (String(name || '').trim() || String(amount || '').trim() || dueDate)}
 					<div class="text-sm text-muted-foreground text-center mt-2">

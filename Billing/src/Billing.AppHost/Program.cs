@@ -79,7 +79,7 @@ builder
     .AddNpmApp("billing-ui", "../../../Billing/web/billing-ui", "dev")
     .WithEnvironment("GRPC_HOST", () => billingApi.GetGrpcEndpoint().Host)
     .WithEnvironment("GRPC_PORT", () => billingApi.GetGrpcEndpoint().Port.ToString())
-    .WithHttpEndpoint(env: "PORT", port: 8105)
+    .WithHttpEndpoint(env: "PORT", port: 8105, isProxied: false)
     .WithUrlForEndpoint("http", url => url.DisplayText = "Billing UI")
     .WithReference(billingApi)
     .WaitFor(billingApi)

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
-	import { invalidateAll } from '$app/navigation';
+	import { goto, invalidateAll } from '$app/navigation';
 	import Button from '$lib/components/ui/button.svelte';
 	import Card from '$lib/components/ui/card.svelte';
 	import Input from '$lib/components/ui/input.svelte';
@@ -8,15 +8,15 @@
 	import type { ActionData, PageData } from './$types';
 
 	let { data, form }: { data: PageData; form: ActionData } = $props();
-	
+
 	let isSubmitting = $state(false);
 	let showPaymentForm = $state(false);
 	let showSimulateForm = $state(false);
-	
+
 	// Payment form state
 	let amountPaid = $state(data.invoice.amount.toString());
 	let paymentDate = $state(new Date().toISOString().split('T')[0]);
-	
+
 	// Simulate payment form state
 	let simulateAmount = $state(data.invoice.amount.toString());
 	let simulateCurrency = $state(data.invoice.currency);
@@ -57,6 +57,14 @@
 		return new Date(invoice.dueDate) < new Date();
 	}
 
+    function handleGoBack() {
+		goto('/invoices');
+	}
+
+    function goToInvoice(){
+        goto(`/invoices/${data.invoice.invoiceId}/edit`)
+    }
+
 	// Can perform actions
 	let canCancel = $derived(data.invoice.status === 'Draft');
 	let canMarkPaid = $derived(data.invoice.status === 'Draft');
@@ -87,11 +95,11 @@
 			</p>
 		</div>
 		<div class="flex gap-2">
-			<Button variant="outline" href="/invoices">
+			<Button variant="outline" onclick={handleGoBack}>
 				← Back to Invoices
 			</Button>
 			{#if canEdit}
-				<Button variant="outline" href="/invoices/{data.invoice.invoiceId}/edit">
+				<Button variant="outline" onclick={goToInvoice} >
 					Edit
 				</Button>
 			{/if}
@@ -104,7 +112,7 @@
 			{form.message}
 		</div>
 	{/if}
-	
+
 	{#if form?.error}
 		<div class="bg-destructive/15 text-destructive px-4 py-3 rounded-md mb-6">
 			{form.error}
@@ -120,7 +128,7 @@
 					<span class="text-sm font-medium text-muted-foreground">Amount</span>
 					<p class="text-2xl font-bold">{formatCurrency(data.invoice.amount, data.invoice.currency)}</p>
 				</div>
-				
+
 				<div class="grid grid-cols-2 gap-4">
 					<div>
 						<span class="text-sm font-medium text-muted-foreground">Currency</span>
@@ -174,24 +182,24 @@
 				<!-- Mark as Paid -->
 				{#if canMarkPaid}
 					<div class="space-y-3">
-						<Button 
+						<Button
 							onclick={() => showPaymentForm = !showPaymentForm}
 							class="w-full"
 							variant={showPaymentForm ? 'outline' : 'default'}
 						>
 							{showPaymentForm ? 'Cancel Payment' : 'Mark as Paid'}
 						</Button>
-						
+
 						{#if showPaymentForm}
-							<form 
-								method="POST" 
+							<form
+								method="POST"
 								action="?/markPaid"
 								use:enhance={() => {
 									isSubmitting = true;
 									return async ({ result, update }) => {
 										await update();
 										isSubmitting = false;
-										
+
 										// Only close form and refresh data on success
 										if (result.type === 'success' && result.data?.success) {
 											showPaymentForm = false;
@@ -234,24 +242,24 @@
 				<!-- Simulate Payment -->
 				{#if canSimulate}
 					<div class="space-y-3">
-						<Button 
+						<Button
 							onclick={() => showSimulateForm = !showSimulateForm}
 							variant="outline"
 							class="w-full"
 						>
 							{showSimulateForm ? 'Cancel Simulation' : 'Simulate Payment'}
 						</Button>
-						
+
 						{#if showSimulateForm}
-							<form 
-								method="POST" 
+							<form
+								method="POST"
 								action="?/simulatePayment"
 								use:enhance={() => {
 									isSubmitting = true;
 									return async ({ result, update }) => {
 										await update();
 										isSubmitting = false;
-										
+
 										// Only close form on success
 										if (result.type === 'success' && result.data?.success) {
 											showSimulateForm = false;
@@ -306,15 +314,15 @@
 
 				<!-- Cancel Invoice -->
 				{#if canCancel}
-					<form 
-						method="POST" 
+					<form
+						method="POST"
 						action="?/cancel"
 						use:enhance={() => {
 							isSubmitting = true;
 							return async ({ result, update }) => {
 								await update();
 								isSubmitting = false;
-								
+
 								// Only refresh data on success
 								if (result.type === 'success' && result.data?.success) {
 									await invalidateAll();
@@ -322,9 +330,9 @@
 							};
 						}}
 					>
-						<Button 
-							type="submit" 
-							variant="destructive" 
+						<Button
+							type="submit"
+							variant="destructive"
 							disabled={isSubmitting}
 							class="w-full"
 							onclick={(e) => {
