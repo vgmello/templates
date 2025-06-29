@@ -2,7 +2,6 @@ import * as grpc from '@grpc/grpc-js';
 import * as protoLoader from '@grpc/proto-loader';
 import { env } from '$env/dynamic/private';
 import { dev } from '$app/environment';
-import { trace, context, propagation } from '@opentelemetry/api';
 import type { 
 	Cashier, CreateCashierRequest, UpdateCashierRequest,
 	Invoice, CreateInvoiceRequest, MarkInvoiceAsPaidRequest, SimulatePaymentRequest
@@ -56,9 +55,6 @@ export class GrpcError extends Error {
 
 let cashierClient: CashierGrpcClient | null = null;
 let invoiceClient: InvoiceGrpcClient | null = null;
-
-// Create a tracer for gRPC client operations
-const tracer = trace.getTracer('billing-ui-grpc-client', '1.0.0');
 
 /**
  * Initialize Cashier gRPC client
@@ -126,65 +122,20 @@ async function initializeInvoiceClient(): Promise<InvoiceGrpcClient> {
 
 
 /**
- * Promisify gRPC call with OpenTelemetry tracing
+ * Promisify gRPC call
  */
 function promisifyCall<T>(client: any, methodName: string, request: any): Promise<T> {
 	return new Promise((resolve, reject) => {
-		const span = tracer.startSpan(`grpc.${methodName}`, {
-			kind: 1, // CLIENT span kind
-			attributes: {
-				'rpc.system': 'grpc',
-				'rpc.service': client.constructor.name,
-				'rpc.method': methodName,
-				'rpc.grpc.status_code': grpc.status.OK,
-			}
-		});
-
-		// Inject trace context into gRPC metadata
-		const metadata = new grpc.Metadata();
-		const carrier: Record<string, string> = {};
-		
-		// Propagate trace context
-		propagation.inject(trace.setSpan(context.active(), span), carrier);
-		
-		// Add trace headers to gRPC metadata
-		Object.entries(carrier).forEach(([key, value]) => {
-			metadata.add(key, value);
-		});
-
-		// Make the gRPC call with metadata
-		const call = (client[methodName] as any)(request, metadata, (error: grpc.ServiceError | null, response?: T) => {
+		(client[methodName] as any)(request, (error: grpc.ServiceError | null, response?: T) => {
 			if (error) {
-				span.recordException(error);
-				span.setStatus({
-					code: 2, // ERROR
-					message: error.message || 'gRPC call failed',
-				});
-				span.setAttributes({
-					'rpc.grpc.status_code': error.code || grpc.status.UNKNOWN,
-				});
-				span.end();
-				
 				reject(new GrpcError(
 					error.message || 'gRPC call failed',
 					error.code || grpc.status.UNKNOWN,
 					error.details
 				));
 			} else {
-				span.setStatus({ code: 1 }); // OK
-				span.end();
 				resolve(response!);
 			}
-		});
-
-		// Handle call cancellation
-		call.on('error', (error: Error) => {
-			span.recordException(error);
-			span.setStatus({
-				code: 2, // ERROR
-				message: error.message,
-			});
-			span.end();
 		});
 	});
 }

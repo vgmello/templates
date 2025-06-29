@@ -61,8 +61,6 @@ services:
         condition: service_healthy
       billing-db-migrations:
         condition: service_completed_successfully
-      aspire-dashboard:
-        condition: service_started
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ServiceName=Billing

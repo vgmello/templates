@@ -3,34 +3,17 @@
 	import Button from '$lib/components/ui/button.svelte';
 	import Card from '$lib/components/ui/card.svelte';
 	import { AlertTriangle, RefreshCw } from 'lucide-svelte';
-	import { onMount } from 'svelte';
-	import { initializeTelemetry, getTracer, enableOpenTelemetryLogging } from '$lib/telemetry';
 
 	interface ErrorInfo {
 		message: string;
 		stack?: string;
 	}
 
-	let tracer: any;
-
-	onMount(() => {
-		initializeTelemetry();
-		enableOpenTelemetryLogging();
-		tracer = getTracer('billing-ui-layout');
-	});
-
 	function handleError(error: unknown, reset: () => void) {
 		console.error('Application error:', error);
 		
-		if (tracer) {
-			const span = tracer.startSpan('application-error');
-			span.recordException(error as Error);
-			span.setStatus({
-				code: 2, // ERROR
-				message: (error as Error).message,
-			});
-			span.end();
-		}
+		// You could send error to monitoring service here
+		// analytics.captureException(error);
 	}
 
 	function reloadPage() {
