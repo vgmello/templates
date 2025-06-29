@@ -39,10 +39,10 @@ services:
   # Profiled Services
   aspire-dashboard:
     image: mcr.microsoft.com/dotnet/aspire-dashboard:9.3
-    profiles: ["aspire", "api"]
+    profiles: ["aspire"]
     ports:
       - "18100:18888"
-      - "18110:18890"
+      - "18890:18890"
     environment:
       - DOTNET_DASHBOARD_UNSECURED_ALLOW_ANONYMOUS=true
       - ASPNETCORE_ENVIRONMENT=Development
