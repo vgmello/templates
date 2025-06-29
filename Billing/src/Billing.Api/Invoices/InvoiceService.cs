@@ -2,6 +2,7 @@
 
 using Billing.Api.Invoices.Mappers;
 using Billing.Invoices.Commands;
+using Billing.Invoices.Grpc;
 using Billing.Invoices.Queries;
 using InvoiceModel = Billing.Invoices.Grpc.Models.Invoice;
 

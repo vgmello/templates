@@ -1,6 +1,7 @@
 // Copyright (c) ABCDEG. All rights reserved.
 
 using Billing.Cashiers.Commands;
+using Billing.Cashiers.Grpc;
 using Billing.Cashiers.Queries;
 using Google.Protobuf.WellKnownTypes;
 using CashierMapper = Billing.Api.Cashiers.Mappers.CashierMapper;
@@ -14,7 +15,7 @@ public class CashierService(IMessageBus bus) : CashiersService.CashiersServiceBa
     {
         var result = await bus.InvokeQueryAsync(new GetCashierQuery(Guid.Parse(request.Id)), context.CancellationToken);
 
-        return CashierMapper.ToGrpc(result);
+        return result.ToGrpc();
     }
 
     public override async Task<GetCashiersResponse> GetCashiers(GetCashiersRequest request, ServerCallContext context)
@@ -36,7 +37,7 @@ public class CashierService(IMessageBus bus) : CashiersService.CashiersServiceBa
         var result = await bus.InvokeCommandAsync(command, context.CancellationToken);
 
         return result.Match(
-            cashier => CashierMapper.ToGrpc(cashier),
+            cashier => cashier.ToGrpc(),
             errors => throw new RpcException(new Status(StatusCode.InvalidArgument, string.Join("; ", errors))));
     }
 
@@ -46,7 +47,7 @@ public class CashierService(IMessageBus bus) : CashiersService.CashiersServiceBa
         var result = await bus.InvokeCommandAsync(command, context.CancellationToken);
 
         return result.Match(
-            cashier => CashierMapper.ToGrpc(cashier),
+            cashier => cashier.ToGrpc(),
             errors => throw new RpcException(new Status(StatusCode.InvalidArgument, string.Join("; ", errors))));
     }
 

@@ -1,6 +1,6 @@
 // Copyright (c) ABCDEG. All rights reserved.
 
-using Billing.Cashier.Grpc;
+using Billing.Cashiers.Grpc;
 using Billing.Tests.Integration._Internal;
 
 namespace Billing.Tests.Integration.Cashiers;

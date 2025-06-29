@@ -1,6 +1,6 @@
 // Copyright (c) ABCDEG. All rights reserved.
 
-using Billing.Cashier.Grpc;
+using Billing.Cashiers.Grpc;
 using Billing.Tests.Integration._Internal;
 using Grpc.Core;
 
@@ -22,16 +22,13 @@ public class GetCashierIntegrationTests(IntegrationTestFixture fixture) : Integr
 
         var createResponse = await _client.CreateCashierAsync(createRequest, cancellationToken: TestContext.Current.CancellationToken);
 
-        var getRequest = new GetCashierRequest
-        {
-            Id = createResponse.CashierId
-        };
+        var getRequest = new GetCashierRequest { Id = createResponse.CashierId };
 
         // Act
         var response = await _client.GetCashierAsync(getRequest, cancellationToken: TestContext.Current.CancellationToken);
 
         // Assert
-        response.ShouldBe(new Cashier.Grpc.Models.Cashier
+        response.ShouldBe(new Billing.Cashiers.Grpc.Models.Cashier
         {
             CashierId = createResponse.CashierId,
             Name = createRequest.Name,
@@ -43,10 +40,7 @@ public class GetCashierIntegrationTests(IntegrationTestFixture fixture) : Integr
     public async Task GetCashier_WithInvalidId_ShouldThrowException()
     {
         // Arrange
-        var request = new GetCashierRequest
-        {
-            Id = Guid.NewGuid().ToString()
-        };
+        var request = new GetCashierRequest { Id = Guid.NewGuid().ToString() };
 
         // Act & Assert
         await Should.ThrowAsync<RpcException>(async () =>

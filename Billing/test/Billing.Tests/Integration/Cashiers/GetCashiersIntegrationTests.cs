@@ -1,6 +1,6 @@
 // Copyright (c) ABCDEG. All rights reserved.
 
-using Billing.Cashier.Grpc;
+using Billing.Cashiers.Grpc;
 using Billing.Tests.Integration._Internal;
 using Dapper;
 using System.Data.Common;
@@ -25,7 +25,7 @@ public class GetCashiersIntegrationTests(IntegrationTestFixture fixture) : Integ
             new CreateCashierRequest { Name = "Cashier 2", Email = "cashier2@test.com" }
         };
 
-        var createdCashiers = new List<Billing.Cashier.Grpc.Models.Cashier>();
+        var createdCashiers = new List<Billing.Cashiers.Grpc.Models.Cashier>();
 
         foreach (var createRequest in createRequests)
         {
@@ -45,7 +45,7 @@ public class GetCashiersIntegrationTests(IntegrationTestFixture fixture) : Integ
         // Assert
         response.Cashiers.Count.ShouldBeGreaterThanOrEqualTo(2);
 
-        response.Cashiers[0].ShouldBe(new Cashier.Grpc.Models.Cashier
+        response.Cashiers[0].ShouldBe(new Billing.Cashiers.Grpc.Models.Cashier
         {
             TenantId = Guid.Empty.ToString(),
             CashierId = createdCashiers[0].CashierId,
@@ -53,7 +53,7 @@ public class GetCashiersIntegrationTests(IntegrationTestFixture fixture) : Integ
             Email = createdCashiers[0].Email
         });
 
-        response.Cashiers[1].ShouldBe(new Cashier.Grpc.Models.Cashier
+        response.Cashiers[1].ShouldBe(new Billing.Cashiers.Grpc.Models.Cashier
         {
             TenantId = Guid.Empty.ToString(),
             CashierId = createdCashiers[1].CashierId,
