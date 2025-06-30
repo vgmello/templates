@@ -6,7 +6,7 @@
 	import { Input } from '$lib/components/ui/input';
 	import { 
 		Plus, Search, Eye, Edit, Trash2, FileText, DollarSign, 
-		CheckCircle, AlertCircle, Calendar, Download 
+		CheckCircle, AlertCircle, Calendar, Download, Copy 
 	} from '@lucide/svelte';
 	import { invoiceApi, type Invoice, type InvoiceSummary } from '$lib';
 	import InvoiceStatusBadge from '$lib/components/InvoiceStatusBadge.svelte';
@@ -56,6 +56,24 @@
 
 	function createInvoice() {
 		goto('/invoices/create');
+	}
+
+	// Copy invoice ID to clipboard
+	async function copyInvoiceId(invoiceId: string) {
+		try {
+			await navigator.clipboard.writeText(invoiceId);
+			// You could add a toast notification here if you have one
+			console.log('Invoice ID copied to clipboard:', invoiceId);
+		} catch (err) {
+			console.error('Failed to copy invoice ID:', err);
+			// Fallback for older browsers
+			const textArea = document.createElement('textarea');
+			textArea.value = invoiceId;
+			document.body.appendChild(textArea);
+			textArea.select();
+			document.execCommand('copy');
+			document.body.removeChild(textArea);
+		}
 	}
 
 	// Determine if an invoice should be marked as overdue
@@ -187,7 +205,7 @@
 			<div class="flex items-center gap-2">
 				<select 
 					bind:value={statusFilter}
-					class="px-3 py-2 border border-input bg-background text-sm rounded-md focus:outline-none focus:ring-2 focus:ring-ring"
+					class="px-3 py-2 border border-input bg-background text-sm rounded-md focus:outline-none focus:ring-2 focus:ring-ring min-w-[140px]"
 				>
 					<option value="">All Statuses</option>
 					<option value="Draft">Draft</option>
@@ -245,9 +263,16 @@
 										<td class="py-4 px-6">
 											<div class="space-y-1">
 												<p class="font-medium">{invoice.name}</p>
-												<p class="text-sm text-muted-foreground font-mono">
-													{invoice.invoiceId.slice(0, 8)}...
-												</p>
+												<div class="flex items-center gap-1">
+													<button
+														onclick={() => copyInvoiceId(invoice.invoiceId)}
+														title="Click to copy full ID: {invoice.invoiceId}"
+														class="text-sm text-muted-foreground font-mono hover:text-foreground transition-colors flex items-center gap-1 group"
+													>
+														<span>{invoice.invoiceId.slice(0, 8)}...</span>
+														<Copy size={12} class="opacity-0 group-hover:opacity-100 transition-opacity" />
+													</button>
+												</div>
 											</div>
 										</td>
 										<td class="py-4 px-6">
