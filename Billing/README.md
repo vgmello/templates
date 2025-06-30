@@ -89,7 +89,7 @@ Billing/
 #### **Frontend & Testing**
 
 -   **billing-ui** - Modern SvelteKit web application with Tailwind CSS and shadcn-svelte components
--   **Billing.Tests** - Multi-layered testing with Testcontainers, architecture tests, and Playwright E2E
+-   **Billing.Tests** - Multi-layered testing with Playwright for E2E
 
 #### **Infrastructure & Documentation**
 
@@ -215,7 +215,7 @@ var pgsql = builder
 
 -   **PostgreSQL**: Always accessible at `localhost:54320`
 -   **PgAdmin**: Always accessible at `localhost:54321`
--   **Kafka**: Always accessible at `localhost:90920`
+-   **Kafka**: Always accessible at `localhost:59092`
 
 **Access Points:**
 
@@ -307,7 +307,7 @@ grpcurl -plaintext -d '{"pageNumber": 1, "pageSize": 10}' localhost:8102 cashier
 
 The Billing service includes a modern SvelteKit web application:
 
--   **URL**: http://localhost:8105 (when running via Aspire)
+-   **URL**: http://localhost:8105 (when running via Aspire or docker compose)
 -   **Features**: Responsive design
 -   **Pages**: Dashboard, Cashier management, Invoice processing
 
@@ -350,23 +350,7 @@ dotnet test Billing/test/Billing.Tests --filter Category=Architecture
 #### Frontend Tests (Playwright)
 
 ```bash
-# Navigate to UI project
-cd Billing/web/billing-ui
-
-# Install dependencies
-npm install
-
-# Run UI tests (requires backend running on port 8102)
-npm run test:ui
-
-# Run UI tests with mock API (standalone)
-npm run test:mock
-
-# Run tests in interactive mode
-npm run test:ui-mode
-
-# Run tests with browser visible
-npm run test:ui-headed
+TODO: Fill this later
 ```
 
 ### Test Categories
@@ -379,15 +363,7 @@ npm run test:ui-headed
 
 #### Frontend Tests (9 Test Suites)
 
-1. **Functional Tests**: Core cashier CRUD operations (`cashiers.spec.ts`)
-2. **Form Validation**: Input validation and error handling (`cashier-form.spec.ts`)
-3. **Navigation Tests**: Routing and menu functionality (`navigation.spec.ts`)
-4. **Accessibility Tests**: WCAG compliance and keyboard navigation (`accessibility.spec.ts`)
-5. **Integration Tests**: Full backend communication (`integration.spec.ts`)
-6. **Mock API Tests**: Standalone testing without backend (`mock-api.spec.ts`)
-7. **Responsive Tests**: Multi-viewport testing (`responsive.spec.ts`)
-8. **Performance Tests**: Load time and memory usage (`performance.spec.ts`)
-9. **Error Handling**: Network failures and edge cases (`error-handling.spec.ts`)
+TBD
 
 ### Test Infrastructure
 
@@ -489,7 +465,7 @@ The Billing service communicates with other services through integration events:
 
 -   **BusinessDayEndedEvent**: Reacts to accounting business day operations
 
-## Web UI Integration
+## Web UI
 
 The Billing service includes a modern SvelteKit web application with full-stack capabilities:
 
@@ -510,11 +486,7 @@ The Billing service includes a modern SvelteKit web application with full-stack 
 
 ### UI Pages
 
--   **Dashboard** (`/`) - Service module overview with navigation cards
--   **Cashiers List** (`/cashiers`) - Paginated cashier management with search
--   **Create Cashier** (`/cashiers/create`) - Form with validation and multi-currency support
--   **Cashier Details** (`/cashiers/[id]`) - Individual cashier view with edit capabilities
--   **Edit Cashier** (`/cashiers/[id]/edit`) - Update form with optimistic updates
+TBD
 
 ### Development Commands
 
