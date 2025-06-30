@@ -2,13 +2,14 @@
 	import '../app.css';
 	import { page } from '$app/stores';
 	import { Button } from '$lib/components/ui/button';
-	import { Users, Home } from '@lucide/svelte';
+	import { Users, Home, FileText } from '@lucide/svelte';
 
 	let { children } = $props();
 	
 	const navigation = [
 		{ name: 'Home', href: '/', icon: Home },
-		{ name: 'Cashiers', href: '/cashiers', icon: Users }
+		{ name: 'Cashiers', href: '/cashiers', icon: Users },
+		{ name: 'Invoices', href: '/invoices', icon: FileText }
 	];
 </script>
 
