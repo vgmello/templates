@@ -43,12 +43,12 @@ behind-the-scenes processing.
 
 The Billing Service is part of a .NET 9 microservices system built using Domain-Driven Design principles. It provides a complete billing solution with modern web UI and comprehensive testing. It handles:
 
-- **Cashier Management**: Create and manage cashiers with multi-currency support
-- **Invoice Processing**: Handle invoice lifecycle with Orleans-based stateful processing
-- **Payment Integration**: Process payments and emit integration events
-- **Cross-Service Integration**: React to business events from other services like Accounting
-- **Modern Web UI**: SvelteKit-based responsive web application with gRPC integration
-- **Comprehensive Testing**: Unit, integration, and end-to-end testing with real browsers
+-   **Cashier Management**: Create and manage cashiers with multi-currency support
+-   **Invoice Processing**: Handle invoice lifecycle with Orleans-based stateful processing
+-   **Payment Integration**: Process payments and emit integration events
+-   **Cross-Service Integration**: React to business events from other services like Accounting
+-   **Modern Web UI**: SvelteKit-based responsive web application
+-   **Comprehensive Testing**: Unit, integration, and end-to-end testing with real browsers
 
 ## Service Architecture
 
@@ -78,88 +78,100 @@ Billing/
 ### Service Components
 
 #### **Backend Services**
-- **Billing.Api** - Dual-protocol API (REST + gRPC) for cashier and invoice management
-- **Billing.BackOffice** - Event-driven background processing with Wolverine
-- **Billing.BackOffice.Orleans** - Stateful invoice processing using Orleans actors (3-replica cluster)
-- **Billing.Contracts** - Integration events and shared models for cross-service communication
-- **Billing** (Core) - Domain entities, commands, queries, and business logic with DDD patterns
-- **Billing.AppHost** - .NET Aspire orchestration with comprehensive service discovery
+
+-   **Billing.Api** - Dual-protocol API (REST + gRPC) for cashier and invoice management
+-   **Billing.BackOffice** - Event-driven background processing with Wolverine
+-   **Billing.BackOffice.Orleans** - Stateful invoice processing using Orleans actors (3-replica cluster)
+-   **Billing.Contracts** - Integration events and shared models for cross-service communication
+-   **Billing** (Core) - Domain entities, commands, queries, and business logic with DDD patterns
+-   **Billing.AppHost** - .NET Aspire orchestration with comprehensive service discovery
 
 #### **Frontend & Testing**
-- **billing-ui** - Modern SvelteKit web application with Tailwind CSS and shadcn-svelte components
-- **Billing.Tests** - Multi-layered testing with Testcontainers, architecture tests, and Playwright E2E
+
+-   **billing-ui** - Modern SvelteKit web application with Tailwind CSS and shadcn-svelte components
+-   **Billing.Tests** - Multi-layered testing with Testcontainers, architecture tests, and Playwright E2E
 
 #### **Infrastructure & Documentation**
-- **Billing.Database** - Liquibase-based database management with multi-database pattern
-- **docs/** - DocFX documentation system with custom theme and containerized deployment
+
+-   **Billing.Database** - Liquibase-based database management with multi-database pattern
+-   **docs/** - DocFX documentation system with custom theme and containerized deployment
 
 ## Key Features
 
 ### Domain-Driven Design
-- **Entities**: Cashier and Invoice domain models with audit trails
-- **Commands**: Create operations with FluentValidation and source generation
-- **Queries**: Paginated retrieval with Dapper integration
-- **Integration Events**: Cross-service communication events
+
+-   **Entities**: Cashier and Invoice domain models with audit trails
+-   **Commands**: Create operations with FluentValidation and source generation
+-   **Queries**: Paginated retrieval with Dapper integration
+-   **Integration Events**: Cross-service communication events
 
 ### Technology Stack
 
 #### **Backend Stack**
-- **.NET 9** with latest C# features and nullable reference types
-- **WolverineFx** for CQRS, event sourcing, and messaging
-- **Orleans** for stateful actor-based processing with Azure Storage clustering
-- **PostgreSQL 17** with Liquibase migrations and multi-database architecture
-- **gRPC** with Protocol Buffers for type-safe inter-service communication
-- **OpenTelemetry** for distributed tracing and observability
+
+-   **.NET 9** with latest C# features and nullable reference types
+-   **WolverineFx** for CQRS, event sourcing, and messaging
+-   **Orleans** for stateful actor-based processing with Azure Storage clustering
+-   **PostgreSQL 17** with Liquibase migrations and multi-database architecture
+-   **gRPC** with Protocol Buffers for type-safe inter-service communication
+-   **OpenTelemetry** for distributed tracing and observability
 
 #### **Frontend Stack**
-- **SvelteKit** with Svelte 5 and TypeScript for modern reactive UI
-- **Tailwind CSS** with shadcn-svelte component library for responsive design
-- **gRPC-Web** with `@grpc/grpc-js` for direct backend communication
-- **Lucide Svelte** for consistent iconography
+
+-   **SvelteKit** with Svelte 5 and TypeScript for modern reactive UI
+-   **Tailwind CSS** with shadcn-svelte component library for responsive design
+-   **Lucide Svelte** for consistent iconography
 
 #### **Testing & Quality**
-- **Testcontainers** for integration testing with real PostgreSQL containers
-- **Playwright** for end-to-end browser testing with accessibility validation
-- **NetArchTest** for architecture rule enforcement
-- **NSubstitute + Shouldly** for unit testing with fluent assertions
+
+-   **Testcontainers** for integration testing with real PostgreSQL containers
+-   **Playwright** for end-to-end browser testing with accessibility validation
+-   **NetArchTest** for architecture rule enforcement
+-   **NSubstitute + Shouldly** for unit testing with fluent assertions
 
 ### Source Generation
+
 Custom source generators reduce boilerplate DB access code with attributes like:
+
 ```csharp
 [DbCommand(sp: "billing.create_cashier", nonQuery: true)]
 public partial record CreateCashierCommand(string Name, string? Email) : ICommand<Guid>;
 ```
 
 ### Testing Strategy
-- **Unit Tests**: Mock-based testing with NSubstitute
-- **Integration Tests**: End-to-end testing with real PostgreSQL via Testcontainers
-- **Architecture Tests**: NetArchTest enforcement of layering rules
+
+-   **Unit Tests**: Mock-based testing with NSubstitute
+-   **Integration Tests**: End-to-end testing with real PostgreSQL via Testcontainers
+-   **Architecture Tests**: NetArchTest enforcement of layering rules
 
 ## Port Configuration
 
 The Billing service uses the following port allocation:
 
 ### Aspire Dashboard
-- **Aspire Dashboard:** 18100 (HTTP) / 18110 (HTTPS)
-- **Aspire Resource Service:** 8100 (HTTP) / 8110 (HTTPS)
+
+-   **Aspire Dashboard:** 18100 (HTTP) / 18110 (HTTPS)
+-   **Aspire Resource Service:** 8100 (HTTP) / 8110 (HTTPS)
 
 ### Service Ports (8100-8119)
-- **Billing.UI:** 8105 (HTTP) / 8115 (HTTPS)
-- **Billing.Api:** 8101 (HTTP) / 8111 (HTTPS) / 8102 (gRPC insecure)
-- **Billing.BackOffice:** 8103 (HTTP) / 8113 (HTTPS)
-- **Billing.BackOffice.Orleans:** 8104 (HTTP) / 8114 (HTTPS)
-- **Documentation Service:** 8119
+
+-   **Billing.UI:** 8105 (HTTP) / 8115 (HTTPS)
+-   **Billing.Api:** 8101 (HTTP) / 8111 (HTTPS) / 8102 (gRPC insecure)
+-   **Billing.BackOffice:** 8103 (HTTP) / 8113 (HTTPS)
+-   **Billing.BackOffice.Orleans:** 8104 (HTTP) / 8114 (HTTPS)
+-   **Documentation Service:** 8119
 
 ### Shared Services
-- **54320**: PostgreSQL
-- **4317/4318**: OpenTelemetry OTLP
+
+-   **54320**: PostgreSQL
+-   **4317/4318**: OpenTelemetry OTLP
 
 ## Prerequisites
 
-- Docker (optional, for containerized deployment) or..
-- .NET 9 SDK
-- PostgreSQL running on localhost:5432 (username: `postgres`, password: `password@`)
-- Liquibase CLI (for manual database setup)
+-   Docker (optional, for containerized deployment) or..
+-   .NET 9 SDK
+-   PostgreSQL running on localhost:5432 (username: `postgres`, password: `password@`)
+-   Liquibase CLI (for manual database setup)
 
 ## Quick Start
 
@@ -174,11 +186,12 @@ dotnet run
 ```
 
 This automatically:
-- ✅ Sets up PostgreSQL databases with Liquibase
-- ✅ Starts all services (UI, API, BackOffice, Orleans)
-- ✅ Configures service discovery and dependencies
-- ✅ Provides observability dashboard
-- ✅ Uses persistent containers for consistent port allocation
+
+-   ✅ Sets up PostgreSQL databases with Liquibase
+-   ✅ Starts all services (UI, API, BackOffice, Orleans)
+-   ✅ Configures service discovery and dependencies
+-   ✅ Provides observability dashboard
+-   ✅ Uses persistent containers for consistent port allocation
 
 #### Persistent Container Configuration
 
@@ -192,28 +205,32 @@ var pgsql = builder
 ```
 
 **Key Benefits:**
-- **Consistent Ports**: Infrastructure services (PostgreSQL, Kafka, PgAdmin) always use the same ports
-- **Persistent State**: Containers survive Aspire restarts, preserving database state
-- **Direct Access**: External tools can connect directly to known ports
-- **Development Efficiency**: No need to reconfigure connections after restarts
+
+-   **Consistent Ports**: Infrastructure services (PostgreSQL, Kafka, PgAdmin) always use the same ports
+-   **Persistent State**: Containers survive Aspire restarts, preserving database state
+-   **Direct Access**: External tools can connect directly to known ports
+-   **Development Efficiency**: No need to reconfigure connections after restarts
 
 **Services with Persistent Port Binding:**
-- **PostgreSQL**: Always accessible at `localhost:54320`
-- **PgAdmin**: Always accessible at `localhost:54321` 
-- **Kafka**: Always accessible at `localhost:90920`
+
+-   **PostgreSQL**: Always accessible at `localhost:54320`
+-   **PgAdmin**: Always accessible at `localhost:54321`
+-   **Kafka**: Always accessible at `localhost:90920`
 
 **Access Points:**
-- **Aspire Dashboard**: http://localhost:18100
-- **Billing Web UI**: http://localhost:8105
-- **Billing API**: http://localhost:8101/scalar
-- **Orleans Dashboard**: http://localhost:8104/dashboard
-- **Documentation**: http://localhost:8119
+
+-   **Aspire Dashboard**: http://localhost:18100
+-   **Billing Web UI**: http://localhost:8105
+-   **Billing API**: http://localhost:8101/scalar
+-   **Orleans Dashboard**: http://localhost:8104/dashboard
+-   **Documentation**: http://localhost:8119
 
 ### Option 2: Manual Setup
 
 For full control over the setup process:
 
 #### 1. Database Setup
+
 Run these commands from the `Billing/infra/Billing.Database/` directory:
 
 ```bash
@@ -243,9 +260,10 @@ dotnet run --project Billing/src/Billing.BackOffice.Orleans
 ```
 
 #### 3. Verify Setup
-- **API Health**: http://localhost:8101/health
-- **OpenAPI UI**: http://localhost:8101/scalar
-- **gRPC**: Connect to localhost:8102
+
+-   **API Health**: http://localhost:8101/health
+-   **OpenAPI UI**: http://localhost:8101/scalar
+-   **gRPC**: Connect to localhost:8102
 
 ### Option 3: Docker Compose
 
@@ -276,6 +294,7 @@ curl http://localhost:8101/invoices
 ```
 
 ### gRPC API
+
 Use the Protocol Buffer definitions in `src/Billing.Api/Cashier/Protos/` for type-safe client generation.
 
 ```bash
@@ -285,33 +304,39 @@ grpcurl -plaintext -d '{"pageNumber": 1, "pageSize": 10}' localhost:8102 cashier
 ```
 
 ### Web UI Access
+
 The Billing service includes a modern SvelteKit web application:
 
-- **URL**: http://localhost:8105 (when running via Aspire)
-- **Features**: Responsive design, accessibility-compliant, gRPC integration
-- **Pages**: Dashboard, Cashier management, Invoice processing
+-   **URL**: http://localhost:8105 (when running via Aspire)
+-   **Features**: Responsive design
+-   **Pages**: Dashboard, Cashier management, Invoice processing
 
 ## Database Schema
 
 ### Tables
-- **cashiers**: Core cashier information with audit fields
-- **cashier_currencies**: Multi-currency support
-- **invoices**: Invoice management
+
+-   **cashiers**: Core cashier information with audit fields
+-   **cashier_currencies**: Multi-currency support
+-   **invoices**: Invoice management
 
 ### Stored Procedures
-- **billing.create_cashier**: Cashier creation with business rules
+
+-   **billing.create_cashier**: Cashier creation with business rules
 
 ### Migration Management
+
 Liquibase handles schema evolution with:
-- **Version Control**: All changes tracked in Git
-- **Rollback Support**: Safe rollback capabilities
-- **Environment Promotion**: Consistent schema across environments
+
+-   **Version Control**: All changes tracked in Git
+-   **Rollback Support**: Safe rollback capabilities
+-   **Environment Promotion**: Consistent schema across environments
 
 ## Development and Testing
 
 ### Running Tests
 
 #### Backend Tests (C#)
+
 ```bash
 # Run all backend tests
 dotnet test
@@ -323,6 +348,7 @@ dotnet test Billing/test/Billing.Tests --filter Category=Architecture
 ```
 
 #### Frontend Tests (Playwright)
+
 ```bash
 # Navigate to UI project
 cd Billing/web/billing-ui
@@ -343,16 +369,16 @@ npm run test:ui-mode
 npm run test:ui-headed
 ```
 
-**Important**: Backend must be running on gRPC port 8102 for full UI tests. Use `npm run test:mock` for tests without backend dependency.
-
 ### Test Categories
 
 #### Backend Tests
+
 1. **Unit Tests**: Fast, isolated component tests with NSubstitute mocks
 2. **Integration Tests**: Service-level tests with real PostgreSQL, and dependent services via Testcontainers
 3. **Architecture Tests**: NetArchTest enforcement of DDD layering and dependencies
 
 #### Frontend Tests (9 Test Suites)
+
 1. **Functional Tests**: Core cashier CRUD operations (`cashiers.spec.ts`)
 2. **Form Validation**: Input validation and error handling (`cashier-form.spec.ts`)
 3. **Navigation Tests**: Routing and menu functionality (`navigation.spec.ts`)
@@ -364,8 +390,9 @@ npm run test:ui-headed
 9. **Error Handling**: Network failures and edge cases (`error-handling.spec.ts`)
 
 ### Test Infrastructure
-- **Testcontainers**: Real PostgreSQL 17-alpine for integration tests
-- **Liquibase Migration**: Automated database setup in test containers
+
+-   **Testcontainers**: Real PostgreSQL 17-alpine for integration tests
+-   **Liquibase Migration**: Automated database setup in test containers
 
 ## Documentation
 
@@ -374,6 +401,7 @@ npm run test:ui-headed
 This service includes comprehensive documentation built with [DocFX](https://dotnet.github.io/docfx/).
 
 #### Using Docker
+
 Run from the **Billing** folder (not the docs folder):
 
 ```bash
@@ -385,6 +413,7 @@ docker run -d -p 8119:8080 --name billing-docs billing-docfx docs/docfx.json --s
 ```
 
 #### Using Local DocFX
+
 Run from the **Billing** folder:
 
 ```bash
@@ -398,18 +427,21 @@ docfx docs/docfx.json --serve -p 8119 -n "*"
 **Working Directory**: All DocFX commands should be run from the **root** folder, not the `docs` folder. This allows DocFX to properly access the source code for API documentation generation.
 
 **Correct**:
+
 ```bash
 cd Billing/
 docfx docs/docfx.json --serve -p 8119 -n "*"
 ```
 
 **Incorrect**:
+
 ```bash
 cd Billing/docs/
 docfx docfx.json --serve -p 8119 -n "*"  # Won't find source code
 ```
 
 #### Using .NET Aspire
+
 The documentation service is automatically included when running the Billing AppHost:
 
 ```bash
@@ -422,9 +454,11 @@ The documentation will be available in the Aspire dashboard with a direct link.
 ### Accessing the Documentation
 
 Once running, the documentation is available at:
-- **Local**: http://localhost:8119
+
+-   **Local**: http://localhost:8119
 
 ### Documentation Structure
+
 ```
 docs/
 ├── content/              # Markdown documentation files
@@ -446,40 +480,46 @@ docs/
 The Billing service communicates with other services through integration events:
 
 ### Published Events
-- **CashierCreatedEvent**: Emitted when a new cashier is created
-- **CashierUpdatedEvent**: Emitted when cashier information changes
-- **InvoicePaidEvent**: Emitted when an invoice payment is processed
+
+-   **CashierCreatedEvent**: Emitted when a new cashier is created
+-   **CashierUpdatedEvent**: Emitted when cashier information changes
+-   **InvoicePaidEvent**: Emitted when an invoice payment is processed
 
 ### Consumed Events
-- **BusinessDayEndedEvent**: Reacts to accounting business day operations
+
+-   **BusinessDayEndedEvent**: Reacts to accounting business day operations
 
 ## Web UI Integration
 
 The Billing service includes a modern SvelteKit web application with full-stack capabilities:
 
 ### UI Architecture
-- **Framework**: SvelteKit with Svelte 5 runes for reactive state management
-- **Styling**: Tailwind CSS with shadcn-svelte component library
-- **Communication**: Direct gRPC communication with `@grpc/grpc-js`
-- **State Management**: Svelte stores with TypeScript for type safety
-- **Deployment**: Integrated with .NET Aspire for seamless development
+
+-   **Framework**: SvelteKit with Svelte 5 runes for reactive state management
+-   **Styling**: Tailwind CSS with shadcn-svelte component library
+-   **Communication**: Direct gRPC communication with `@grpc/grpc-js`
+-   **State Management**: Svelte stores with TypeScript for type safety
+-   **Deployment**: Integrated with .NET Aspire for seamless development
 
 ### Key Features
-- **SSR + SPA**: Server-side rendering with client-side hydration
-- **Responsive Design**: Mobile-first design with Tailwind breakpoints
-- **Accessibility**: WCAG-compliant with keyboard navigation and screen reader support
-- **Type Safety**: Full TypeScript integration with gRPC-generated types
-- **Error Boundaries**: Graceful error handling with fallback UI
-- **Progressive Enhancement**: Works without JavaScript for core functionality
+
+-   **SSR + SPA**: Server-side rendering with client-side hydration
+-   **Responsive Design**: Mobile-first design with Tailwind breakpoints
+-   **Accessibility**: WCAG-compliant with keyboard navigation and screen reader support
+-   **Type Safety**: Full TypeScript integration with gRPC-generated types
+-   **Error Boundaries**: Graceful error handling with fallback UI
+-   **Progressive Enhancement**: Works without JavaScript for core functionality
 
 ### UI Pages
-- **Dashboard** (`/`) - Service module overview with navigation cards
-- **Cashiers List** (`/cashiers`) - Paginated cashier management with search
-- **Create Cashier** (`/cashiers/create`) - Form with validation and multi-currency support
-- **Cashier Details** (`/cashiers/[id]`) - Individual cashier view with edit capabilities
-- **Edit Cashier** (`/cashiers/[id]/edit`) - Update form with optimistic updates
+
+-   **Dashboard** (`/`) - Service module overview with navigation cards
+-   **Cashiers List** (`/cashiers`) - Paginated cashier management with search
+-   **Create Cashier** (`/cashiers/create`) - Form with validation and multi-currency support
+-   **Cashier Details** (`/cashiers/[id]`) - Individual cashier view with edit capabilities
+-   **Edit Cashier** (`/cashiers/[id]/edit`) - Update form with optimistic updates
 
 ### Development Commands
+
 ```bash
 cd Billing/web/billing-ui
 
@@ -501,38 +541,44 @@ npm run build
 The Billing.BackOffice.Orleans service provides stateful invoice processing:
 
 ### Features
-- **Invoice Grains**: Stateful actors for invoice lifecycle management
-- **3 Replicas**: High availability with Orleans clustering and Azure Storage
-- **Direct API**: HTTP endpoints for invoice operations
-- **Orleans Dashboard**: Real-time grain monitoring at `/dashboard`
+
+-   **Invoice Grains**: Stateful actors for invoice lifecycle management
+-   **3 Replicas**: High availability with Orleans clustering and Azure Storage
+-   **Direct API**: HTTP endpoints for invoice operations
+-   **Orleans Dashboard**: Real-time grain monitoring at `/dashboard`
 
 ### Invoice Operations
-- **POST** `/invoices/{id}/pay` - Process invoice payment
-- **GET** `/invoices/{id}` - Retrieve invoice state
-- **Dashboard**: http://localhost:8104/dashboard - Grain health and performance monitoring
+
+-   **POST** `/invoices/{id}/pay` - Process invoice payment
+-   **GET** `/invoices/{id}` - Retrieve invoice state
+-   **Dashboard**: http://localhost:8104/dashboard - Grain health and performance monitoring
 
 ## Monitoring and Observability
 
 ### Health Checks
-- **API Health**: `/health` endpoint with dependency checks
-- **Service Dependencies**: Database connectivity validation
-- **Orleans Health**: Grain health monitoring
+
+-   **API Health**: `/health` endpoint with dependency checks
+-   **Service Dependencies**: Database connectivity validation
+-   **Orleans Health**: Grain health monitoring
 
 ### Logging
-- **Serilog**: Structured logging with correlation IDs
-- **OpenTelemetry**: Distributed tracing across services
-- **Integration**: XUnit sink for test output
+
+-   **Serilog**: Structured logging with correlation IDs
+-   **OpenTelemetry**: Distributed tracing across services
+-   **Integration**: XUnit sink for test output
 
 ### Metrics
-- **Custom Metrics**: Domain-specific business metrics
-- **Performance**: Database operation timing
-- **Orleans Metrics**: Grain activation and processing metrics
+
+-   **Custom Metrics**: Domain-specific business metrics
+-   **Performance**: Database operation timing
+-   **Orleans Metrics**: Grain activation and processing metrics
 
 ## Troubleshooting
 
 ### Common Issues
 
 #### Database Connection Errors
+
 ```bash
 # Check PostgreSQL is running
 netstat -tulpn | grep 5432
@@ -542,6 +588,7 @@ psql -h localhost -U postgres -l
 ```
 
 #### Port Conflicts
+
 ```bash
 # Check if ports are in use
 netstat -tulpn | grep 8101
@@ -549,6 +596,7 @@ netstat -tulpn | grep 8119
 ```
 
 #### Container Issues
+
 ```bash
 # Check container logs
 docker logs billing-docs
@@ -558,41 +606,48 @@ docker ps -a
 ```
 
 #### Test Failures
-- Ensure Docker is running for Testcontainers
-- Check PostgreSQL is available on localhost:5432
-- Verify Liquibase migrations are current
+
+-   Ensure Docker is running for Testcontainers
+-   Check PostgreSQL is available on localhost:5432
+-   Verify Liquibase migrations are current
 
 ### Documentation Issues
 
 #### Documentation not updating
-- Rebuild the Docker image after making changes
-- Clear browser cache
-- Check that markdown files are valid
+
+-   Rebuild the Docker image after making changes
+-   Clear browser cache
+-   Check that markdown files are valid
 
 #### API documentation missing
-- Ensure source code has XML documentation comments
-- Check that project references are correct in `docfx.json`
-- Verify build succeeds without errors
+
+-   Ensure source code has XML documentation comments
+-   Check that project references are correct in `docfx.json`
+-   Verify build succeeds without errors
 
 #### Theme not loading
-- Check that `docfx.json` references the correct template path
-- Verify theme files are not corrupted
+
+-   Check that `docfx.json` references the correct template path
+-   Verify theme files are not corrupted
 
 ## Contributing
 
 ### Adding New Features
+
 1. Follow DDD patterns in the core domain
 2. Add integration tests for new functionality
 3. Update documentation in `docs/content/`
 4. Ensure all tests pass
 
 ### Documentation Updates
+
 1. Add new markdown files to `content/` directory
 2. Update table of contents in `toc.yml`
 3. Test changes locally with DocFX
 4. Update this README if adding new capabilities
 
 ### Database Changes
+
 1. Create new Liquibase changesets
 2. Test migrations in local environment
 3. Update database documentation
@@ -600,7 +655,7 @@ docker ps -a
 
 ## Additional Resources
 
-- **[Architecture Documentation](docs/content/architecture.md)** - Detailed design patterns
-- **[API Reference](docs/content/api-reference.md)** - Complete API documentation
-- **[Database Schema](docs/content/database.md)** - Database design and migrations
-- **[CLAUDE.md](../CLAUDE.md)** - AI assistant development guidance
+-   **[Architecture Documentation](docs/content/architecture.md)** - Detailed design patterns
+-   **[API Reference](docs/content/api-reference.md)** - Complete API documentation
+-   **[Database Schema](docs/content/database.md)** - Database design and migrations
+-   **[CLAUDE.md](../CLAUDE.md)** - AI assistant development guidance
