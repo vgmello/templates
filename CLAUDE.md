@@ -5,9 +5,7 @@
 ### Docker Compose (Billing Service)
 
 #### Backend start command
-
 From the root folder (templates)
-
 ```bash
 docker compose -f Billing/compose.yml --profile api up -d
 ```
@@ -15,12 +13,11 @@ docker compose -f Billing/compose.yml --profile api up -d
 ## UI Integration
 
 ### **Frontend Architecture**
-
--   **SvelteKit UI** located at `Billing/web/billing-ui/`
--   **Responsive Design** with Tailwind CSS and Lucide icons
+- **SvelteKit UI** located at `Billing/web/billing-ui/`
+- **gRPC Communication** with Billing API using `@grpc/grpc-js`
+- **Responsive Design** with Tailwind CSS and Lucide icons
 
 ### **UI Development Commands**
-
 ```bash
 # Install UI dependencies
 cd Billing/web/billing-ui && npm install
@@ -38,20 +35,20 @@ npm run test:ui
 npm run test:mock
 ```
 
-**Important:**
-
--   All Playwright tests should use `npm run test:ui` as the command prefix
+**Important:** 
+- All Playwright tests should use `npm run test:ui` as the command prefix
+- Backend must be running on port 8102 (gRPC) for UI tests to pass
+- Use `npm run test:mock` for tests without backend dependency
 
 ## Development Notes
 
--   **Package Management**: Centralized via Directory.Packages.props
--   **Code Quality**: SonarAnalyzer enabled, warnings as info (not errors)
--   **Environment**: .NET 9 with nullable reference types and implicit usings
+- **Package Management**: Centralized via Directory.Packages.props
+- **Code Quality**: SonarAnalyzer enabled, warnings as info (not errors)
+- **Environment**: .NET 9 with nullable reference types and implicit usings
 
-If you need to download any tools save them on the \_temp folder
+If you need to download any tools save them on the _temp folder
 
 # important-instruction-reminders
-
 ALWAYS do a git pull before starting any work to ensure I'm using the latest version.
 Keep the project documentation (README.md (s)) updated
 Update memory frequently (CLAUDE.md) on how to better navigate this project
