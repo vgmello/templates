@@ -10,5 +10,7 @@
         "zxh404.vscode-proto3",
         "streetsidesoftware.code-spell-checker",
         "sonarsource.sonarlint-vscode",
+        "svelte.svelte-vscode",
+        "dbaeumer.vscode-eslint",
     ]
 }

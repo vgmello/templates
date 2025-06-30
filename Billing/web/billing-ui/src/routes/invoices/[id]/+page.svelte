@@ -5,11 +5,25 @@
 	import { Button } from '$lib/components/ui/button';
 	import { Card, CardHeader, CardTitle, CardContent } from '$lib/components/ui/card';
 	import { Input } from '$lib/components/ui/input';
-	import { 
-		ArrowLeft, Edit, CheckCircle, CreditCard, XCircle, 
-		Calendar, DollarSign, Hash, User, Clock 
+	import {
+		ArrowLeft,
+		Edit,
+		CheckCircle,
+		CreditCard,
+		XCircle,
+		Calendar,
+		DollarSign,
+		Hash,
+		User,
+		Clock,
+		Copy
 	} from '@lucide/svelte';
-	import { invoiceApi, type Invoice, type MarkInvoiceAsPaidRequest, type SimulatePaymentRequest } from '$lib';
+	import {
+		invoiceApi,
+		type Invoice,
+		type MarkInvoiceAsPaidRequest,
+		type SimulatePaymentRequest
+	} from '$lib';
 	import InvoiceStatusBadge from '$lib/components/InvoiceStatusBadge.svelte';
 	import { formatCurrency } from '$lib/utils/currency.js';
 	import { formatDate, formatDateForInput } from '$lib/utils/date.js';
@@ -19,13 +33,13 @@
 	let loading = $state(false);
 	let error = $state<string | null>(null);
 	let actionLoading = $state<string | null>(null);
-	
+
 	// Form states for actions
 	let markAsPaidForm = $state({
 		amountPaid: 0,
 		paymentDate: formatDateForInput()
 	});
-	
+
 	let simulatePaymentForm = $state({
 		amount: 0,
 		currency: 'USD',
@@ -35,10 +49,10 @@
 
 	async function loadInvoice() {
 		if (!invoiceId) return;
-		
+
 		loading = true;
 		error = null;
-		
+
 		try {
 			invoice = await invoiceApi.getInvoice(invoiceId);
 			// Initialize form values
@@ -57,14 +71,14 @@
 
 	async function markAsPaid() {
 		if (!invoice || actionLoading) return;
-		
+
 		actionLoading = 'mark-paid';
 		try {
 			const request: MarkInvoiceAsPaidRequest = {
 				amountPaid: markAsPaidForm.amountPaid,
 				paymentDate: markAsPaidForm.paymentDate
 			};
-			
+
 			invoice = await invoiceApi.markInvoiceAsPaid(invoice.invoiceId, request);
 		} catch (err) {
 			error = err instanceof Error ? err.message : 'Failed to mark invoice as paid';
@@ -75,7 +89,7 @@
 
 	async function simulatePayment() {
 		if (!invoice || actionLoading) return;
-		
+
 		actionLoading = 'simulate-payment';
 		try {
 			const request: SimulatePaymentRequest = {
@@ -84,7 +98,7 @@
 				paymentMethod: simulatePaymentForm.paymentMethod,
 				paymentReference: simulatePaymentForm.paymentReference || undefined
 			};
-			
+
 			await invoiceApi.simulatePayment(invoice.invoiceId, request);
 			// Reload invoice to get updated status
 			await loadInvoice();
@@ -97,11 +111,11 @@
 
 	async function cancelInvoice() {
 		if (!invoice || actionLoading) return;
-		
+
 		if (!confirm(`Are you sure you want to cancel invoice "${invoice.name}"?`)) {
 			return;
 		}
-		
+
 		actionLoading = 'cancel';
 		try {
 			invoice = await invoiceApi.cancelInvoice(invoice.invoiceId);
@@ -122,6 +136,27 @@
 		}
 	}
 
+	async function copyInvoiceId(invoiceId: string | null) {
+		if (invoiceId == null) {
+			return;
+		}
+
+		try {
+			await navigator.clipboard.writeText(invoiceId);
+			// You could add a toast notification here if you have one
+			console.log('Invoice ID copied to clipboard:', invoiceId);
+		} catch (err) {
+			console.error('Failed to copy invoice ID:', err);
+			// Fallback for older browsers
+			const textArea = document.createElement('textarea');
+			textArea.value = invoiceId;
+			document.body.appendChild(textArea);
+			textArea.select();
+			document.execCommand('copy');
+			document.body.removeChild(textArea);
+		}
+	}
+
 	// Check if actions are available based on status
 	let canMarkAsPaid = $derived(invoice?.status === 'Draft' || invoice?.status === 'Pending');
 	let canSimulatePayment = $derived(invoice?.status === 'Draft' || invoice?.status === 'Pending');
@@ -136,14 +171,14 @@
 	<title>{invoice?.name || 'Invoice'} - Billing System</title>
 </svelte:head>
 
-<div class="container mx-auto p-6 space-y-8">
+<div class="container mx-auto space-y-8 p-6">
 	<!-- Header with back navigation -->
 	<div class="flex items-center gap-4">
 		<Button variant="ghost" onclick={goBack} class="gap-2">
 			<ArrowLeft size={16} />
 			Back to Invoices
 		</Button>
-		<div class="h-6 w-px bg-border"></div>
+		<div class="bg-border h-6 w-px"></div>
 		<Button variant="outline" size="sm" onclick={editInvoice} class="gap-2">
 			<Edit size={14} />
 			Edit
@@ -151,22 +186,26 @@
 	</div>
 
 	{#if loading}
-		<div class="flex flex-col items-center justify-center py-24 space-y-4">
-			<div class="animate-spin rounded-full h-12 w-12 border-2 border-primary border-t-transparent"></div>
-			<div class="text-center space-y-1">
+		<div class="flex flex-col items-center justify-center space-y-4 py-24">
+			<div
+				class="border-primary h-12 w-12 animate-spin rounded-full border-2 border-t-transparent"
+			></div>
+			<div class="space-y-1 text-center">
 				<p class="font-medium">Loading invoice</p>
-				<p class="text-sm text-muted-foreground">Please wait while we fetch the invoice details...</p>
+				<p class="text-muted-foreground text-sm">
+					Please wait while we fetch the invoice details...
+				</p>
 			</div>
 		</div>
 	{:else if error}
 		<Card class="border-destructive/50 bg-destructive/5">
-			<CardContent class="flex flex-col items-center justify-center py-12 space-y-4">
-				<div class="rounded-full bg-destructive/10 p-3">
+			<CardContent class="flex flex-col items-center justify-center space-y-4 py-12">
+				<div class="bg-destructive/10 rounded-full p-3">
 					<XCircle size={24} class="text-destructive" />
 				</div>
-				<div class="text-center space-y-2">
-					<h3 class="font-semibold text-destructive">Error Loading Invoice</h3>
-					<p class="text-sm text-muted-foreground max-w-md">{error}</p>
+				<div class="space-y-2 text-center">
+					<h3 class="text-destructive font-semibold">Error Loading Invoice</h3>
+					<p class="text-muted-foreground max-w-md text-sm">{error}</p>
 				</div>
 				<Button onclick={loadInvoice} variant="outline" class="gap-2">
 					<ArrowLeft size={16} />
@@ -175,9 +214,9 @@
 			</CardContent>
 		</Card>
 	{:else if invoice}
-		<div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+		<div class="grid grid-cols-1 gap-8 lg:grid-cols-3">
 			<!-- Invoice Information -->
-			<div class="lg:col-span-2 space-y-6">
+			<div class="space-y-6 lg:col-span-2">
 				<!-- Invoice Header -->
 				<div class="space-y-4">
 					<div class="flex items-start justify-between">
@@ -185,9 +224,15 @@
 							<h1 class="text-3xl font-bold tracking-tight">{invoice.name}</h1>
 							<div class="flex items-center gap-2">
 								<InvoiceStatusBadge status={invoice.status} />
-								<span class="text-sm text-muted-foreground">
-									Invoice ID: {invoice.invoiceId.slice(0, 8)}...
-								</span>
+								<button
+									onclick={() => copyInvoiceId(invoice?.invoiceId ?? null)}
+									class="text-muted-foreground hover:text-foreground group flex items-center gap-1 font-mono text-sm transition-colors"
+								>
+									<span class="text-muted-foreground text-sm">
+										Invoice ID: {invoice.invoiceId}
+									</span>
+									<Copy size={12} />
+								</button>
 							</div>
 						</div>
 					</div>
@@ -199,42 +244,56 @@
 						<CardTitle>Invoice Information</CardTitle>
 					</CardHeader>
 					<CardContent class="space-y-6">
-						<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+						<div class="grid grid-cols-1 gap-6 md:grid-cols-2">
 							<!-- Amount -->
 							<div class="space-y-2">
-								<label class="text-sm font-medium text-muted-foreground flex items-center gap-2">
+								<label
+									class="text-muted-foreground flex items-center gap-2 text-sm font-medium"
+								>
 									<DollarSign size={14} />
 									Amount
 								</label>
-								<p class="text-2xl font-bold">{formatCurrency(invoice.amount, invoice.currency)}</p>
+								<p class="text-2xl font-bold">
+									{formatCurrency(invoice.amount, invoice.currency)}
+								</p>
 							</div>
 
 							<!-- Currency -->
 							<div class="space-y-2">
-								<label class="text-sm font-medium text-muted-foreground">Currency</label>
+								<label class="text-muted-foreground text-sm font-medium"
+									>Currency</label
+								>
 								<p class="text-lg">{invoice.currency || 'USD'}</p>
 							</div>
 
 							<!-- Status -->
 							<div class="space-y-2">
-								<label class="text-sm font-medium text-muted-foreground">Status</label>
+								<label class="text-muted-foreground text-sm font-medium"
+									>Status</label
+								>
 								<InvoiceStatusBadge status={invoice.status} />
 							</div>
 
 							<!-- Due Date -->
 							<div class="space-y-2">
-								<label class="text-sm font-medium text-muted-foreground flex items-center gap-2">
+								<label
+									class="text-muted-foreground flex items-center gap-2 text-sm font-medium"
+								>
 									<Calendar size={14} />
 									Due Date
 								</label>
 								<p class="text-lg">
-									{invoice.dueDate ? formatDate(invoice.dueDate, 'medium') : 'No due date set'}
+									{invoice.dueDate
+										? formatDate(invoice.dueDate, 'medium')
+										: 'No due date set'}
 								</p>
 							</div>
 
 							<!-- Created -->
 							<div class="space-y-2">
-								<label class="text-sm font-medium text-muted-foreground flex items-center gap-2">
+								<label
+									class="text-muted-foreground flex items-center gap-2 text-sm font-medium"
+								>
 									<Clock size={14} />
 									Created
 								</label>
@@ -243,7 +302,9 @@
 
 							<!-- Updated -->
 							<div class="space-y-2">
-								<label class="text-sm font-medium text-muted-foreground flex items-center gap-2">
+								<label
+									class="text-muted-foreground flex items-center gap-2 text-sm font-medium"
+								>
 									<Clock size={14} />
 									Updated
 								</label>
@@ -259,13 +320,13 @@
 				<Card>
 					<CardHeader>
 						<CardTitle>Actions</CardTitle>
-						<p class="text-sm text-muted-foreground">Manage this invoice</p>
+						<p class="text-muted-foreground text-sm">Manage this invoice</p>
 					</CardHeader>
 					<CardContent class="space-y-4">
 						<!-- Mark as Paid -->
 						{#if canMarkAsPaid}
 							<div class="space-y-3">
-								<h4 class="font-medium flex items-center gap-2">
+								<h4 class="flex items-center gap-2 font-medium">
 									<CheckCircle size={16} class="text-green-600" />
 									Mark as Paid
 								</h4>
@@ -287,13 +348,15 @@
 										/>
 									</div>
 								</div>
-								<Button 
-									onclick={markAsPaid} 
+								<Button
+									onclick={markAsPaid}
 									disabled={!!actionLoading || markAsPaidForm.amountPaid <= 0}
 									class="w-full gap-2 bg-green-600 hover:bg-green-700"
 								>
 									{#if actionLoading === 'mark-paid'}
-										<div class="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+										<div
+											class="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"
+										></div>
 									{:else}
 										<CheckCircle size={16} />
 									{/if}
@@ -306,7 +369,7 @@
 						<!-- Simulate Payment -->
 						{#if canSimulatePayment}
 							<div class="space-y-3">
-								<h4 class="font-medium flex items-center gap-2">
+								<h4 class="flex items-center gap-2 font-medium">
 									<CreditCard size={16} class="text-blue-600" />
 									Simulate Payment
 								</h4>
@@ -322,9 +385,9 @@
 									</div>
 									<div>
 										<label class="text-sm font-medium">Payment Method</label>
-										<select 
+										<select
 											bind:value={simulatePaymentForm.paymentMethod}
-											class="w-full px-3 py-2 border border-input bg-background text-sm rounded-md focus:outline-none focus:ring-2 focus:ring-ring"
+											class="border-input bg-background focus:ring-ring w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2"
 										>
 											<option value="Credit Card">Credit Card</option>
 											<option value="Bank Transfer">Bank Transfer</option>
@@ -333,21 +396,25 @@
 										</select>
 									</div>
 									<div>
-										<label class="text-sm font-medium">Reference (Optional)</label>
+										<label class="text-sm font-medium"
+											>Reference (Optional)</label
+										>
 										<Input
 											bind:value={simulatePaymentForm.paymentReference}
 											placeholder="Payment reference"
 										/>
 									</div>
 								</div>
-								<Button 
-									onclick={simulatePayment} 
+								<Button
+									onclick={simulatePayment}
 									variant="outline"
 									disabled={!!actionLoading || simulatePaymentForm.amount <= 0}
 									class="w-full gap-2"
 								>
 									{#if actionLoading === 'simulate-payment'}
-										<div class="animate-spin rounded-full h-4 w-4 border-2 border-current border-t-transparent"></div>
+										<div
+											class="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent"
+										></div>
 									{:else}
 										<CreditCard size={16} />
 									{/if}
@@ -360,21 +427,24 @@
 						<!-- Cancel Invoice -->
 						{#if canCancel}
 							<div class="space-y-3">
-								<h4 class="font-medium flex items-center gap-2">
+								<h4 class="flex items-center gap-2 font-medium">
 									<XCircle size={16} class="text-red-600" />
 									Cancel Invoice
 								</h4>
-								<p class="text-sm text-muted-foreground">
-									This action cannot be undone. The invoice will be marked as cancelled.
+								<p class="text-muted-foreground text-sm">
+									This action cannot be undone. The invoice will be marked as
+									cancelled.
 								</p>
-								<Button 
-									onclick={cancelInvoice} 
+								<Button
+									onclick={cancelInvoice}
 									variant="destructive"
 									disabled={!!actionLoading}
 									class="w-full gap-2"
 								>
 									{#if actionLoading === 'cancel'}
-										<div class="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+										<div
+											class="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"
+										></div>
 									{:else}
 										<XCircle size={16} />
 									{/if}
@@ -385,9 +455,9 @@
 
 						<!-- No actions available -->
 						{#if !canMarkAsPaid && !canSimulatePayment && !canCancel}
-							<div class="text-center py-8 space-y-2">
-								<p class="text-sm text-muted-foreground">No actions available</p>
-								<p class="text-xs text-muted-foreground">
+							<div class="space-y-2 py-8 text-center">
+								<p class="text-muted-foreground text-sm">No actions available</p>
+								<p class="text-muted-foreground text-xs">
 									This invoice is {invoice.status.toLowerCase()} and cannot be modified.
 								</p>
 							</div>

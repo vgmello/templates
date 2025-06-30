@@ -65,7 +65,7 @@
 
 	<div class="text-center">
 		<p class="text-sm text-muted-foreground">
-			Built with SvelteKit, shadcn-svelte, and Tailwind CSS
+			Some placeholder
 		</p>
 	</div>
 </div>
