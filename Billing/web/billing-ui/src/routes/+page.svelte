@@ -41,8 +41,8 @@
 				<p class="text-muted-foreground">
 					Create and manage invoices for your customers
 				</p>
-				<Button variant="outline" class="w-full" disabled>
-					Coming Soon
+				<Button href="/invoices" class="w-full">
+					Manage Invoices
 				</Button>
 			</CardContent>
 		</Card>

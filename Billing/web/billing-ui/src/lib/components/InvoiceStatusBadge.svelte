@@ -52,9 +52,7 @@
 	});
 
 	// Get status display text (capitalize first letter)
-	let displayStatus = $derived(() => {
-		return status.charAt(0).toUpperCase() + status.slice(1).toLowerCase();
-	});
+	let displayStatus = $derived(status.charAt(0).toUpperCase() + status.slice(1).toLowerCase());
 </script>
 
 <Badge variant={badgeVariant} class={badgeClass}>

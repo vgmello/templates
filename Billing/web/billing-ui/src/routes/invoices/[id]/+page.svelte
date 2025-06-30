@@ -116,6 +116,12 @@
 		goto('/invoices');
 	}
 
+	function editInvoice() {
+		if (invoice) {
+			goto(`/invoices/${invoice.invoiceId}/edit`);
+		}
+	}
+
 	// Check if actions are available based on status
 	let canMarkAsPaid = $derived(invoice?.status === 'Draft' || invoice?.status === 'Pending');
 	let canSimulatePayment = $derived(invoice?.status === 'Draft' || invoice?.status === 'Pending');
@@ -138,7 +144,7 @@
 			Back to Invoices
 		</Button>
 		<div class="h-6 w-px bg-border"></div>
-		<Button variant="outline" size="sm" class="gap-2">
+		<Button variant="outline" size="sm" onclick={editInvoice} class="gap-2">
 			<Edit size={14} />
 			Edit
 		</Button>
