@@ -181,16 +181,6 @@ export function getCount() {
 {/each}
 ```
 
-## Development Setup
-
-### Quick Start
-```bash
-npx sv create myapp
-cd myapp
-npm install
-npm run dev
-```
-
 ### TypeScript Support
 ```svelte
 <script lang="ts">
@@ -201,6 +191,55 @@ npm run dev
   
   let user: User = $state({ name: 'John', age: 30 });
 </script>
+```
+
+## Using Classes For Reactive State
+Creating a piece of reactive state inside a class works the same:
+
+counter.svelte.ts
+```svelte
+export class Counter {
+  count = $state(0)
+  // you can also derive values
+  double = $derived(this.count * 2)
+
+  increment = () => this.count++
+}
+```
+You can tuck the class inside a function if you want to hide the new keyword, but I’m going to instantiate the class directly:
+
++page.svelte
+```svelte
+<script lang="ts">
+  import { Counter } from './counter.svelte'
+
+  const counter = new Counter()
+</script>
+
+<button onclick={counter.increment}>
+  {counter.count}
+</button>
+```
+Notice how you don’t have to specify a getter and setter for count, since Svelte does that for you:
+
+counter.svelte.ts
+```svelte
+export class Counter {
+  // make count private
+  #count = $state(0)
+
+  // create property accessors
+  get count() {return this.#count }
+  set count(value) { this.#count = value }
+}
+```
+If you’re using TypeScript, you can use type assertion to type a reactive value inside a class:
+
+example.svelte.ts
+```svelte
+export class Example {
+  example = $state() as Type
+}
 ```
 
 ## Best Practices for LLMs
