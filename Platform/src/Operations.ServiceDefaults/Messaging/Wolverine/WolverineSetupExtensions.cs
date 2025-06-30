@@ -59,6 +59,8 @@ public static class WolverineSetupExtensions
                 opts.ConfigureReliableMessaging();
             }
 
+            opts.Policies.ConventionalLocalRoutingIsAdditive();
+
             opts.Policies.Add<ExceptionHandlingPolicy>();
             opts.Policies.Add<FluentValidationPolicy>();
 
@@ -66,25 +68,27 @@ public static class WolverineSetupExtensions
             opts.Policies.AddMiddleware(typeof(OpenTelemetryInstrumentationMiddleware));
             opts.Policies.AddMiddleware<CloudEventMiddleware>();
 
+            opts.RouteWith<IntegrationEventsConvention>();
+
             var kafkaConnectionString = configuration.GetConnectionString("Messaging");
 
             if (!string.IsNullOrEmpty(kafkaConnectionString))
             {
                 opts.UseKafka(kafkaConnectionString);
 
-                // Add Kafka health check
-                services.AddHealthChecks()
+                services
+                    .AddHealthChecks()
                     .AddKafka(options =>
                     {
                         options.BootstrapServers = kafkaConnectionString;
-                    }, name: "kafka", tags: new[] { "messaging", "kafka" });
+                    }, name: "kafka", tags: ["messaging", "kafka"]);
             }
-
-            configure?.Invoke(opts);
 
             opts.ConfigureAppHandlers(opts.ApplicationAssembly);
 
             opts.Services.AddResourceSetupOnStartup();
+
+            configure?.Invoke(opts);
         });
     }
 
@@ -125,13 +129,13 @@ public static class WolverineSetupExtensions
 #pragma warning restore S125
 #pragma warning restore CS0618
 
-        options
-            .PublishAllMessages()
-            .ToPostgresqlQueue("outbound");
-
-        options
-            .ListenToPostgresqlQueue("inbound")
-            .MaximumMessagesToReceive(50);
+        // options
+        //     .PublishAllMessages()
+        //     .ToPostgresqlQueue("outbound");
+        //
+        // options
+        //     .ListenToPostgresqlQueue("inbound")
+        //     .MaximumMessagesToReceive(50);
 
         return options;
     }

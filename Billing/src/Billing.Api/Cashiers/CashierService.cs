@@ -4,7 +4,6 @@ using Billing.Cashiers.Commands;
 using Billing.Cashiers.Grpc;
 using Billing.Cashiers.Queries;
 using Google.Protobuf.WellKnownTypes;
-using CashierMapper = Billing.Api.Cashiers.Mappers.CashierMapper;
 using CashierModel = Billing.Cashiers.Grpc.Models.Cashier;
 
 namespace Billing.Api.Cashiers;

@@ -34,7 +34,7 @@
     <!-- Import settings for Operations.Extensions, applying to non-Platform projects -->
     <PropertyGroup>
         <_ProjectFileContent>$([System.IO.File]::ReadAllText('$(MSBuildProjectFullPath)'))</_ProjectFileContent>
-        <_HasOperationsExtensionsRef>$([System.Text.RegularExpressions.Regex]::IsMatch('$(_ProjectFileContent)', 'Operations\.Extensions|Operations\.ServiceDefaults'))</_HasOperationsExtensionsRef>
+        <_HasOperationsExtensionsRef>$([System.Text.RegularExpressions.Regex]::IsMatch('$(_ProjectFileContent)', 'Operations\.Extensions\.csproj|Operations\.ServiceDefaults'))</_HasOperationsExtensionsRef>
     </PropertyGroup>
 
     <Import Project="Platform/src/Operations.Extensions/Operations.Extensions.props"

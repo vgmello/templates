@@ -1,13 +1,20 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
     <ItemGroup>
-        <Content
-            Include="..\Billing.Api\**\Protos\**\*.proto"
-            Link="%(RecursiveDir)%(Filename)%(Extension)"
-            Pack="true"
-            PackagePath="Protos"/>
-
+        <Content Include="..\Billing.Api\**\Protos\**\*.proto" Link="%(RecursiveDir)%(Filename)%(Extension)" Pack="true">
+            <PackagePath>Protos</PackagePath>
+        </Content>
         <Content Include="Billing.Contracts.props" Pack="true" PackagePath="build/"/>
+    </ItemGroup>
+    
+    <ItemGroup>
+        <ProjectReference Include="..\..\..\Platform\src\Operations.Extensions.Abstractions\Operations.Extensions.Abstractions.csproj"/>
+    </ItemGroup>
+    
+    <ItemGroup>
+        <AssemblyAttribute Include="Operations.Extensions.Abstractions.Messaging.DefaultDomainAttribute">
+            <Domain>Test1234</Domain>
+        </AssemblyAttribute>
     </ItemGroup>
 
 </Project>

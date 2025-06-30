@@ -1,5 +1,9 @@
 // Copyright (c) ABCDEG. All rights reserved.
 
+using Billing.Contracts.Cashiers.Models;
+using Operations.Extensions.Abstractions.Messaging;
+
 namespace Billing.Contracts.Cashiers.IntegrationEvents;
 
-public record CashierCreated(Models.Cashier Cashier);
+[EventTopic<Cashier>]
+public record CashierCreated(Cashier Cashier);
