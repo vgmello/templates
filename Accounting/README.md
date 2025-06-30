@@ -159,7 +159,7 @@ dotnet run --project Accounting/src/Accounting.BackOffice.Orleans
 
 #### 3. Verify Setup
 - **API Health**: http://localhost:8121/health
-- **scalar UI**: http://localhost:8121/scalar
+- **Scalar UI**: http://localhost:8121/scalar
 - **gRPC**: Connect to localhost:8122
 
 ### Option 3: Docker Compose

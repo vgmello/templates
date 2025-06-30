@@ -497,7 +497,6 @@ The Billing service includes a modern SvelteKit web application with full-stack 
 
 -   **Framework**: SvelteKit with Svelte 5 runes for reactive state management
 -   **Styling**: Tailwind CSS with shadcn-svelte component library
--   **Communication**: Direct gRPC communication with `@grpc/grpc-js`
 -   **State Management**: Svelte stores with TypeScript for type safety
 -   **Deployment**: Integrated with .NET Aspire for seamless development
 
@@ -506,7 +505,6 @@ The Billing service includes a modern SvelteKit web application with full-stack 
 -   **SSR + SPA**: Server-side rendering with client-side hydration
 -   **Responsive Design**: Mobile-first design with Tailwind breakpoints
 -   **Accessibility**: WCAG-compliant with keyboard navigation and screen reader support
--   **Type Safety**: Full TypeScript integration with gRPC-generated types
 -   **Error Boundaries**: Graceful error handling with fallback UI
 -   **Progressive Enhancement**: Works without JavaScript for core functionality
 
