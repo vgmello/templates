@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
 	import { page } from '$app/stores';
 	import { goto } from '$app/navigation';
 	import { Button } from '$lib/components/ui/button';
@@ -8,37 +7,25 @@
 	import { ArrowLeft, Save } from '@lucide/svelte';
 	import { cashierApi, type Cashier, type UpdateCashierRequest } from '$lib';
 
+	type Props = {
+		data: {
+			cashier: Cashier;
+		};
+	};
+	
+	let { data }: Props = $props();
+	let cashier = $state<Cashier>(data.cashier);
 	let cashierId = $derived($page.params.id);
-	let cashier = $state<Cashier | null>(null);
+	
 	let form = $state<UpdateCashierRequest>({
-		name: '',
-		email: ''
+		name: cashier.name,
+		email: cashier.email || ''
 	});
 
 	let loading = $state(false);
-	let loadingCashier = $state(false);
 	let error = $state<string | null>(null);
 	let fieldErrors = $state<Record<string, string>>({});
 
-	async function loadCashier() {
-		if (!cashierId) return;
-		
-		loadingCashier = true;
-		error = null;
-
-		try {
-			cashier = await cashierApi.getCashier(cashierId);
-			form = {
-				name: cashier.name,
-				email: cashier.email || ''
-			};
-		} catch (err) {
-			error = err instanceof Error ? err.message : 'Failed to load cashier';
-			console.error('Error loading cashier:', err);
-		} finally {
-			loadingCashier = false;
-		}
-	}
 
 	function validateForm() {
 		const errors: Record<string, string> = {};
@@ -107,9 +94,6 @@
 		goto('/cashiers');
 	}
 
-	onMount(() => {
-		loadCashier();
-	});
 </script>
 
 <svelte:head>
@@ -128,18 +112,11 @@
 		</div>
 	</div>
 
-	{#if loadingCashier}
-		<div class="flex items-center justify-center py-8">
-			<div class="text-center">
-				<div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-				<p class="mt-2 text-sm text-muted-foreground">Loading cashier...</p>
-			</div>
-		</div>
-	{:else if error && !cashier}
+	{#if error && !cashier}
 		<Card>
 			<CardContent class="text-center py-8">
 				<p class="text-destructive mb-4">{error}</p>
-				<Button onclick={loadCashier} variant="outline">
+				<Button onclick={() => window.location.reload()} variant="outline">
 					Try Again
 				</Button>
 			</CardContent>

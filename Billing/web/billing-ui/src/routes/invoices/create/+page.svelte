@@ -3,15 +3,21 @@
 	import { Button } from '$lib/components/ui/button';
 	import { Card, CardHeader, CardTitle, CardContent } from '$lib/components/ui/card';
 	import { Input } from '$lib/components/ui/input';
+	import { CurrencyInput } from '$lib/components/ui/currency-input';
 	import { ArrowLeft, Save, FileText, DollarSign, Calendar, User } from '@lucide/svelte';
-	import { invoiceApi, cashierApi, type CreateInvoiceRequest, type GetCashiersResult } from '$lib';
+	import { invoiceApi, type CreateInvoiceRequest, type GetCashiersResult } from '$lib';
 	import { formatDateForInput } from '$lib/utils/date.js';
-	import { onMount } from 'svelte';
 
+	type Props = {
+		data: {
+			cashiers: GetCashiersResult[];
+		};
+	};
+	
+	let { data }: Props = $props();
+	let { cashiers } = data;
 	let loading = $state(false);
 	let error = $state<string | null>(null);
-	let cashiers = $state<GetCashiersResult[]>([]);
-	let loadingCashiers = $state(false);
 
 	let form = $state<CreateInvoiceRequest>({
 		name: '',
@@ -51,17 +57,6 @@
 		return isValid;
 	}
 
-	async function loadCashiers() {
-		loadingCashiers = true;
-		try {
-			cashiers = await cashierApi.getCashiers();
-		} catch (err) {
-			console.error('Failed to load cashiers:', err);
-			// Non-critical error, cashier selection is optional
-		} finally {
-			loadingCashiers = false;
-		}
-	}
 
 	async function createInvoice() {
 		if (!validateForm() || loading) return;
@@ -106,9 +101,6 @@
 		error = null;
 	}
 
-	onMount(() => {
-		loadCashiers();
-	});
 </script>
 
 <svelte:head>
@@ -180,18 +172,14 @@
 								<DollarSign size={14} />
 								Amount *
 							</label>
-							<Input
+							<CurrencyInput
 								id="amount"
-								type="number"
-								step="0.01"
-								min="0"
 								bind:value={form.amount}
-								placeholder="0.00"
-								class={formErrors.amount ? 'border-destructive' : ''}
+								currency={form.currency || 'USD'}
+								placeholder="Enter amount"
+								required
+								error={formErrors.amount}
 							/>
-							{#if formErrors.amount}
-								<p class="text-sm text-destructive">{formErrors.amount}</p>
-							{/if}
 						</div>
 
 						<div class="space-y-2">
@@ -238,20 +226,16 @@
 							<User size={14} />
 							Assigned Cashier (Optional)
 						</label>
-						{#if loadingCashiers}
-							<div class="text-sm text-muted-foreground">Loading cashiers...</div>
-						{:else}
-							<select 
-								id="cashier"
-								bind:value={form.cashierId}
-								class="w-full px-3 py-2 border border-input bg-background text-sm rounded-md focus:outline-none focus:ring-2 focus:ring-ring"
-							>
-								<option value="">No cashier assigned</option>
-								{#each cashiers as cashier}
-									<option value={cashier.cashierId}>{cashier.name}</option>
-								{/each}
-							</select>
-						{/if}
+						<select 
+							id="cashier"
+							bind:value={form.cashierId}
+							class="w-full px-3 py-2 border border-input bg-background text-sm rounded-md focus:outline-none focus:ring-2 focus:ring-ring"
+						>
+							<option value="">No cashier assigned</option>
+							{#each cashiers as cashier}
+								<option value={cashier.cashierId}>{cashier.name}</option>
+							{/each}
+						</select>
 						<p class="text-xs text-muted-foreground">
 							Assign a cashier to handle payments for this invoice
 						</p>

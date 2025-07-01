@@ -1,10 +1,10 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
 	import { Button } from '$lib/components/ui/button';
 	import { Card, CardHeader, CardTitle, CardContent } from '$lib/components/ui/card';
 	import { Input } from '$lib/components/ui/input';
+	import { CurrencyInput } from '$lib/components/ui/currency-input';
 	import {
 		ArrowLeft,
 		Edit,
@@ -25,12 +25,19 @@
 		type SimulatePaymentRequest
 	} from '$lib';
 	import InvoiceStatusBadge from '$lib/components/InvoiceStatusBadge.svelte';
+	import { CurrencyDisplay } from '$lib/components/ui/currency-display';
 	import { formatCurrency } from '$lib/utils/currency.js';
 	import { formatDate, formatDateForInput } from '$lib/utils/date.js';
 
+	type Props = {
+		data: {
+			invoice: Invoice;
+		};
+	};
+	
+	let { data }: Props = $props();
+	let invoice = $state<Invoice>(data.invoice);
 	let invoiceId = $derived($page.params.id);
-	let invoice = $state<Invoice | null>(null);
-	let loading = $state(false);
 	let error = $state<string | null>(null);
 	let actionLoading = $state<string | null>(null);
 
@@ -47,27 +54,6 @@
 		paymentReference: ''
 	});
 
-	async function loadInvoice() {
-		if (!invoiceId) return;
-
-		loading = true;
-		error = null;
-
-		try {
-			invoice = await invoiceApi.getInvoice(invoiceId);
-			// Initialize form values
-			if (invoice) {
-				markAsPaidForm.amountPaid = invoice.amount;
-				simulatePaymentForm.amount = invoice.amount;
-				simulatePaymentForm.currency = invoice.currency || 'USD';
-			}
-		} catch (err) {
-			error = err instanceof Error ? err.message : 'Failed to load invoice';
-			console.error('Error loading invoice:', err);
-		} finally {
-			loading = false;
-		}
-	}
 
 	async function markAsPaid() {
 		if (!invoice || actionLoading) return;
@@ -79,7 +65,8 @@
 				paymentDate: markAsPaidForm.paymentDate
 			};
 
-			invoice = await invoiceApi.markInvoiceAsPaid(invoice.invoiceId, request);
+			const updatedInvoice = await invoiceApi.markInvoiceAsPaid(invoice.invoiceId, request);
+			invoice = updatedInvoice;
 		} catch (err) {
 			error = err instanceof Error ? err.message : 'Failed to mark invoice as paid';
 		} finally {
@@ -100,8 +87,8 @@
 			};
 
 			await invoiceApi.simulatePayment(invoice.invoiceId, request);
-			// Reload invoice to get updated status
-			await loadInvoice();
+			// Refresh the page to get updated invoice status
+			window.location.reload();
 		} catch (err) {
 			error = err instanceof Error ? err.message : 'Failed to simulate payment';
 		} finally {
@@ -118,7 +105,8 @@
 
 		actionLoading = 'cancel';
 		try {
-			invoice = await invoiceApi.cancelInvoice(invoice.invoiceId);
+			const updatedInvoice = await invoiceApi.cancelInvoice(invoice.invoiceId);
+			invoice = updatedInvoice;
 		} catch (err) {
 			error = err instanceof Error ? err.message : 'Failed to cancel invoice';
 		} finally {
@@ -162,9 +150,10 @@
 	let canSimulatePayment = $derived(invoice?.status === 'Draft' || invoice?.status === 'Pending');
 	let canCancel = $derived(invoice?.status === 'Draft' || invoice?.status === 'Pending');
 
-	onMount(() => {
-		loadInvoice();
-	});
+	// Initialize form values with invoice data
+	markAsPaidForm.amountPaid = invoice.amount;
+	simulatePaymentForm.amount = invoice.amount;
+	simulatePaymentForm.currency = invoice.currency || 'USD';
 </script>
 
 <svelte:head>
@@ -185,35 +174,21 @@
 		</Button>
 	</div>
 
-	{#if loading}
-		<div class="flex flex-col items-center justify-center space-y-4 py-24">
-			<div
-				class="border-primary h-12 w-12 animate-spin rounded-full border-2 border-t-transparent"
-			></div>
-			<div class="space-y-1 text-center">
-				<p class="font-medium">Loading invoice</p>
-				<p class="text-muted-foreground text-sm">
-					Please wait while we fetch the invoice details...
-				</p>
-			</div>
-		</div>
-	{:else if error}
+	{#if error}
 		<Card class="border-destructive/50 bg-destructive/5">
 			<CardContent class="flex flex-col items-center justify-center space-y-4 py-12">
 				<div class="bg-destructive/10 rounded-full p-3">
 					<XCircle size={24} class="text-destructive" />
 				</div>
 				<div class="space-y-2 text-center">
-					<h3 class="text-destructive font-semibold">Error Loading Invoice</h3>
+					<h3 class="text-destructive font-semibold">Error</h3>
 					<p class="text-muted-foreground max-w-md text-sm">{error}</p>
 				</div>
-				<Button onclick={loadInvoice} variant="outline" class="gap-2">
-					<ArrowLeft size={16} />
-					Try Again
-				</Button>
 			</CardContent>
 		</Card>
-	{:else if invoice}
+	{/if}
+	
+	{#if invoice}
 		<div class="grid grid-cols-1 gap-8 lg:grid-cols-3">
 			<!-- Invoice Information -->
 			<div class="space-y-6 lg:col-span-2">
@@ -253,9 +228,12 @@
 									<DollarSign size={14} />
 									Amount
 								</label>
-								<p class="text-2xl font-bold">
-									{formatCurrency(invoice.amount, invoice.currency)}
-								</p>
+								<CurrencyDisplay
+									amount={invoice.amount}
+									currency={invoice.currency || 'USD'}
+									size="xl"
+									variant="accent"
+								/>
 							</div>
 
 							<!-- Currency -->
@@ -333,11 +311,10 @@
 								<div class="space-y-3">
 									<div>
 										<label class="text-sm font-medium">Amount Paid</label>
-										<Input
-											type="number"
-											step="0.01"
+										<CurrencyInput
 											bind:value={markAsPaidForm.amountPaid}
-											placeholder="0.00"
+											currency={invoice.currency || 'USD'}
+											placeholder="Enter payment amount"
 										/>
 									</div>
 									<div>
@@ -376,11 +353,10 @@
 								<div class="space-y-3">
 									<div>
 										<label class="text-sm font-medium">Amount</label>
-										<Input
-											type="number"
-											step="0.01"
+										<CurrencyInput
 											bind:value={simulatePaymentForm.amount}
-											placeholder="0.00"
+											currency={invoice.currency || 'USD'}
+											placeholder="Enter simulation amount"
 										/>
 									</div>
 									<div>

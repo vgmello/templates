@@ -1,9 +1,9 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { Button } from '$lib/components/ui/button';
 	import { Card, CardHeader, CardTitle, CardContent } from '$lib/components/ui/card';
 	import { Input } from '$lib/components/ui/input';
+	import { CurrencyDisplay } from '$lib/components/ui/currency-display';
 	import {
 		Plus,
 		Search,
@@ -18,20 +18,20 @@
 		Download,
 		Copy
 	} from '@lucide/svelte';
-	import { invoiceApi, type Invoice, type InvoiceSummary } from '$lib';
+	import type { Invoice, InvoiceSummary } from '$lib';
 	import InvoiceStatusBadge from '$lib/components/InvoiceStatusBadge.svelte';
 	import { formatCurrency } from '$lib/utils/currency.js';
 	import { formatDate, isOverdue } from '$lib/utils/date.js';
 
-	let invoices = $state<Invoice[]>([]);
-	let summary = $state<InvoiceSummary>({
-		totalInvoices: 0,
-		totalAmount: 0,
-		paidCount: 0,
-		overdueCount: 0
-	});
-	let loading = $state(false);
-	let error = $state<string | null>(null);
+	type Props = {
+		data: {
+			invoices: Invoice[];
+			summary: InvoiceSummary;
+		};
+	};
+	
+	let { data }: Props = $props();
+	let { invoices, summary } = data;
 	let searchTerm = $state('');
 	let statusFilter = $state<string>('');
 
@@ -46,25 +46,6 @@
 		})
 	);
 
-	async function loadInvoices() {
-		loading = true;
-		error = null;
-
-		try {
-			const [invoicesData, summaryData] = await Promise.all([
-				invoiceApi.getInvoices(),
-				invoiceApi.getInvoiceSummary()
-			]);
-
-			invoices = invoicesData;
-			summary = summaryData;
-		} catch (err) {
-			error = err instanceof Error ? err.message : 'Failed to load invoices';
-			console.error('Error loading invoices:', err);
-		} finally {
-			loading = false;
-		}
-	}
 
 	function viewInvoice(id: string) {
 		goto(`/invoices/${id}`);
@@ -100,9 +81,6 @@
 		return isOverdue(invoice.dueDate) ? 'Overdue' : invoice.status;
 	}
 
-	onMount(() => {
-		loadInvoices();
-	});
 </script>
 
 <svelte:head>
@@ -125,33 +103,7 @@
 		</Button>
 	</div>
 
-	{#if loading}
-		<div class="flex flex-col items-center justify-center space-y-4 py-24">
-			<div
-				class="border-primary h-12 w-12 animate-spin rounded-full border-2 border-t-transparent"
-			></div>
-			<div class="space-y-1 text-center">
-				<p class="font-medium">Loading invoices</p>
-				<p class="text-muted-foreground text-sm">Please wait while we fetch your data...</p>
-			</div>
-		</div>
-	{:else if error}
-		<Card class="border-destructive/50 bg-destructive/5">
-			<CardContent class="flex flex-col items-center justify-center space-y-4 py-12">
-				<div class="bg-destructive/10 rounded-full p-3">
-					<AlertCircle size={24} class="text-destructive" />
-				</div>
-				<div class="space-y-2 text-center">
-					<h3 class="text-destructive font-semibold">Something went wrong</h3>
-					<p class="text-muted-foreground max-w-md text-sm">{error}</p>
-				</div>
-				<Button onclick={loadInvoices} variant="outline" class="gap-2">
-					<AlertCircle size={16} />
-					Try Again
-				</Button>
-			</CardContent>
-		</Card>
-	{:else}
+	<!-- Summary Cards -->
 		<!-- Summary Cards -->
 		<div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
 			<Card>
@@ -173,7 +125,7 @@
 					<div class="flex items-center justify-between">
 						<div class="space-y-1">
 							<p class="text-muted-foreground text-sm font-medium">Total Amount</p>
-							<p class="text-2xl font-bold">{formatCurrency(summary.totalAmount)}</p>
+							<CurrencyDisplay amount={summary.totalAmount} size="xl" />
 						</div>
 						<div class="rounded-full bg-green-100 p-3">
 							<DollarSign size={20} class="text-green-600" />
@@ -313,12 +265,12 @@
 										</td>
 										<td class="px-6 py-4">
 											<div class="space-y-1">
-												<p class="font-medium">
-													{formatCurrency(
-														invoice.amount,
-														invoice.currency
-													)}
-												</p>
+												<CurrencyDisplay
+													amount={invoice.amount}
+													currency={invoice.currency || 'USD'}
+													size="md"
+													class="font-medium"
+												/>
 												<p class="text-muted-foreground text-sm">
 													{invoice.currency || 'USD'}
 												</p>
@@ -390,5 +342,4 @@
 				</div>
 			</div>
 		{/if}
-	{/if}
 </div>

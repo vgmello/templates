@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { Button } from '$lib/components/ui/button';
 	import { Card, CardHeader, CardTitle, CardContent } from '$lib/components/ui/card';
@@ -7,8 +6,14 @@
 	import { Plus, Search, Pencil, Trash2, User, Mail, Hash, Settings, UserPlus } from '@lucide/svelte';
 	import { cashierApi, type GetCashiersResult } from '$lib';
 
-	let cashiers = $state<GetCashiersResult[]>([]);
-	let loading = $state(false);
+	type Props = {
+		data: {
+			cashiers: GetCashiersResult[];
+		};
+	};
+	
+	let { data }: Props = $props();
+	let cashiers = $state<GetCashiersResult[]>(data.cashiers);
 	let error = $state<string | null>(null);
 	let searchTerm = $state('');
 
@@ -20,17 +25,12 @@
 		)
 	);
 
-	async function loadCashiers() {
-		loading = true;
-		error = null;
-		
+	async function refreshCashiers() {
 		try {
 			cashiers = await cashierApi.getCashiers();
 		} catch (err) {
-			error = err instanceof Error ? err.message : 'Failed to load cashiers';
-			console.error('Error loading cashiers:', err);
-		} finally {
-			loading = false;
+			error = err instanceof Error ? err.message : 'Failed to refresh cashiers';
+			console.error('Error refreshing cashiers:', err);
 		}
 	}
 
@@ -41,7 +41,7 @@
 
 		try {
 			await cashierApi.deleteCashier(id);
-			await loadCashiers(); // Reload the list
+			await refreshCashiers(); // Reload the list
 		} catch (err) {
 			error = err instanceof Error ? err.message : 'Failed to delete cashier';
 			console.error('Error deleting cashier:', err);
@@ -56,9 +56,6 @@
 		goto('/cashiers/create');
 	}
 
-	onMount(() => {
-		loadCashiers();
-	});
 </script>
 
 <svelte:head>
@@ -97,15 +94,7 @@
 	</div>
 
 	<!-- Main Content Area -->
-	{#if loading}
-		<div class="flex flex-col items-center justify-center py-24 space-y-4">
-			<div class="animate-spin rounded-full h-12 w-12 border-2 border-primary border-t-transparent"></div>
-			<div class="text-center space-y-1">
-				<p class="font-medium">Loading cashiers</p>
-				<p class="text-sm text-muted-foreground">Please wait while we fetch your data...</p>
-			</div>
-		</div>
-	{:else if error}
+	{#if error}
 		<Card class="border-destructive/50 bg-destructive/5">
 			<CardContent class="flex flex-col items-center justify-center py-12 space-y-4">
 				<div class="rounded-full bg-destructive/10 p-3">
@@ -115,7 +104,7 @@
 					<h3 class="font-semibold text-destructive">Something went wrong</h3>
 					<p class="text-sm text-muted-foreground max-w-md">{error}</p>
 				</div>
-				<Button onclick={loadCashiers} variant="outline" class="gap-2">
+				<Button onclick={refreshCashiers} variant="outline" class="gap-2">
 					<Settings size={16} />
 					Try Again
 				</Button>
