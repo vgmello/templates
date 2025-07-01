@@ -16,8 +16,7 @@ public static partial class GetCashierQueryHandler
     [DbCommand]
     private sealed partial record DbCommand([Column("id")] Guid CashierId);
 
-    public static async Task<Cashier> Handle(GetCashierQuery query, NpgsqlDataSource dataSource,
-        CancellationToken cancellationToken)
+    public static async Task<Cashier> Handle(GetCashierQuery query, NpgsqlDataSource dataSource, CancellationToken cancellationToken)
     {
         await using var connection = await dataSource.OpenConnectionAsync(cancellationToken);
 

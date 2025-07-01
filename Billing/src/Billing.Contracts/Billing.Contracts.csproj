@@ -6,14 +6,14 @@
         </Content>
         <Content Include="Billing.Contracts.props" Pack="true" PackagePath="build/"/>
     </ItemGroup>
-    
+
     <ItemGroup>
         <ProjectReference Include="..\..\..\Platform\src\Operations.Extensions.Abstractions\Operations.Extensions.Abstractions.csproj"/>
     </ItemGroup>
-    
+
     <ItemGroup>
         <AssemblyAttribute Include="Operations.Extensions.Abstractions.Messaging.DefaultDomainAttribute">
-            <Domain>Test1234</Domain>
+            <Domain>Billing123</Domain>
         </AssemblyAttribute>
     </ItemGroup>
 
