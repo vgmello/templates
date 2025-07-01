@@ -119,8 +119,11 @@ Billing/
 #### **Frontend Stack**
 
 -   **SvelteKit** with Svelte 5 and TypeScript for modern reactive UI
--   **Tailwind CSS** with shadcn-svelte component library for responsive design
--   **Lucide Svelte** for consistent iconography
+-   **Tailwind CSS** with shadcn-svelte component library (bits-ui + tailwind-variants)
+-   **Drizzle ORM** with PostgreSQL for type-safe database operations
+-   **@oslojs/crypto** with Argon2 for secure authentication
+-   **Vitest + Playwright** for comprehensive testing (unit + E2E)
+-   **@lucide/svelte** for consistent iconography
 
 #### **Testing & Quality**
 
@@ -308,8 +311,12 @@ grpcurl -plaintext -d '{"pageNumber": 1, "pageSize": 10}' localhost:8102 cashier
 The Billing service includes a modern SvelteKit web application:
 
 -   **URL**: http://localhost:8105 (when running via Aspire or docker compose)
--   **Features**: Responsive design
--   **Pages**: Dashboard, Cashier management, Invoice processing
+-   **Development URL**: http://localhost:5173 (when running `pnpm dev`)
+-   **Features**: Server-side rendering, progressive enhancement, responsive design
+-   **Components**: Currency input/display, invoice status badges, data tables
+-   **Authentication**: Secure session management with Argon2 password hashing
+-   **Database**: Direct PostgreSQL integration via Drizzle ORM
+-   **Pages**: Dashboard, Cashier management, Invoice processing with full CRUD operations
 
 ## Database Schema
 
@@ -347,10 +354,29 @@ dotnet test Billing/test/Billing.Tests --filter Category=Unit
 dotnet test Billing/test/Billing.Tests --filter Category=Architecture
 ```
 
-#### Frontend Tests (Playwright)
+#### Frontend Tests (SvelteKit)
 
 ```bash
-TODO: Fill this later
+cd Billing/web/billing-ui
+
+# Install dependencies
+pnpm install
+
+# Run unit tests
+pnpm test:unit
+
+# Run E2E tests
+pnpm test:e2e
+
+# Run all tests
+pnpm test
+
+# Type checking
+pnpm check
+
+# Linting and formatting
+pnpm lint
+pnpm format
 ```
 
 ### Test Categories
@@ -361,9 +387,12 @@ TODO: Fill this later
 2. **Integration Tests**: Service-level tests with real PostgreSQL, and dependent services via Testcontainers
 3. **Architecture Tests**: NetArchTest enforcement of DDD layering and dependencies
 
-#### Frontend Tests (9 Test Suites)
+#### Frontend Tests
 
-TBD
+- **Unit Tests**: Vitest with @vitest/browser for component testing
+- **E2E Tests**: Playwright for end-to-end browser testing
+- **Type Checking**: svelte-check with TypeScript validation
+- **Linting**: ESLint with Prettier for code quality
 
 ### Test Infrastructure
 
@@ -472,8 +501,11 @@ The Billing service includes a modern SvelteKit web application with full-stack 
 ### UI Architecture
 
 -   **Framework**: SvelteKit with Svelte 5 runes for reactive state management
--   **Styling**: Tailwind CSS with shadcn-svelte component library
+-   **Styling**: Tailwind CSS with shadcn-svelte component library (bits-ui + tailwind-variants)
+-   **Database**: Drizzle ORM with PostgreSQL integration
+-   **Authentication**: @oslojs/crypto with Argon2 password hashing
 -   **State Management**: Svelte stores with TypeScript for type safety
+-   **Testing**: Vitest for unit tests, Playwright for E2E
 -   **Deployment**: Integrated with .NET Aspire for seamless development
 
 ### Key Features
@@ -486,7 +518,22 @@ The Billing service includes a modern SvelteKit web application with full-stack 
 
 ### UI Pages
 
-TBD
+- **Dashboard** (`/`) - Service overview and quick actions
+- **Cashiers** (`/cashiers`) - Cashier list with pagination and filters
+  - **Create Cashier** (`/cashiers/create`) - Add new cashier form
+  - **Edit Cashier** (`/cashiers/[id]/edit`) - Update cashier information
+- **Invoices** (`/invoices`) - Invoice list with status filtering
+  - **Create Invoice** (`/invoices/create`) - New invoice form with currency support
+  - **Invoice Details** (`/invoices/[id]`) - View invoice details and status
+  - **Edit Invoice** (`/invoices/[id]/edit`) - Modify invoice information
+
+### UI Components
+
+- **Currency Input/Display** - Specialized monetary value handling
+- **Invoice Status Badge** - Visual status indicators
+- **Data Tables** - Paginated, sortable tables with responsive design
+- **Forms** - Progressive enhancement with server-side validation
+- **Modal Dialogs** - Accessible overlay components
 
 ### Development Commands
 
@@ -494,16 +541,24 @@ TBD
 cd Billing/web/billing-ui
 
 # Install dependencies
-npm install
+pnpm install
 
-# Development server
-npm run dev
+# Development server (http://localhost:5173)
+pnpm dev
 
 # Type checking
-npm run check
+pnpm check
 
 # Build for production
-npm run build
+pnpm build
+
+# Preview production build
+pnpm preview
+
+# Database operations (Drizzle)
+pnpm db:push      # Push schema changes
+pnpm db:migrate   # Run migrations
+pnpm db:studio    # Open database studio
 ```
 
 ## Orleans Integration
