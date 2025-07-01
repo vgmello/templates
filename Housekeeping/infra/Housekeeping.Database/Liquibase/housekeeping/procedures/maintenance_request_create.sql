@@ -9,7 +9,7 @@ CREATE OR REPLACE PROCEDURE housekeeping.maintenance_request_create(
     IN reported_by uuid DEFAULT NULL
 )
 LANGUAGE plpgsql
-AS $body$
+AS '
 BEGIN
     INSERT INTO housekeeping.maintenance_requests (
         request_id,
@@ -26,17 +26,17 @@ BEGIN
         issue_type,
         description,
         priority,
-        'Pending',
+        ''Pending'',
         reported_by
     );
     
-    IF priority IN ('High', 'Critical') THEN
+    IF priority IN (''High'', ''Critical'') THEN
         UPDATE housekeeping.rooms_status
         SET 
-            status = 'Maintenance',
-            updated_date_utc = timezone('utc', now()),
+            status = ''Maintenance'',
+            updated_date_utc = timezone(''utc'', now()),
             version = version + 1
         WHERE rooms_status.room_id = maintenance_request_create.room_id;
     END IF;
-END;
-$body$;
+END
+';

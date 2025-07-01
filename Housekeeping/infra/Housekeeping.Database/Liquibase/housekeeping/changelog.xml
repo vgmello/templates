@@ -12,8 +12,13 @@
     <include file="housekeeping/procedures/room_get.sql"/>
     <include file="housekeeping/procedures/rooms_get.sql"/>
     <include file="housekeeping/procedures/room_update_status.sql"/>
-    <include file="housekeeping/procedures/cleaning_record.sql"/>
     <include file="housekeeping/procedures/mini_fridge_update.sql"/>
+    <include file="housekeeping/procedures/cleaning_record_simple.sql"/>
+    <include file="housekeeping/procedures/cleaning_record_update.sql"/>
+    <include file="housekeeping/procedures/room_status_update_simple.sql"/>
+    <include file="housekeeping/procedures/maintenance_request_create_simple.sql"/>
+    <!-- Complex plpgsql procedures - now working with single quotes -->
+    <include file="housekeeping/procedures/cleaning_record.sql"/>
     <include file="housekeeping/procedures/maintenance_request_create.sql"/>
 
 </databaseChangeLog>

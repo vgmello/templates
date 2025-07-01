@@ -5,9 +5,8 @@ CREATE OR REPLACE PROCEDURE housekeeping.mini_fridge_update(
     IN items_json text,
     IN updated_by uuid DEFAULT NULL
 )
-LANGUAGE plpgsql
-AS $body$
-BEGIN
+LANGUAGE SQL
+BEGIN ATOMIC
     UPDATE housekeeping.rooms_status
     SET 
         mini_fridge_items = items_json::jsonb,
@@ -15,4 +14,3 @@ BEGIN
         version = version + 1
     WHERE rooms_status.room_id = mini_fridge_update.room_id;
 END;
-$body$;

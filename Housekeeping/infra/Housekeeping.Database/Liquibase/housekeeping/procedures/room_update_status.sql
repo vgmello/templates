@@ -6,19 +6,13 @@ CREATE OR REPLACE PROCEDURE housekeeping.room_update_status(
     IN notes text DEFAULT NULL,
     IN updated_by uuid DEFAULT NULL
 )
-LANGUAGE plpgsql
-AS $body$
-BEGIN
+LANGUAGE SQL
+BEGIN ATOMIC
     UPDATE housekeeping.rooms_status
     SET 
         status = new_status,
         notes = COALESCE(room_update_status.notes, rooms_status.notes),
         updated_date_utc = timezone('utc', now()),
-        version = version + 1,
-        last_cleaned_date_utc = CASE 
-            WHEN new_status IN ('Clean', 'Inspected') THEN timezone('utc', now()) 
-            ELSE last_cleaned_date_utc 
-        END
+        version = version + 1
     WHERE rooms_status.room_id = room_update_status.room_id;
 END;
-$body$;
