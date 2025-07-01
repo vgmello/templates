@@ -6,8 +6,9 @@ CREATE OR REPLACE PROCEDURE housekeeping.room_update_status(
     IN notes text DEFAULT NULL,
     IN updated_by uuid DEFAULT NULL
 )
-LANGUAGE SQL
-BEGIN ATOMIC
+LANGUAGE plpgsql
+AS $body$
+BEGIN
     UPDATE housekeeping.rooms_status
     SET 
         status = new_status,
@@ -20,3 +21,4 @@ BEGIN ATOMIC
         END
     WHERE rooms_status.room_id = room_update_status.room_id;
 END;
+$body$;

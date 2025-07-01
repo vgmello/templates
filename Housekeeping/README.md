@@ -27,9 +27,9 @@ This automatically:
 - Provides observability dashboard
 
 Access Points:
-- **Aspire Dashboard**: http://localhost:18200
-- **Housekeeping API**: http://localhost:8201/scalar
-- **Orleans Dashboard**: http://localhost:8204/dashboard
+- **Aspire Dashboard**: http://localhost:18140
+- **Housekeeping API**: http://localhost:8141/scalar
+- **Orleans Dashboard**: http://localhost:8144/dashboard
 
 ### Using Docker Compose
 ```bash
@@ -43,17 +43,17 @@ docker compose -f Housekeeping/compose.yml --profile api --profile backoffice --
 ## Architecture Overview
 
 ### Backend Services
-- **Housekeeping.Api** - REST API (port 8201)
+- **Housekeeping.Api** - REST + gRPC API (ports 8141/8142)
   - Room status management endpoints
   - Cleaning operation endpoints
   - Maintenance request endpoints
   - Mini fridge management endpoints
-- **Housekeeping.BackOffice** - Event-driven background processing (port 8203)
+- **Housekeeping.BackOffice** - Event-driven background processing (port 8143)
   - Wolverine-based message handling
   - Integration event processing
-- **Housekeeping.BackOffice.Orleans** - Stateful room processing (port 8204)
-  - Orleans actors for room state management
-  - Real-time room status tracking
+- **Housekeeping.BackOffice.Orleans** - Stateful room processing (port 8144)
+  - Orleans actors with clustering
+  - Persistent state management
 - **Housekeeping** (Core) - Domain logic with DDD patterns
   - Commands, queries, entities
   - FluentValidation
@@ -146,7 +146,7 @@ OutOfService ← Maintenance ←──┘
 
 ### Connection String
 ```
-Host=localhost;Port=54320;Database=housekeeping;Username=postgres;Password=password@
+Host=localhost;Port=54322;Database=housekeeping;Username=postgres;Password=password@
 ```
 
 ## Integration Events
@@ -203,22 +203,23 @@ Test Categories:
 - **Code Quality**: SonarAnalyzer enabled, warnings as info
 - **Environment**: .NET 9 with nullable reference types and implicit usings
 - **Source Generation**: Custom generators reduce boilerplate for DB commands
-- **Port Configuration**: 
-  - API: 8201 (HTTP), 8202 (gRPC)
-  - BackOffice: 8203
-  - Orleans: 8204 (includes dashboard)
-  - Aspire: 18200 (dashboard), 18201 (HTTP)
+- **Port Configuration**:
+  - Database: 54322 (PostgreSQL)
+  - API: 8141 (HTTP), 8142 (gRPC)
+  - BackOffice: 8143
+  - Orleans: 8144 (includes dashboard)
+  - Aspire: 18140 (dashboard), 18892 (telemetry)
 
 ## Troubleshooting
 
 ### Common Issues
 
 1. **Database connection failed**
-   - Ensure PostgreSQL is running on port 54320
+   - Ensure PostgreSQL is running on port 54322
    - Check credentials: postgres/password@
 
 2. **Port conflicts**
-   - Check if ports 8201-8204, 18200-18201 are available
+   - Check if ports 8141-8144, 18140, 18892, 54322 are available
    - Use `netstat -tulpn | grep <port>` to verify
 
 3. **Test failures**

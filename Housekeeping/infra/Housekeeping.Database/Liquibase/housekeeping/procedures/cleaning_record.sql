@@ -7,8 +7,9 @@ CREATE OR REPLACE PROCEDURE housekeeping.cleaning_record(
     IN is_complete boolean,
     IN notes text DEFAULT NULL
 )
-LANGUAGE SQL
-BEGIN ATOMIC
+LANGUAGE plpgsql
+AS $body$
+BEGIN
     INSERT INTO housekeeping.cleaning_history (
         cleaning_id,
         room_id,
@@ -42,3 +43,4 @@ BEGIN ATOMIC
         version = version + 1
     WHERE rooms_status.room_id = cleaning_record.room_id;
 END;
+$body$;
