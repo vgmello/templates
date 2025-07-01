@@ -16,6 +16,7 @@ public static partial class GetRoomStatusQueryHandler
     public static async Task<RoomModel> Handle(GetRoomStatusQuery query, IMessageBus messaging, CancellationToken cancellationToken)
     {
         var dbQuery = new GetRoomDbQuery(query.RoomId);
+
         return await messaging.InvokeQueryAsync(dbQuery, cancellationToken);
     }
 }

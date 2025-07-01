@@ -18,7 +18,7 @@ public static partial class InvoiceMapper
             Status = source.Status,
             CashierId = source.CashierId?.ToString(),
             Currency = source.Currency ?? string.Empty,
-            DueDate =   source.DueDate?.ToTimestamp() ?? null,
+            DueDate = source.DueDate?.ToTimestamp() ?? null,
             CreatedDateUtc = source.CreatedDateUtc.ToUniversalTime().ToTimestamp(),
             UpdatedDateUtc = source.UpdatedDateUtc.ToUniversalTime().ToTimestamp(),
             Version = source.Version

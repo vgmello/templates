@@ -1,5 +1,6 @@
 // Copyright (c) ABCDEG. All rights reserved.
 
+using Housekeeping.Api.Rooms.Models;
 using Housekeeping.Contracts.Rooms.Models;
 using Housekeeping.Rooms.Commands;
 using Housekeeping.Rooms.Queries;

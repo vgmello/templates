@@ -38,7 +38,7 @@ public static partial class UpdateMiniFridgeUsageCommandHandler
     {
         // Convert items to JSON for storage
         var itemsJson = System.Text.Json.JsonSerializer.Serialize(command.Items);
-        
+
         var dbCommand = new UpdateMiniFridgeDbCommand(
             command.RoomId,
             itemsJson,

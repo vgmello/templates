@@ -1,6 +1,7 @@
 // Copyright (c) ABCDEG. All rights reserved.
 
 // ReSharper disable once CheckNamespace
+
 namespace Microsoft.Extensions.Hosting;
 
 public partial class Program

@@ -44,11 +44,11 @@ public static partial class UpdateRoomStatusCommandHandler
             command.UpdatedBy);
 
         var room = await messaging.InvokeCommandAsync(dbCommand, cancellationToken);
-        
+
         // Parse previous status from the returned room data
         // In a real implementation, we'd need to get the previous status from the DB
         var previousStatus = room.Status == command.NewStatus ? room.Status : RoomStatus.Dirty;
-        
+
         var statusChangedEvent = room.Status != previousStatus
             ? new RoomStatusChanged(
                 room.RoomId,

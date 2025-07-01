@@ -37,7 +37,7 @@ public static partial class RecordCleaningCommandHandler
         CancellationToken cancellationToken)
     {
         var cleaningId = Guid.CreateVersion7();
-        
+
         var dbCommand = new RecordCleaningDbCommand(
             cleaningId,
             command.RoomId,
@@ -48,7 +48,7 @@ public static partial class RecordCleaningCommandHandler
         await messaging.InvokeCommandAsync(dbCommand, cancellationToken);
 
         CleaningCompleted? completedEvent = null;
-        
+
         if (command.IsComplete)
         {
             // In a real implementation, we'd fetch room number and start time from DB

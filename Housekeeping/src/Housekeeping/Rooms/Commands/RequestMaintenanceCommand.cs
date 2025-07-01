@@ -40,7 +40,7 @@ public static partial class RequestMaintenanceCommandHandler
         CancellationToken cancellationToken)
     {
         var requestId = Guid.CreateVersion7();
-        
+
         var dbCommand = new CreateMaintenanceRequestDbCommand(
             requestId,
             command.RoomId,
