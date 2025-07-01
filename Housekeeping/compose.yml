@@ -1,0 +1,104 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password@
+      POSTGRES_DB: postgres
+    ports:
+      - "54320:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    profiles:
+      - api
+      - backoffice
+      - aspire
+
+  housekeeping-database:
+    build:
+      context: ./infra/Housekeeping.Database
+      dockerfile: Dockerfile
+    depends_on:
+      - postgres
+    environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password@
+    profiles:
+      - api
+      - backoffice
+      - aspire
+
+  housekeeping-api:
+    build:
+      context: .
+      dockerfile: src/Housekeeping.Api/Dockerfile
+    ports:
+      - "8201:8080"
+      - "8202:8081"
+    depends_on:
+      - postgres
+      - housekeeping-database
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ConnectionStrings__housekeeping: "Host=postgres;Port=5432;Database=housekeeping;Username=postgres;Password=password@"
+      ConnectionStrings__service-bus: "Host=postgres;Port=5432;Database=service_bus;Username=postgres;Password=password@"
+    profiles:
+      - api
+      - aspire
+
+  housekeeping-backoffice:
+    build:
+      context: .
+      dockerfile: src/Housekeeping.BackOffice/Dockerfile
+    ports:
+      - "8203:8080"
+    depends_on:
+      - postgres
+      - housekeeping-database
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ConnectionStrings__housekeeping: "Host=postgres;Port=5432;Database=housekeeping;Username=postgres;Password=password@"
+      ConnectionStrings__service-bus: "Host=postgres;Port=5432;Database=service_bus;Username=postgres;Password=password@"
+    profiles:
+      - backoffice
+      - aspire
+
+  housekeeping-orleans:
+    build:
+      context: .
+      dockerfile: src/Housekeeping.BackOffice.Orleans/Dockerfile
+    ports:
+      - "8204:8080"
+      - "8205:8081"
+    depends_on:
+      - postgres
+      - housekeeping-database
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ConnectionStrings__housekeeping: "Host=postgres;Port=5432;Database=housekeeping;Username=postgres;Password=password@"
+      ConnectionStrings__service-bus: "Host=postgres;Port=5432;Database=service_bus;Username=postgres;Password=password@"
+    profiles:
+      - backoffice
+      - aspire
+
+  housekeeping-aspire:
+    build:
+      context: .
+      dockerfile: src/Housekeeping.AppHost/Dockerfile
+    ports:
+      - "18200:8080"
+      - "18201:8081"
+    depends_on:
+      - postgres
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+    profiles:
+      - aspire
+
+volumes:
+  postgres_data:

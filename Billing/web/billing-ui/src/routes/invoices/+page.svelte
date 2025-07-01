@@ -4,6 +4,7 @@
 	import { Card, CardHeader, CardTitle, CardContent } from '$lib/components/ui/card';
 	import { Input } from '$lib/components/ui/input';
 	import { CurrencyDisplay } from '$lib/components/ui/currency-display';
+	import { Select } from '$lib/components/ui/select';
 	import {
 		Plus,
 		Search,
@@ -34,6 +35,15 @@
 	let { invoices, summary } = data;
 	let searchTerm = $state('');
 	let statusFilter = $state<string>('');
+
+	// Status filter options
+	const statusOptions = [
+		{ value: '', label: 'All Statuses' },
+		{ value: 'Draft', label: 'Draft' },
+		{ value: 'Pending', label: 'Pending' },
+		{ value: 'Paid', label: 'Paid' },
+		{ value: 'Cancelled', label: 'Cancelled' }
+	];
 
 	// Reactive filtered invoices
 	let filteredInvoices = $derived(
@@ -177,16 +187,12 @@
 				/>
 			</div>
 			<div class="flex items-center gap-2">
-				<select
+				<Select
 					bind:value={statusFilter}
-					class="border-input bg-background focus:ring-ring min-w-[140px] rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2"
-				>
-					<option value="">All Statuses</option>
-					<option value="Draft">Draft</option>
-					<option value="Pending">Pending</option>
-					<option value="Paid">Paid</option>
-					<option value="Cancelled">Cancelled</option>
-				</select>
+					options={statusOptions}
+					placeholder="Filter by status"
+					class="min-w-[140px]"
+				/>
 			</div>
 		</div>
 

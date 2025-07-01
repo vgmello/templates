@@ -5,6 +5,7 @@
 	import { Card, CardHeader, CardTitle, CardContent } from '$lib/components/ui/card';
 	import { Input } from '$lib/components/ui/input';
 	import { CurrencyInput } from '$lib/components/ui/currency-input';
+	import { Select } from '$lib/components/ui/select';
 	import {
 		ArrowLeft,
 		Edit,
@@ -53,6 +54,14 @@
 		paymentMethod: 'Credit Card',
 		paymentReference: ''
 	});
+
+	// Payment method options
+	const paymentMethodOptions = [
+		{ value: 'Credit Card', label: 'Credit Card' },
+		{ value: 'Bank Transfer', label: 'Bank Transfer' },
+		{ value: 'PayPal', label: 'PayPal' },
+		{ value: 'Cash', label: 'Cash' }
+	];
 
 
 	async function markAsPaid() {
@@ -361,15 +370,11 @@
 									</div>
 									<div>
 										<label class="text-sm font-medium">Payment Method</label>
-										<select
+										<Select
 											bind:value={simulatePaymentForm.paymentMethod}
-											class="border-input bg-background focus:ring-ring w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2"
-										>
-											<option value="Credit Card">Credit Card</option>
-											<option value="Bank Transfer">Bank Transfer</option>
-											<option value="PayPal">PayPal</option>
-											<option value="Cash">Cash</option>
-										</select>
+											options={paymentMethodOptions}
+											placeholder="Select payment method"
+										/>
 									</div>
 									<div>
 										<label class="text-sm font-medium"

@@ -1,0 +1,101 @@
+### Housekeeping API Tests
+@baseUrl = http://localhost:8201
+
+### Get Room Status
+GET {{baseUrl}}/rooms/550e8400-e29b-41d4-a716-446655440001/status
+
+### Get All Room Statuses
+GET {{baseUrl}}/rooms/status
+
+### Get Room Statuses by Floor
+GET {{baseUrl}}/rooms/status?floor=2
+
+### Get Room Statuses by Status
+GET {{baseUrl}}/rooms/status?status=Dirty
+
+### Update Room Status to Cleaning
+PUT {{baseUrl}}/rooms/550e8400-e29b-41d4-a716-446655440001/status
+Content-Type: application/json
+
+{
+  "status": "Cleaning",
+  "notes": "Starting cleaning process",
+  "updatedBy": "550e8400-e29b-41d4-a716-446655440002"
+}
+
+### Update Room Status to Clean
+PUT {{baseUrl}}/rooms/550e8400-e29b-41d4-a716-446655440001/status
+Content-Type: application/json
+
+{
+  "status": "Clean",
+  "notes": "Cleaning completed successfully",
+  "updatedBy": "550e8400-e29b-41d4-a716-446655440002"
+}
+
+### Record Cleaning Start
+POST {{baseUrl}}/rooms/550e8400-e29b-41d4-a716-446655440001/cleaning
+Content-Type: application/json
+
+{
+  "cleanerId": "550e8400-e29b-41d4-a716-446655440002",
+  "isComplete": false,
+  "notes": "Starting room cleaning"
+}
+
+### Record Cleaning Completion
+POST {{baseUrl}}/rooms/550e8400-e29b-41d4-a716-446655440001/cleaning
+Content-Type: application/json
+
+{
+  "cleanerId": "550e8400-e29b-41d4-a716-446655440002",
+  "isComplete": true,
+  "notes": "Room cleaning completed - restocked amenities"
+}
+
+### Update Mini Fridge
+PUT {{baseUrl}}/rooms/550e8400-e29b-41d4-a716-446655440001/mini-fridge
+Content-Type: application/json
+
+{
+  "items": {
+    "water": 4,
+    "soda": 2,
+    "beer": 1,
+    "snacks": 3
+  },
+  "updatedBy": "550e8400-e29b-41d4-a716-446655440003"
+}
+
+### Request Maintenance - Low Priority
+POST {{baseUrl}}/rooms/550e8400-e29b-41d4-a716-446655440001/maintenance
+Content-Type: application/json
+
+{
+  "issueType": "Lighting",
+  "description": "Bathroom light bulb needs replacement",
+  "priority": "Low",
+  "reportedBy": "550e8400-e29b-41d4-a716-446655440004"
+}
+
+### Request Maintenance - High Priority
+POST {{baseUrl}}/rooms/550e8400-e29b-41d4-a716-446655440001/maintenance
+Content-Type: application/json
+
+{
+  "issueType": "Plumbing",
+  "description": "Toilet not flushing properly",
+  "priority": "High",
+  "reportedBy": "550e8400-e29b-41d4-a716-446655440004"
+}
+
+### Request Maintenance - Critical Priority
+POST {{baseUrl}}/rooms/550e8400-e29b-41d4-a716-446655440001/maintenance
+Content-Type: application/json
+
+{
+  "issueType": "HVAC",
+  "description": "Air conditioning not working - room very hot",
+  "priority": "Critical",
+  "reportedBy": "550e8400-e29b-41d4-a716-446655440004"
+}

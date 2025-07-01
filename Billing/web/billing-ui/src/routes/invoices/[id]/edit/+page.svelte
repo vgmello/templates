@@ -5,6 +5,7 @@
 	import { Button } from '$lib/components/ui/button';
 	import { Card, CardHeader, CardTitle, CardContent } from '$lib/components/ui/card';
 	import { Input } from '$lib/components/ui/input';
+	import { Select } from '$lib/components/ui/select';
 	import { ArrowLeft, Save, FileText, DollarSign, Calendar, User } from '@lucide/svelte';
 	import { invoiceApi, cashierApi, type Invoice, type CreateInvoiceRequest, type GetCashiersResult } from '$lib';
 	import { formatDateForInput } from '$lib/utils/date.js';
@@ -26,6 +27,25 @@
 	});
 
 	let formErrors = $state<{[key: string]: string}>({});
+
+	// Currency options
+	const currencyOptions = [
+		{ value: 'USD', label: 'USD - US Dollar' },
+		{ value: 'EUR', label: 'EUR - Euro' },
+		{ value: 'GBP', label: 'GBP - British Pound' },
+		{ value: 'JPY', label: 'JPY - Japanese Yen' },
+		{ value: 'CAD', label: 'CAD - Canadian Dollar' },
+		{ value: 'AUD', label: 'AUD - Australian Dollar' }
+	];
+
+	// Cashier options
+	const cashierOptions = $derived([
+		{ value: undefined, label: 'No cashier assigned' },
+		...cashiers.map(cashier => ({
+			value: cashier.cashierId,
+			label: cashier.name
+		}))
+	]);
 
 	function validateForm(): boolean {
 		formErrors = {};
@@ -214,21 +234,13 @@
 
 							<div class="space-y-2">
 								<label for="currency" class="text-sm font-medium">Currency *</label>
-								<select 
+								<Select
 									id="currency"
 									bind:value={form.currency}
-									class="w-full px-3 py-2 border border-input bg-background text-sm rounded-md focus:outline-none focus:ring-2 focus:ring-ring {formErrors.currency ? 'border-destructive' : ''}"
-								>
-									<option value="USD">USD - US Dollar</option>
-									<option value="EUR">EUR - Euro</option>
-									<option value="GBP">GBP - British Pound</option>
-									<option value="JPY">JPY - Japanese Yen</option>
-									<option value="CAD">CAD - Canadian Dollar</option>
-									<option value="AUD">AUD - Australian Dollar</option>
-								</select>
-								{#if formErrors.currency}
-									<p class="text-sm text-destructive">{formErrors.currency}</p>
-								{/if}
+									options={currencyOptions}
+									placeholder="Select currency"
+									error={formErrors.currency}
+								/>
 							</div>
 						</div>
 
@@ -259,16 +271,12 @@
 							{#if loadingCashiers}
 								<div class="text-sm text-muted-foreground">Loading cashiers...</div>
 							{:else}
-								<select 
+								<Select
 									id="cashier"
 									bind:value={form.cashierId}
-									class="w-full px-3 py-2 border border-input bg-background text-sm rounded-md focus:outline-none focus:ring-2 focus:ring-ring"
-								>
-									<option value="">No cashier assigned</option>
-									{#each cashiers as cashier}
-										<option value={cashier.cashierId}>{cashier.name}</option>
-									{/each}
-								</select>
+									options={cashierOptions}
+									placeholder="Select cashier"
+								/>
 							{/if}
 						</div>
 					</CardContent>

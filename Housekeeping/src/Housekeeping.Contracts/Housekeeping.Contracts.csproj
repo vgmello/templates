@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <ItemGroup>
+        <Content Include="..\Housekeeping.Api\**\Protos\**\*.proto" Link="%(RecursiveDir)%(Filename)%(Extension)" Pack="true">
+            <PackagePath>Protos</PackagePath>
+        </Content>
+        <Content Include="Housekeeping.Contracts.props" Pack="true" PackagePath="build/"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\..\..\Platform\src\Operations.Extensions.Abstractions\Operations.Extensions.Abstractions.csproj"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <AssemblyAttribute Include="Operations.Extensions.Abstractions.Messaging.DefaultDomainAttribute">
+            <Domain>Housekeeping</Domain>
+        </AssemblyAttribute>
+    </ItemGroup>
+
+</Project>

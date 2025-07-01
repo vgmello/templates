@@ -8,7 +8,7 @@
 	}>();
 
 	// Determine badge variant and additional styling based on status
-	let badgeVariant = $derived(() => {
+	let badgeVariant = $derived((() => {
 		switch (status) {
 			case InvoiceStatus.PAID:
 				return 'default';
@@ -23,7 +23,7 @@
 			default:
 				return 'outline';
 		}
-	});
+	})());
 
 	let badgeClass = $derived(() => {
 		let baseClass = '';

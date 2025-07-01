@@ -32,6 +32,24 @@
   <Folder Name="/Billing/Tests/">
     <Project Path="Billing\test\Billing.Tests\Billing.Tests.csproj" Type="Classic C#" />
   </Folder>
+  <Folder Name="/Housekeeping/">
+    <Project Path="Housekeeping\src\Housekeeping.Api\Housekeeping.Api.csproj" Type="Classic C#" />
+    <Project Path="Housekeeping\src\Housekeeping.AppHost\Housekeeping.AppHost.csproj" Type="Classic C#" />
+    <Project Path="Housekeeping\src\Housekeeping.BackOffice.Orleans\Housekeeping.BackOffice.Orleans.csproj" Type="Classic C#" />
+    <Project Path="Housekeeping\src\Housekeeping.BackOffice\Housekeeping.BackOffice.csproj" Type="Classic C#" />
+    <Project Path="Housekeeping\src\Housekeeping.Contracts\Housekeeping.Contracts.csproj" Type="Classic C#" />
+    <Project Path="Housekeeping\src\Housekeeping\Housekeeping.csproj" Type="Classic C#" />
+  </Folder>
+  <Folder Name="/Housekeeping/Infra/">
+    <Project Path="Housekeeping\infra\Housekeeping.Database\Housekeeping.Database.csproj" Type="Classic C#" />
+  </Folder>
+  <Folder Name="/Housekeeping/Solution Items/">
+    <File Path="Housekeeping\README.md" />
+    <File Path="Housekeeping\compose.yml" />
+  </Folder>
+  <Folder Name="/Housekeeping/Tests/">
+    <Project Path="Housekeeping\test\Housekeeping.Tests\Housekeeping.Tests.csproj" Type="Classic C#" />
+  </Folder>
   <Folder Name="/Platform/">
     <Project Path="Platform\src\Operations.AppHost\Operations.AppHost.csproj" Type="Classic C#" />
     <Project Path="Platform\src\Operations.Extensions.Abstractions\Operations.Extensions.Abstractions.csproj" Type="Classic C#" />
@@ -58,5 +76,6 @@
   <Folder Name="/Solution Items/.http/">
     <File Path=".http\Accounting.Api.http" />
     <File Path=".http\Billing.Api.http" />
+    <File Path=".http\Housekeeping.Api.http" />
   </Folder>
 </Solution>
