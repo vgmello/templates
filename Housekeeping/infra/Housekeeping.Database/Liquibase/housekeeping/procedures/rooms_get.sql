@@ -1,50 +1,31 @@
 --liquibase formatted sql
---changeset dev_user:"create rooms_get procedure"
-CREATE OR REPLACE PROCEDURE housekeeping.rooms_get(
-    status_filter VARCHAR(50) DEFAULT NULL,
-    floor_filter INTEGER DEFAULT NULL,
-    assigned_cleaner_id_filter UUID DEFAULT NULL,
-    page_number INTEGER DEFAULT 1,
-    page_size INTEGER DEFAULT 50
+--changeset dev_user:"create rooms_get function" runOnChange:true
+CREATE OR REPLACE FUNCTION housekeeping.rooms_get(
+    IN status_filter varchar(50) DEFAULT NULL,
+    IN floor_filter integer DEFAULT NULL,
+    IN assigned_cleaner_id_filter uuid DEFAULT NULL,
+    IN page_number integer DEFAULT 1,
+    IN page_size integer DEFAULT 50
 )
-LANGUAGE plpgsql
-AS $$
-DECLARE
-    v_offset INTEGER;
-    v_rooms JSON;
-BEGIN
-    v_offset := (page_number - 1) * page_size;
-
-    SELECT json_agg(json_build_object(
-        'RoomId', room_id,
-        'RoomNumber', room_number,
-        'Floor', floor,
-        'Status', status,
-        'LastCleanedDateUtc', last_cleaned_date_utc,
-        'AssignedCleanerId', assigned_cleaner_id,
-        'MiniFridgeItems', mini_fridge_items,
-        'Notes', notes
-    ))
-    INTO v_rooms
-    FROM (
-        SELECT 
-            room_id,
-            room_number,
-            floor,
-            status,
-            last_cleaned_date_utc,
-            assigned_cleaner_id,
-            mini_fridge_items,
-            notes
-        FROM housekeeping.rooms_status
-        WHERE (status_filter IS NULL OR status = status_filter)
-          AND (floor_filter IS NULL OR floor = floor_filter)
-          AND (assigned_cleaner_id_filter IS NULL OR assigned_cleaner_id = assigned_cleaner_id_filter)
-        ORDER BY room_number
-        LIMIT page_size
-        OFFSET v_offset
-    ) AS filtered_rooms;
-
-    RAISE NOTICE '%', COALESCE(v_rooms, '[]'::json);
+RETURNS TABLE(
+    room_id uuid,
+    room_number varchar(50),
+    floor integer,
+    status varchar(50),
+    last_cleaned_date_utc timestamp with time zone,
+    assigned_cleaner_id uuid,
+    mini_fridge_items jsonb,
+    notes text
+)
+LANGUAGE SQL
+BEGIN ATOMIC
+    SELECT rs.room_id, rs.room_number, rs.floor, rs.status, rs.last_cleaned_date_utc,
+           rs.assigned_cleaner_id, rs.mini_fridge_items, rs.notes
+    FROM housekeeping.rooms_status rs
+    WHERE (status_filter IS NULL OR rs.status = status_filter)
+      AND (floor_filter IS NULL OR rs.floor = floor_filter)
+      AND (assigned_cleaner_id_filter IS NULL OR rs.assigned_cleaner_id = assigned_cleaner_id_filter)
+    ORDER BY rs.room_number
+    LIMIT page_size
+    OFFSET (page_number - 1) * page_size;
 END;
-$$;
