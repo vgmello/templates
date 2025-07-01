@@ -40,5 +40,16 @@ public static class KafkaTopicNamingConvention
         }
     }
 
+    public static class Housekeeping
+    {
+        public const string SERVICE = "housekeeping";
+
+        public static class Room
+        {
+            public const string AGGREGATE = "room";
+            public static string Topic => $"{SERVICE}.{AGGREGATE}.{VERSION}";
+        }
+    }
+
     public static string GetPartitionKey(string tenantId) => tenantId;
 }

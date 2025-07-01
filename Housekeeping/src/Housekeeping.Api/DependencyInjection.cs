@@ -1,49 +1,42 @@
 // Copyright (c) ABCDEG. All rights reserved.
 
-using Operations.ServiceDefaults.Api;
-using Scalar.AspNetCore;
+using Dapper;
+using Housekeeping.Contracts.Rooms.IntegrationEvents;
+using Operations.ServiceDefaults.Messaging.Kafka;
+using Operations.ServiceDefaults.Messaging.Wolverine;
+using Wolverine.Kafka;
 
 namespace Housekeeping.Api;
 
 public static class DependencyInjection
 {
-    public static IServiceCollection AddHousekeepingApi(this IServiceCollection services, IConfiguration configuration)
+    public static IHostApplicationBuilder AddApplicationServices(this IHostApplicationBuilder builder)
     {
-        services.AddRazorPages();
-        services.AddOpenApi();
-        services.AddHttpClient();
-        services.AddEndpointsApiExplorer();
-        services.AddControllers();
+        DefaultTypeMap.MatchNamesWithUnderscores = true;
 
-        services.AddGrpc(options =>
+        builder.AddNpgsqlDataSource("HousekeepingDb");
+
+        builder.AddWolverine(opts =>
         {
-            options.Interceptors.Add<LoggingGrpcServerInterceptor>();
-            options.EnableDetailedErrors = true;
+            opts.ConfigureKafkaPublishing();
         });
 
-        services.AddScoped(TimeProvider.System);
-
-        return services;
+        return builder;
     }
 
-    public static WebApplication UseHousekeepingApi(this WebApplication app)
+    private static void ConfigureKafkaPublishing(this WolverineOptions opts)
     {
-        // Map health checks
-        app.MapDefaultEndpoints();
+        // Publish Room events to Kafka
+        opts.PublishMessage<RoomStatusChanged>()
+            .ToKafkaTopic(KafkaTopicNamingConvention.Housekeeping.Room.Topic);
 
-        app.UseStaticFiles();
-        app.UseRouting();
+        opts.PublishMessage<CleaningCompleted>()
+            .ToKafkaTopic(KafkaTopicNamingConvention.Housekeeping.Room.Topic);
 
-        app.MapRazorPages();
-        app.MapControllers();
+        opts.PublishMessage<MaintenanceRequested>()
+            .ToKafkaTopic(KafkaTopicNamingConvention.Housekeeping.Room.Topic);
 
-        // gRPC endpoints
-        //app.MapGrpcService<RoomsService>();
-
-        // API Documentation
-        app.MapOpenApi();
-        app.MapScalarApiReference();
-
-        return app;
+        opts.PublishMessage<MiniFridgeUpdated>()
+            .ToKafkaTopic(KafkaTopicNamingConvention.Housekeeping.Room.Topic);
     }
 }

@@ -1,14 +1,18 @@
 // Copyright (c) ABCDEG. All rights reserved.
 
 using Housekeeping.BackOffice;
+using Operations.ServiceDefaults;
+using Operations.ServiceDefaults.HealthChecks;
 
-var builder = Host.CreateApplicationBuilder(args);
+var builder = WebApplication.CreateSlimBuilder(args);
 
 builder.AddServiceDefaults();
-builder.AddNpgsqlDataSource("housekeeping");
 
-builder.Services.AddHousekeepingWolverine(builder.Configuration, builder.GetConnectionString("service-bus"));
-builder.Services.AddBackOfficeServices();
+// Application Services
+builder.AddApplicationServices();
 
-var host = builder.Build();
-await host.RunAsync();
+var app = builder.Build();
+
+app.MapDefaultHealthCheckEndpoints();
+
+await app.RunAsync(args);

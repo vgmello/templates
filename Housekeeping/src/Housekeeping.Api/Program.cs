@@ -1,17 +1,22 @@
 // Copyright (c) ABCDEG. All rights reserved.
 
-using Housekeeping.Api;
+using Operations.ServiceDefaults;
+using Operations.ServiceDefaults.Api;
+using Operations.ServiceDefaults.HealthChecks;
 
-var builder = WebApplication.CreateBuilder(args);
+[assembly: DomainAssembly(typeof(IHousekeepingAssembly))]
+
+var builder = WebApplication.CreateSlimBuilder(args);
 
 builder.AddServiceDefaults();
-builder.AddNpgsqlDataSource("housekeeping");
+builder.AddApiServiceDefaults();
 
-builder.Services.AddHousekeepingWolverine(builder.Configuration, builder.GetConnectionString("service-bus"));
-builder.Services.AddHousekeepingApi(builder.Configuration);
+// Application Services
+builder.AddApplicationServices();
 
 var app = builder.Build();
 
-app.UseHousekeepingApi();
+app.ConfigureApiUsingDefaults(requireAuth: false);
+app.MapDefaultHealthCheckEndpoints();
 
-await app.RunAsync();
+await app.RunAsync(args);

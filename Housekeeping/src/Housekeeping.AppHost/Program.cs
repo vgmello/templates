@@ -3,35 +3,29 @@
 var builder = DistributedApplication.CreateBuilder(args);
 
 // PostgreSQL server
-var postgres = builder.AddPostgres("postgres")
+var postgres = builder.AddPostgres("postgres", port: 54320)
     .WithDataVolume()
     .WithPgAdmin();
 
 // Databases
-var housekeepingDb = postgres.AddDatabase("housekeeping");
-var serviceBusDb = postgres.AddDatabase("service-bus");
-
-// Database migrations
-var database = builder.AddProject<Projects.Housekeeping_Database>("housekeeping-database")
-    .WithReference(housekeepingDb)
-    .WithReference(serviceBusDb)
-    .WaitFor(postgres);
+var housekeepingDb = postgres.AddDatabase("HousekeepingDb", databaseName: "housekeeping");
+var serviceBusDb = postgres.AddDatabase("ServiceBus", databaseName: "service_bus");
 
 // Core API
 var api = builder.AddProject<Projects.Housekeeping_Api>("housekeeping-api")
     .WithReference(housekeepingDb)
     .WithReference(serviceBusDb)
-    .WaitFor(database);
+    .WaitFor(postgres);
 
 // Background services
 var backOffice = builder.AddProject<Projects.Housekeeping_BackOffice>("housekeeping-backoffice")
     .WithReference(housekeepingDb)
     .WithReference(serviceBusDb)
-    .WaitFor(database);
+    .WaitFor(postgres);
 
 var orleans = builder.AddProject<Projects.Housekeeping_BackOffice_Orleans>("housekeeping-orleans")
     .WithReference(housekeepingDb)
     .WithReference(serviceBusDb)
-    .WaitFor(database);
+    .WaitFor(postgres);
 
-builder.Build().Run();
+await builder.Build().RunAsync();

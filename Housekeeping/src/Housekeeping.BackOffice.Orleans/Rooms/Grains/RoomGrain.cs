@@ -4,64 +4,81 @@ using Housekeeping.Contracts.Rooms.Models;
 
 namespace Housekeeping.BackOffice.Orleans.Rooms.Grains;
 
-public class RoomGrain : Grain, IRoomGrain
+public sealed class RoomGrain([PersistentState("room")] IPersistentState<RoomState> state) : Grain, IRoomGrain
 {
-    private RoomState _state = new();
+    private readonly IPersistentState<RoomState> _state = state;
 
     public Task<RoomStatus> GetStatusAsync()
     {
-        return Task.FromResult(_state.Status);
+        return Task.FromResult(_state.State.Status);
     }
 
-    public Task SetStatusAsync(RoomStatus status, Guid? updatedBy = null)
+    public async Task SetStatusAsync(RoomStatus status, Guid? updatedBy = null)
     {
-        _state.Status = status;
-        _state.LastUpdatedBy = updatedBy;
-        _state.LastUpdated = DateTimeOffset.UtcNow;
+        _state.State.Status = status;
+        _state.State.LastUpdatedBy = updatedBy;
+        _state.State.LastUpdated = DateTimeOffset.UtcNow;
         
-        return Task.CompletedTask;
+        await _state.WriteStateAsync();
     }
 
-    public Task StartCleaningAsync(Guid cleanerId)
+    public async Task StartCleaningAsync(Guid cleanerId)
     {
-        _state.Status = RoomStatus.Cleaning;
-        _state.AssignedCleanerId = cleanerId;
-        _state.CleaningStarted = DateTimeOffset.UtcNow;
-        _state.LastUpdated = DateTimeOffset.UtcNow;
+        _state.State.Status = RoomStatus.Cleaning;
+        _state.State.AssignedCleanerId = cleanerId;
+        _state.State.CleaningStarted = DateTimeOffset.UtcNow;
+        _state.State.LastUpdated = DateTimeOffset.UtcNow;
         
-        return Task.CompletedTask;
+        await _state.WriteStateAsync();
     }
 
-    public Task CompleteCleaningAsync(Guid cleanerId)
+    public async Task CompleteCleaningAsync(Guid cleanerId)
     {
-        _state.Status = RoomStatus.Clean;
-        _state.LastCleaned = DateTimeOffset.UtcNow;
-        _state.CleaningCompleted = DateTimeOffset.UtcNow;
-        _state.LastUpdated = DateTimeOffset.UtcNow;
+        _state.State.Status = RoomStatus.Clean;
+        _state.State.LastCleaned = DateTimeOffset.UtcNow;
+        _state.State.CleaningCompleted = DateTimeOffset.UtcNow;
+        _state.State.LastUpdated = DateTimeOffset.UtcNow;
         
-        return Task.CompletedTask;
+        await _state.WriteStateAsync();
     }
 
-    public Task RequestMaintenanceAsync(string issueType, MaintenancePriority priority, Guid? reportedBy = null)
+    public async Task RequestMaintenanceAsync(string issueType, MaintenancePriority priority, Guid? reportedBy = null)
     {
         if (priority is MaintenancePriority.High or MaintenancePriority.Critical)
         {
-            _state.Status = RoomStatus.Maintenance;
+            _state.State.Status = RoomStatus.Maintenance;
         }
         
-        _state.LastMaintenanceRequest = DateTimeOffset.UtcNow;
-        _state.LastUpdated = DateTimeOffset.UtcNow;
+        _state.State.LastMaintenanceRequest = DateTimeOffset.UtcNow;
+        _state.State.LastUpdated = DateTimeOffset.UtcNow;
         
-        return Task.CompletedTask;
+        await _state.WriteStateAsync();
     }
 
-    public Task<Dictionary<string, int>> UpdateMiniFridgeAsync(Dictionary<string, int> items, Guid? updatedBy = null)
+    public async Task<Dictionary<string, int>> UpdateMiniFridgeAsync(Dictionary<string, int> items, Guid? updatedBy = null)
     {
-        _state.MiniFridgeItems = items;
-        _state.LastUpdatedBy = updatedBy;
-        _state.LastUpdated = DateTimeOffset.UtcNow;
+        _state.State.MiniFridgeItems = items;
+        _state.State.LastUpdatedBy = updatedBy;
+        _state.State.LastUpdated = DateTimeOffset.UtcNow;
         
-        return Task.FromResult(_state.MiniFridgeItems);
+        await _state.WriteStateAsync();
+        return _state.State.MiniFridgeItems;
+    }
+
+    // Additional methods for Program.cs compatibility
+    public Task<RoomState> GetState()
+    {
+        return Task.FromResult(_state.State);
+    }
+
+    public async Task UpdateStatus(string status)
+    {
+        if (Enum.TryParse<RoomStatus>(status, true, out var roomStatus))
+        {
+            _state.State.Status = roomStatus;
+            _state.State.LastUpdated = DateTimeOffset.UtcNow;
+            await _state.WriteStateAsync();
+        }
     }
 }
 

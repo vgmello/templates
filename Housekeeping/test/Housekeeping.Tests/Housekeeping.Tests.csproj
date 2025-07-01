@@ -1,22 +1,17 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
 
     <PropertyGroup>
-        <IsPackable>false</IsPackable>
         <IsTestProject>true</IsTestProject>
-        <NoWarn>$(NoWarn);CS0436</NoWarn>
+        <NoWarn>$(NoWarn);CS0436;</NoWarn>
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="coverlet.collector"/>
-        <PackageReference Include="FluentAssertions"/>
         <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing"/>
-        <PackageReference Include="Microsoft.NET.Test.Sdk"/>
-        <PackageReference Include="NetArchTest.Rules"/>
         <PackageReference Include="NSubstitute"/>
-        <PackageReference Include="Shouldly"/>
+        <PackageReference Include="NetArchTest.Rules"/>
+        <PackageReference Include="Testcontainers"/>
         <PackageReference Include="Testcontainers.PostgreSql"/>
-        <PackageReference Include="xunit.v3"/>
-        <PackageReference Include="xunit.runner.visualstudio"/>
+        <PackageReference Include="Grpc.Tools"/>
     </ItemGroup>
 
     <ItemGroup>
@@ -24,6 +19,13 @@
         <ProjectReference Include="..\..\src\Housekeeping.BackOffice\Housekeeping.BackOffice.csproj"/>
         <ProjectReference Include="..\..\src\Housekeeping.Contracts\Housekeeping.Contracts.csproj"/>
         <ProjectReference Include="..\..\src\Housekeeping\Housekeeping.csproj"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <Protobuf Include="..\..\src\Housekeeping.Api\**\Protos\**\*.proto"
+                  ProtoRoot="..\..\src\Housekeeping.Api\"
+                  GrpcServices="Client"
+                  Link="Integration\%(RecursiveDir)%(Filename)%(Extension)"/>
     </ItemGroup>
 
     <ItemGroup>
