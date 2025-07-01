@@ -2,6 +2,38 @@
 
 The Billing service follows Domain-Driven Design (DDD) principles and implements a microservices architecture with clear separation of concerns.
 
+## Quick Start
+
+### Using .NET Aspire (Recommended)
+```bash
+cd Billing/src/Billing.AppHost
+dotnet run
+```
+
+This automatically:
+- Sets up PostgreSQL databases with Liquibase migrations
+- Starts all services (UI, API, BackOffice, Orleans)
+- Configures service discovery and dependencies
+- Provides observability dashboard
+
+Access Points:
+- **Aspire Dashboard**: http://localhost:18100
+- **Billing Web UI**: http://localhost:8105
+- **Billing API**: http://localhost:8101/scalar
+- **Orleans Dashboard**: http://localhost:8104/dashboard
+
+### Using Docker Compose
+```bash
+# Backend services only
+docker compose -f Billing/compose.yml --profile api up -d
+
+# Backend + documentation
+docker compose -f Billing/compose.yml --profile api --profile docs up -d
+
+# All services
+docker compose -f Billing/compose.yml --profile api --profile backoffice --profile aspire up -d
+```
+
 ## Service Structure
 
 ### Core Projects
@@ -146,6 +178,82 @@ Fast, isolated testing of business logic:
 - **Query Handlers**: Data transformation logic
 - **Orleans Grains**: Stateful behavior testing
 
+## Frontend Architecture
+
+### SvelteKit Application
+The billing-ui is a modern web application built with:
+
+#### Technology Stack
+- **SvelteKit**: Full-stack framework with SSR and client hydration
+- **Svelte 5**: Latest version with runes for reactive state
+- **TypeScript**: Full type safety across the application
+- **Tailwind CSS**: Utility-first styling approach
+- **shadcn-svelte**: Accessible, customizable UI components
+
+#### Project Structure
+```
+web/billing-ui/
+├── src/
+│   ├── routes/              # SvelteKit pages and API routes
+│   │   ├── cashiers/        # Cashier management UI
+│   │   └── invoices/        # Invoice management UI
+│   ├── lib/
+│   │   ├── api/            # API client and service interfaces
+│   │   ├── components/     # Reusable UI components
+│   │   ├── server/         # Server-side BFF services
+│   │   └── types/          # TypeScript type definitions
+│   └── app.html            # Application shell
+├── e2e/                    # Playwright E2E tests
+└── package.json           # Dependencies and scripts
+```
+
+#### Key Features
+- **Server-Side Rendering**: Fast initial page loads with SEO benefits
+- **Form Actions**: Progressive enhancement with JavaScript-optional forms
+- **Type-Safe API Client**: Generated types from backend contracts
+- **Currency Components**: Specialized input/display for monetary values
+- **Responsive Design**: Mobile-first approach with desktop enhancements
+
+#### Development Commands
+```bash
+cd Billing/web/billing-ui
+pnpm install        # Install dependencies
+pnpm dev           # Start dev server (http://localhost:5173)
+pnpm build         # Build for production
+pnpm preview       # Preview production build
+pnpm test:unit     # Run Vitest unit tests
+pnpm test:e2e      # Run Playwright E2E tests
+pnpm lint          # ESLint + Prettier check
+pnpm format        # Auto-format code
+```
+
+## Infrastructure Architecture
+
+### Database Infrastructure
+Located in `infra/Billing.Database/`:
+
+#### Liquibase Migration Structure
+```
+Liquibase/
+├── changelog.xml           # Root changelog
+├── billing/               # Domain-specific migrations
+│   ├── changelog.xml      # Billing schema changelog
+│   ├── tables/           # Table definitions
+│   └── procedures/       # Stored procedures
+└── service_bus/          # Messaging infrastructure
+```
+
+#### Key Database Objects
+- **Tables**: cashiers, cashier_currencies, invoices
+- **Stored Procedures**: Type-safe CRUD operations
+- **Schemas**: billing (domain), service_bus (messaging)
+
+### Configuration Management
+- **appsettings.json**: Base configuration
+- **appsettings.Development.json**: Local overrides
+- **Environment Variables**: Production secrets
+- **Aspire Configuration**: Service discovery and dependencies
+
 ## Deployment Architecture
 
 ### Containerization
@@ -157,5 +265,15 @@ Fast, isolated testing of business logic:
 - **.NET Aspire**: Automatic service registration and discovery
 - **Configuration**: Centralized service configuration
 - **Load Balancing**: Built-in client-side load balancing
+
+### Port Allocations
+- **8101**: Billing API (REST)
+- **8102**: Billing API (gRPC)
+- **8103**: BackOffice Service
+- **8104**: Orleans Dashboard
+- **8105**: Billing UI
+- **8119**: Documentation
+- **18100**: Aspire Dashboard
+- **54320**: PostgreSQL
 
 This architecture provides a robust, scalable foundation for billing operations while maintaining clear boundaries and testability.
