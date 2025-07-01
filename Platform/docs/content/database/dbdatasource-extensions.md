@@ -27,20 +27,10 @@ Use `SpExecute` when your stored procedure performs an action and returns the nu
 using System.Data.Common;
 using Operations.Extensions.Abstractions.Dapper;
 using Operations.Extensions.Dapper;
-using Dapper;
 
-// Assume you have a DbDataSource configured, e.g., from dependency injection
-// DbDataSource dataSource = ...;
-
-// Define a command that implements IDbParamsProvider (often source-generated via DbCommandAttribute)
+// Define a command that implements IDbParamsProvider (source-generated via DbCommandAttribute)
 [DbCommand(sp: "dbo.UpdateUserStatus", nonQuery: true)]
-public record UpdateUserStatusCommand(int UserId, bool IsActive) : IDbParamsProvider
-{
-    public object ToDbParams()
-    {
-        return new { UserId, IsActive };
-    }
-}
+public partial record UpdateUserStatusCommand(int UserId, bool IsActive) : ICommand<int>;
 
 public class ExampleService
 {
@@ -54,7 +44,7 @@ public class ExampleService
     public async Task UpdateUser(int userId, bool isActive)
     {
         var command = new UpdateUserStatusCommand(userId, isActive);
-        int affectedRows = await _dataSource.SpExecute(command.Sp, command, CancellationToken.None);
+        int affectedRows = await _dataSource.SpExecute("dbo.UpdateUserStatus", command, CancellationToken.None);
         Console.WriteLine($"Updated {affectedRows} rows for user {userId}.");
     }
 }
@@ -69,20 +59,10 @@ using System.Collections.Generic;
 using System.Data.Common;
 using Operations.Extensions.Abstractions.Dapper;
 using Operations.Extensions.Dapper;
-using Dapper;
 
-// Assume you have a DbDataSource configured
-// DbDataSource dataSource = ...;
-
-// Define a query that implements IDbParamsProvider
+// Define a query that implements IDbParamsProvider (source-generated via DbCommandAttribute)
 [DbCommand(sp: "dbo.GetActiveUsers")]
-public record GetActiveUsersQuery() : IDbParamsProvider
-{
-    public object ToDbParams()
-    {
-        return new { }; // No parameters for this query
-    }
-}
+public partial record GetActiveUsersQuery() : IQuery<IEnumerable<User>>;
 
 public class User
 {
@@ -103,7 +83,7 @@ public class UserService
     public async Task<IEnumerable<User>> GetActiveUsers()
     {
         var query = new GetActiveUsersQuery();
-        IEnumerable<User> activeUsers = await _dataSource.SpQuery<User>(query.Sp, query, CancellationToken.None);
+        IEnumerable<User> activeUsers = await _dataSource.SpQuery<User>("dbo.GetActiveUsers", query, CancellationToken.None);
         foreach (var user in activeUsers)
         {
             Console.WriteLine($"Active User: {user.Name} (ID: {user.Id})");

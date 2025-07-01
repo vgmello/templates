@@ -5,17 +5,17 @@ description: Learn how to mark assemblies containing your domain logic using the
 
 # Domain Assembly Attribute
 
-The `DomainAssemblyAttribute` is a powerful tool that allows you to explicitly mark assemblies containing your application's domain logic. This helps in scenarios where you need to discover and work with domain-specific types or configurations across different projects.
+Use `DomainAssemblyAttribute` to mark assemblies that contain your domain logic. This helps you discover and work with domain-specific types across projects.
 
 ## Purpose
 
-This attribute is primarily used to facilitate the discovery of domain assemblies at runtime. By applying `DomainAssemblyAttribute` to an assembly, you provide a clear indicator of where your core business logic resides. This is especially useful for frameworks or libraries that need to scan for specific types or configurations within your domain.
+You'll use this attribute to help frameworks find your domain assemblies at runtime. It tells them exactly where your core business logic lives. This is especially useful when frameworks need to scan for specific types or configurations.
 
 ## Usage example
 
-To use the `DomainAssemblyAttribute`, you apply it at the assembly level, typically in a file like `AssemblyInfo.cs` or directly in your project's `Program.cs` if you're using top-level statements. You provide one or more type markers from the domain assembly. These markers are used to identify the assembly.
+Apply `DomainAssemblyAttribute` at the assembly level. You can add it to `AssemblyInfo.cs` or your project's `Program.cs` file. You'll need to provide type markers from the domain assembly to identify it.
 
-Consider you have a domain assembly named `YourApp.Domain` and a type `YourDomainType` within it. You would mark the assembly like this:
+Let's say you have a domain assembly named `YourApp.Domain` with a type `YourDomainType`. Here's how you'd mark it:
 
 ```csharp
 // In YourApp.Domain/AssemblyInfo.cs or a similar file
@@ -27,7 +27,7 @@ using YourApp.Domain.Entities; // Assuming YourDomainType is in Entities namespa
 
 ### Retrieving domain assemblies
 
-The `DomainAssemblyAttribute` provides a static helper method, `GetDomainAssemblies`, to retrieve the marked assemblies. This method can be called from your application's entry point or any other part of your application that needs to discover domain assemblies.
+Use the `GetDomainAssemblies` helper method to retrieve marked assemblies. You can call this from your application's entry point or anywhere you need to discover domain assemblies.
 
 ```csharp
 using System.Reflection;

@@ -1,5 +1,5 @@
 ---
-title: String extension methods for case conversion
+title: String extension methods
 description: Explore string extension methods like ToSnakeCase and ToKebabCase for converting string casing, useful for consistent naming conventions.
 ---
 

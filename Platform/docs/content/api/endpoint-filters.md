@@ -33,9 +33,7 @@ The service defaults automatically apply appropriate filters:
 
 ### Validation Filter
 
-```csharp
 [!code-csharp[](~/samples/api/endpoint-filters/ValidationEndpointFilter.cs?highlight=11,22,25,33)]
-```
 
 ### Authentication Filter
 
@@ -43,9 +41,7 @@ The service defaults automatically apply appropriate filters:
 
 ### Rate Limiting Filter
 
-```csharp
 [!code-csharp[](~/samples/api/endpoint-filters/RateLimitEndpointFilter.cs?highlight=10,20,23,33)]
-```
 
 ## Filter Registration
 
@@ -65,9 +61,7 @@ The service defaults automatically apply appropriate filters:
 
 ### Conditional Filters
 
-```csharp
 [!code-csharp[](~/samples/api/endpoint-filters/ConditionalLoggingFilter.cs)]
-```
 
 ### Filter with Dependencies
 
@@ -114,5 +108,5 @@ Filters can short-circuit the pipeline:
 ## See Also
 
 - [Service Defaults](../../content/architecture/service-defaults.md)
-- [[OpenAPI Documentation](openapi/overview.md)
+- [OpenAPI Documentation](openapi/overview.md)
 - [gRPC Integration](grpc.md)
