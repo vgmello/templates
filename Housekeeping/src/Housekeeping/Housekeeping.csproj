@@ -5,20 +5,13 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="FluentValidation"/>
-        <PackageReference Include="FluentValidation.DependencyInjectionExtensions"/>
         <PackageReference Include="Npgsql"/>
-        <PackageReference Include="OneOf"/>
-        <PackageReference Include="OneOf.SourceGenerator"/>
-        <PackageReference Include="WolverineFx"/>
-        <PackageReference Include="WolverineFx.Postgresql"/>
     </ItemGroup>
 
     <ItemGroup>
         <ProjectReference Include="..\..\..\Platform\src\Operations.Extensions\Operations.Extensions.csproj"/>
         <ProjectReference Include="..\..\..\Platform\src\Operations.Extensions.SourceGenerators\Operations.Extensions.SourceGenerators.csproj"
                           OutputItemType="Analyzer" ReferenceOutputAssembly="false"/>
-        <ProjectReference Include="..\..\..\Platform\src\Operations.ServiceDefaults\Operations.ServiceDefaults.csproj"/>
 
         <ProjectReference Include="..\Housekeeping.Contracts\Housekeeping.Contracts.csproj"/>
     </ItemGroup>

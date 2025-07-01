@@ -7,16 +7,10 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Aspire.Npgsql"/>
         <PackageReference Include="Grpc.AspNetCore"/>
-        <PackageReference Include="Grpc.Tools" PrivateAssets="All"/>
-        <PackageReference Include="MassTransit"/>
-        <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer"/>
-        <PackageReference Include="Microsoft.AspNetCore.OpenApi"/>
-        <PackageReference Include="Microsoft.Extensions.Http"/>
+        <PackageReference Include="Aspire.Npgsql"/>
         <PackageReference Include="Riok.Mapperly"/>
-        <PackageReference Include="Scalar.AspNetCore"/>
-        <PackageReference Include="WolverineFx.Http"/>
+        <PackageReference Include="Grpc.Tools"/>
     </ItemGroup>
 
     <ItemGroup>

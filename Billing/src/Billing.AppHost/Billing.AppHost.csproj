@@ -22,7 +22,7 @@
         <ProjectReference Include="..\Billing.BackOffice\Billing.BackOffice.csproj"/>
         <ProjectReference Include="..\Billing.BackOffice.Orleans\Billing.BackOffice.Orleans.csproj"/>
     </ItemGroup>
-
+    
     <Target Name="RestoreNpm" BeforeTargets="Build" Condition=" '$(DesignTimeBuild)' != 'true' ">
         <ItemGroup>
             <PackageJsons Include="..\..\web\billing-ui\package.json"/>

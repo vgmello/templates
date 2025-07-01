@@ -1,37 +1,49 @@
-version: '3.8'
-
 services:
-  postgres:
-    image: postgres:16
-    restart: unless-stopped
+  # Base services - no profile assigned, will be started if a dependent service is run.
+  housekeeping-db:
+    image: postgres:17-alpine
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password@
-      POSTGRES_DB: postgres
     ports:
       - "54320:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
-    profiles:
-      - api
-      - backoffice
-      - aspire
+      - housekeeping_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
-  housekeeping-database:
-    build:
-      context: ./infra/Housekeeping.Database
-      dockerfile: Dockerfile
+  housekeeping-db-migrations:
+    image: liquibase/liquibase:4.32-alpine
+    volumes:
+      - ./infra/Housekeeping.Database:/app
     depends_on:
-      - postgres
+      housekeeping-db:
+        condition: service_healthy
+    working_dir: /app
+    entrypoint: /bin/sh
+    command:
+      - -c
+      - |
+        echo 'Running database migrations...'
+        liquibase update --defaults-file liquibase.setup.properties --url=jdbc:postgresql://housekeeping-db:5432/postgres
+        liquibase update --defaults-file liquibase.servicebus.properties --url=jdbc:postgresql://housekeeping-db:5432/service_bus
+        liquibase update --url=jdbc:postgresql://housekeeping-db:5432/housekeeping
+        echo 'Database migrations completed successfully!'
+
+  # Profiled Services
+  aspire-dashboard:
+    image: mcr.microsoft.com/dotnet/aspire-dashboard:9.3
+    profiles: ["aspire"]
+    ports:
+      - "18140:18888"
+      - "18890:18890"
     environment:
-      POSTGRES_HOST: postgres
-      POSTGRES_PORT: 5432
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: password@
-    profiles:
-      - api
-      - backoffice
-      - aspire
+      - DOTNET_DASHBOARD_UNSECURED_ALLOW_ANONYMOUS=true
+      - ASPNETCORE_ENVIRONMENT=Development
+    restart: unless-stopped
 
   housekeeping-api:
     build:

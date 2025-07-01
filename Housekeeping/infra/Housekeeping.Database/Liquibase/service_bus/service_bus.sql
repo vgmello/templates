@@ -1,7 +1,7 @@
 --liquibase formatted sql
---changeset dev_user:"create service bus schema"
-CREATE SCHEMA IF NOT EXISTS housekeeping;
 
---changeset dev_user:"grant service bus permissions"
--- Wolverine will create its own tables in the housekeeping schema
-GRANT ALL ON SCHEMA housekeeping TO postgres;
+--changeset dev_user:"create database" runInTransaction:false context:@setup
+CREATE DATABASE service_bus;
+
+--changeset dev_user:"create queues schema"
+CREATE SCHEMA IF NOT EXISTS queues;

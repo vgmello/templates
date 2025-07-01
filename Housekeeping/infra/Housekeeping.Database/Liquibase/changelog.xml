@@ -1,23 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
+
 <databaseChangeLog
     xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
-                        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
 
-    <include file="housekeeping/housekeeping.sql" relativeToChangelogFile="true"/>
-    
-    <!-- Tables -->
-    <include file="housekeeping/tables/rooms_status.sql" relativeToChangelogFile="true"/>
-    <include file="housekeeping/tables/cleaning_history.sql" relativeToChangelogFile="true"/>
-    <include file="housekeeping/tables/maintenance_requests.sql" relativeToChangelogFile="true"/>
-    
-    <!-- Stored Procedures -->
-    <include file="housekeeping/procedures/room_get.sql" relativeToChangelogFile="true"/>
-    <include file="housekeeping/procedures/rooms_get.sql" relativeToChangelogFile="true"/>
-    <include file="housekeeping/procedures/room_update_status.sql" relativeToChangelogFile="true"/>
-    <include file="housekeeping/procedures/cleaning_record.sql" relativeToChangelogFile="true"/>
-    <include file="housekeeping/procedures/mini_fridge_update.sql" relativeToChangelogFile="true"/>
-    <include file="housekeeping/procedures/maintenance_request_create.sql" relativeToChangelogFile="true"/>
+    <includeAll path="" minDepth="2" relativeToChangelogFile="true" endsWithFilter="changelog.xml"/>
 
 </databaseChangeLog>

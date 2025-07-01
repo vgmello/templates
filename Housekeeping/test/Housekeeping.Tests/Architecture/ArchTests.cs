@@ -1,66 +1,38 @@
 // Copyright (c) ABCDEG. All rights reserved.
 
-using System.Reflection;
-using FluentAssertions;
 using NetArchTest.Rules;
 
 namespace Housekeeping.Tests.Architecture;
 
+#pragma warning disable CS8602
+
 public class ArchTests
 {
-    private static readonly Assembly DomainAssembly = typeof(IHousekeepingAssembly).Assembly;
-    private static readonly Assembly ApiAssembly = typeof(Housekeeping.Api.Rooms.RoomsController).Assembly;
-
     [Fact]
-    public void Domain_Should_Not_Have_Dependency_On_Infrastructure()
+    public void DataClasses_ShouldOnlyBeUsedByDomainClasses()
     {
-        var result = Types.InAssembly(DomainAssembly)
-            .ShouldNot()
-            .HaveDependencyOn("Microsoft.AspNetCore")
-            .And()
-            .ShouldNot()
-            .HaveDependencyOn("Microsoft.EntityFrameworkCore")
-            .GetResult();
+        var assemblies = new[] { typeof(IHousekeepingAssembly).Assembly, typeof(Api.DependencyInjection).Assembly };
 
-        result.IsSuccessful.Should().BeTrue();
-    }
+        var dataNamespaces = assemblies
+            .SelectMany(a => a.GetTypes())
+            .Select(t => t.Namespace)
+            .Where(ns => ns is not null && (ns.Contains(".Data.") || ns.EndsWith(".Data")))
+            .Select(ns => ns![..ns.IndexOf(".Data", StringComparison.Ordinal)])
+            .Distinct()
+            .ToList();
 
-    [Fact]
-    public void Commands_Should_Be_Immutable()
-    {
-        var result = Types.InAssembly(DomainAssembly)
-            .That()
-            .ImplementInterface(typeof(ICommand<>))
-            .Should()
-            .BeRecord()
-            .GetResult();
+        foreach (var prefix in dataNamespaces.Where(ns => !ns.EndsWith(".Core")))
+        {
+            var result = Types
+                .InAssemblies(assemblies)
+                .That().HaveDependencyOn($"{prefix}.Data")
+                .Should().ResideInNamespace(prefix)
+                .GetResult();
 
-        result.IsSuccessful.Should().BeTrue();
-    }
+            var error = $"The following types depend on {prefix}.Data but don't reside in {prefix} namespace: " +
+                        $"{string.Join(", ", result.FailingTypeNames ?? [])}";
 
-    [Fact]
-    public void Queries_Should_Be_Immutable()
-    {
-        var result = Types.InAssembly(DomainAssembly)
-            .That()
-            .ImplementInterface(typeof(IQuery<>))
-            .Should()
-            .BeRecord()
-            .GetResult();
-
-        result.IsSuccessful.Should().BeTrue();
-    }
-
-    [Fact]
-    public void Validators_Should_Follow_Naming_Convention()
-    {
-        var result = Types.InAssembly(DomainAssembly)
-            .That()
-            .Inherit(typeof(AbstractValidator<>))
-            .Should()
-            .HaveNameEndingWith("Validator")
-            .GetResult();
-
-        result.IsSuccessful.Should().BeTrue();
+            result.IsSuccessful.ShouldBeTrue(error);
+        }
     }
 }

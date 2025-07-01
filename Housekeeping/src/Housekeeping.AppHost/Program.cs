@@ -1,31 +1,36 @@
 // Copyright (c) ABCDEG. All rights reserved.
 
+using Housekeeping.AppHost.Extensions;
+
 var builder = DistributedApplication.CreateBuilder(args);
 
-// PostgreSQL server
-var postgres = builder.AddPostgres("postgres", port: 54320)
-    .WithDataVolume()
-    .WithPgAdmin();
+// From user secrets Parameters:DbPassword
+var dbPassword = builder.AddParameter("DbPassword", secret: true);
+
+var pgsql = builder
+    .AddPostgres("housekeeping-db", password: dbPassword, port: 54320)
+    .WithImage("postgres", "17-alpine")
+    .WithContainerName("housekeeping-db")
+    .WithEndpointProxySupport(false)
+    .WithPgAdmin(pgAdmin => pgAdmin
+        .WithHostPort(port: 54321)
+        .WithEndpointProxySupport(false)
+        .WithImage("dpage/pgadmin4", "latest")
+        .WithLifetime(ContainerLifetime.Persistent)
+        .WithUrlForEndpoint("http", url => url.DisplayText = "PgAdmin (DB Management)"))
+    .WithLifetime(ContainerLifetime.Persistent);
 
 // Databases
-var housekeepingDb = postgres.AddDatabase("HousekeepingDb", databaseName: "housekeeping");
-var serviceBusDb = postgres.AddDatabase("ServiceBus", databaseName: "service_bus");
+var database = pgsql.AddDatabase(name: "HousekeepingDb", databaseName: "housekeeping");
+var serviceBusDb = pgsql.AddDatabase(name: "ServiceBus", databaseName: "service_bus");
+builder.AddLiquibaseMigrations(pgsql, dbPassword);
 
-// Core API
-var api = builder.AddProject<Projects.Housekeeping_Api>("housekeeping-api")
-    .WithReference(housekeepingDb)
+builder.AddProject<Projects.Housekeeping_Api>("housekeeping-api")
+    .WithEnvironment("ServiceName", "Housekeeping")
+    .WithKestrelLaunchProfileEndpoints()
+    .WithReference(database)
     .WithReference(serviceBusDb)
-    .WaitFor(postgres);
-
-// Background services
-var backOffice = builder.AddProject<Projects.Housekeeping_BackOffice>("housekeeping-backoffice")
-    .WithReference(housekeepingDb)
-    .WithReference(serviceBusDb)
-    .WaitFor(postgres);
-
-var orleans = builder.AddProject<Projects.Housekeeping_BackOffice_Orleans>("housekeeping-orleans")
-    .WithReference(housekeepingDb)
-    .WithReference(serviceBusDb)
-    .WaitFor(postgres);
+    .WaitFor(pgsql)
+    .WithHttpHealthCheck("/health/internal");
 
 await builder.Build().RunAsync();

@@ -26,6 +26,7 @@ public class RoomsController(IMessageBus bus) : ControllerBase
     public async Task<ActionResult<Room>> GetRoomStatus([FromRoute] Guid id, CancellationToken cancellationToken)
     {
         var room = await bus.InvokeQueryAsync(new GetRoomStatusQuery(id), cancellationToken);
+
         return room;
     }
 
@@ -42,6 +43,7 @@ public class RoomsController(IMessageBus bus) : ControllerBase
         CancellationToken cancellationToken)
     {
         var rooms = await bus.InvokeQueryAsync(query, cancellationToken);
+
         return Ok(rooms);
     }
 
@@ -140,7 +142,7 @@ public class RoomsController(IMessageBus bus) : ControllerBase
             request.Description,
             request.Priority,
             request.ReportedBy);
-        
+
         var commandResult = await bus.InvokeCommandAsync(command, cancellationToken);
 
         return commandResult.Match(
@@ -148,11 +150,3 @@ public class RoomsController(IMessageBus bus) : ControllerBase
             errors => BadRequest(new { Errors = errors }));
     }
 }
-
-// Request/Response DTOs
-public record UpdateRoomStatusRequest(RoomStatus Status, string? Notes, Guid? UpdatedBy);
-public record RecordCleaningRequest(Guid CleanerId, bool IsComplete, string? Notes);
-public record UpdateMiniFridgeRequest(Dictionary<string, int> Items, Guid? UpdatedBy);
-public record MaintenanceRequest(string IssueType, string? Description, MaintenancePriority Priority, Guid? ReportedBy);
-public record CleaningRecordResponse(Guid CleaningId);
-public record MaintenanceRequestResponse(Guid RequestId);
