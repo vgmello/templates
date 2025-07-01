@@ -1,7 +1,7 @@
 --liquibase formatted sql
 --changeset dev_user:"create room_get procedure"
 CREATE OR REPLACE PROCEDURE housekeeping.room_get(
-    p_room_id UUID
+    room_id UUID
 )
 LANGUAGE plpgsql
 AS $$
@@ -22,10 +22,10 @@ BEGIN
         version
     INTO v_result
     FROM housekeeping.rooms_status
-    WHERE room_id = p_room_id;
+    WHERE rooms_status.room_id = room_get.room_id;
 
     IF NOT FOUND THEN
-        RAISE EXCEPTION 'Room not found: %', p_room_id;
+        RAISE EXCEPTION 'Room not found: %', room_get.room_id;
     END IF;
 
     -- Return result as JSON

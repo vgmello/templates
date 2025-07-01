@@ -47,70 +47,36 @@ services:
 
   housekeeping-api:
     build:
-      context: .
-      dockerfile: src/Housekeeping.Api/Dockerfile
+      context: ../                                               #TODO: Update for the actual template
+      dockerfile: ./Housekeeping/src/Housekeeping.Api/Dockerfile #TODO: update for the actual template
+    profiles: ["api"]
     ports:
-      - "8201:8080"
-      - "8202:8081"
+      - "8141:8080"
+      - "8142:8102"
     depends_on:
-      - postgres
-      - housekeeping-database
+      housekeeping-db:
+        condition: service_healthy
+      housekeeping-db-migrations:
+        condition: service_completed_successfully
     environment:
-      ASPNETCORE_ENVIRONMENT: Development
-      ConnectionStrings__housekeeping: "Host=postgres;Port=5432;Database=housekeeping;Username=postgres;Password=password@"
-      ConnectionStrings__service-bus: "Host=postgres;Port=5432;Database=service_bus;Username=postgres;Password=password@"
-    profiles:
-      - api
-      - aspire
-
-  housekeeping-backoffice:
-    build:
-      context: .
-      dockerfile: src/Housekeeping.BackOffice/Dockerfile
-    ports:
-      - "8203:8080"
-    depends_on:
-      - postgres
-      - housekeeping-database
-    environment:
-      ASPNETCORE_ENVIRONMENT: Development
-      ConnectionStrings__housekeeping: "Host=postgres;Port=5432;Database=housekeeping;Username=postgres;Password=password@"
-      ConnectionStrings__service-bus: "Host=postgres;Port=5432;Database=service_bus;Username=postgres;Password=password@"
-    profiles:
-      - backoffice
-      - aspire
-
-  housekeeping-orleans:
-    build:
-      context: .
-      dockerfile: src/Housekeeping.BackOffice.Orleans/Dockerfile
-    ports:
-      - "8204:8080"
-      - "8205:8081"
-    depends_on:
-      - postgres
-      - housekeeping-database
-    environment:
-      ASPNETCORE_ENVIRONMENT: Development
-      ConnectionStrings__housekeeping: "Host=postgres;Port=5432;Database=housekeeping;Username=postgres;Password=password@"
-      ConnectionStrings__service-bus: "Host=postgres;Port=5432;Database=service_bus;Username=postgres;Password=password@"
-    profiles:
-      - backoffice
-      - aspire
-
-  housekeeping-aspire:
-    build:
-      context: .
-      dockerfile: src/Housekeeping.AppHost/Dockerfile
-    ports:
-      - "18200:8080"
-      - "18201:8081"
-    depends_on:
-      - postgres
-    environment:
-      ASPNETCORE_ENVIRONMENT: Development
-    profiles:
-      - aspire
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ServiceName=Billing
+      - ConnectionStrings__BillingDb=Host=billing-db;Port=5432;Database=billing;Username=postgres;Password=password@
+      - ConnectionStrings__ServiceBus=Host=billing-db;Port=5432;Database=service_bus;Username=postgres;Password=password@
+      - Kestrel__Endpoints__Http__Protocols=Http1
+      - Kestrel__Endpoints__Http__Url=http://+:8080
+      - Kestrel__Endpoints__Grpc__Protocols=Http2
+      - Kestrel__Endpoints__Grpc__Url=http://+:8102
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://aspire-dashboard:18890
+      - OTEL_EXPORTER_OTLP_PROTOCOL=http/protobuf
+      - OTEL_SERVICE_NAME=billing-api
+      - OTEL_SERVICE_VERSION=1.0.0
+    healthcheck:
+      test: [ "CMD-SHELL", "curl -f http://localhost:8080/health/internal || exit 1" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 
 volumes:
   postgres_data:

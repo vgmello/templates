@@ -1,11 +1,11 @@
 --liquibase formatted sql
 --changeset dev_user:"create rooms_get procedure"
 CREATE OR REPLACE PROCEDURE housekeeping.rooms_get(
-    p_status VARCHAR(50) DEFAULT NULL,
-    p_floor INTEGER DEFAULT NULL,
-    p_assigned_cleaner_id UUID DEFAULT NULL,
-    p_page_number INTEGER DEFAULT 1,
-    p_page_size INTEGER DEFAULT 50
+    status_filter VARCHAR(50) DEFAULT NULL,
+    floor_filter INTEGER DEFAULT NULL,
+    assigned_cleaner_id_filter UUID DEFAULT NULL,
+    page_number INTEGER DEFAULT 1,
+    page_size INTEGER DEFAULT 50
 )
 LANGUAGE plpgsql
 AS $$
@@ -13,7 +13,7 @@ DECLARE
     v_offset INTEGER;
     v_rooms JSON;
 BEGIN
-    v_offset := (p_page_number - 1) * p_page_size;
+    v_offset := (page_number - 1) * page_size;
 
     SELECT json_agg(json_build_object(
         'RoomId', room_id,
@@ -37,11 +37,11 @@ BEGIN
             mini_fridge_items,
             notes
         FROM housekeeping.rooms_status
-        WHERE (p_status IS NULL OR status = p_status)
-          AND (p_floor IS NULL OR floor = p_floor)
-          AND (p_assigned_cleaner_id IS NULL OR assigned_cleaner_id = p_assigned_cleaner_id)
+        WHERE (status_filter IS NULL OR status = status_filter)
+          AND (floor_filter IS NULL OR floor = floor_filter)
+          AND (assigned_cleaner_id_filter IS NULL OR assigned_cleaner_id = assigned_cleaner_id_filter)
         ORDER BY room_number
-        LIMIT p_page_size
+        LIMIT page_size
         OFFSET v_offset
     ) AS filtered_rooms;
 

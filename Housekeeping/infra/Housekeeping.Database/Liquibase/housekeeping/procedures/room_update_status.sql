@@ -1,10 +1,10 @@
 --liquibase formatted sql
 --changeset dev_user:"create room_update_status procedure"
 CREATE OR REPLACE PROCEDURE housekeeping.room_update_status(
-    p_room_id UUID,
-    p_status VARCHAR(50),
-    p_notes TEXT DEFAULT NULL,
-    p_updated_by UUID DEFAULT NULL
+    room_id UUID,
+    new_status VARCHAR(50),
+    notes TEXT DEFAULT NULL,
+    updated_by UUID DEFAULT NULL
 )
 LANGUAGE plpgsql
 AS $$
@@ -14,15 +14,15 @@ DECLARE
 BEGIN
     UPDATE housekeeping.rooms_status
     SET 
-        status = p_status,
-        notes = COALESCE(p_notes, notes),
+        status = new_status,
+        notes = COALESCE(room_update_status.notes, rooms_status.notes),
         updated_date_utc = v_now,
         version = version + 1,
         last_cleaned_date_utc = CASE 
-            WHEN p_status IN ('Clean', 'Inspected') THEN v_now 
+            WHEN new_status IN ('Clean', 'Inspected') THEN v_now 
             ELSE last_cleaned_date_utc 
         END
-    WHERE room_id = p_room_id
+    WHERE rooms_status.room_id = room_update_status.room_id
     RETURNING 
         room_id,
         room_number,
@@ -38,7 +38,7 @@ BEGIN
     INTO v_result;
 
     IF NOT FOUND THEN
-        RAISE EXCEPTION 'Room not found: %', p_room_id;
+        RAISE EXCEPTION 'Room not found: %', room_update_status.room_id;
     END IF;
 
     -- Return updated room as JSON
