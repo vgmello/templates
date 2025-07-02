@@ -75,6 +75,8 @@ public static class WolverineSetupExtensions
                 opts.UseKafka(kafkaConnectionString)
                     .AutoProvision();
 
+                opts.SetupIntegrationEvents(env);
+
                 services
                     .AddHealthChecks()
                     .AddKafka(options =>
