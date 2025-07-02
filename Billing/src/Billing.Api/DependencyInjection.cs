@@ -27,9 +27,6 @@ public static class DependencyInjection
     private static void ConfigureKafkaPublishing(this WolverineOptions opts)
     {
         // Publish Cashier events to Kafka
-        opts.PublishMessage<CashierCreated>()
-            .ToKafkaTopic(KafkaTopicNamingConvention.Billing.Cashier.Topic);
-
         opts.PublishMessage<CashierUpdated>()
             .ToKafkaTopic(KafkaTopicNamingConvention.Billing.Cashier.Topic);
 

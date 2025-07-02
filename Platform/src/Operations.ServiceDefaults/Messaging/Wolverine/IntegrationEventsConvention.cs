@@ -1,63 +1,114 @@
 // Copyright (c) ABCDEG. All rights reserved.
 
 using JasperFx.Core.Reflection;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using Operations.Extensions.Abstractions.Messaging;
-using System.Collections.Concurrent;
-using Wolverine.Configuration;
-using Wolverine.Kafka.Internals;
-using Wolverine.Runtime;
-using Wolverine.Runtime.Routing;
+using Serilog;
+using System.Linq.Expressions;
+using System.Reflection;
+using Wolverine;
+using Wolverine.Kafka;
 
 namespace Operations.ServiceDefaults.Messaging.Wolverine;
 
-public class IntegrationEventsConvention : IMessageRoutingConvention
+public static class IntegrationEventsExtensions
 {
-    private readonly ConcurrentDictionary<Type, string> _topicCache = [];
+#pragma warning disable S3011
+    private const BindingFlags PrivateStaticBindingFlags = BindingFlags.NonPublic | BindingFlags.Static;
 
-    public void DiscoverListeners(IWolverineRuntime runtime, IReadOnlyList<Type> handledMessageTypes)
+    private static readonly MethodInfo SetupKafkaRouteMethodInfo =
+        typeof(IntegrationEventsExtensions).GetMethod(nameof(SetupKafkaRoute), PrivateStaticBindingFlags)!;
+
+    private static readonly MethodInfo CreatePartitionKeyGetterMethodInfo =
+        typeof(IntegrationEventsExtensions).GetMethod(nameof(CreatePartitionKeyGetter), PrivateStaticBindingFlags)!;
+
+    public static WolverineOptions SetupIntegrationEvents(this WolverineOptions opts, IHostEnvironment env)
     {
-        // Not worrying about this at all for this case
+        var assemblies = DomainAssemblyAttribute.GetDomainAssemblies().Concat([Extensions.EntryAssembly]);
+
+        var integrationEventTypes = assemblies.SelectMany(a => a.GetTypes()).Where(IsIntegrationEventType);
+
+        foreach (var messageType in integrationEventTypes)
+        {
+            var topicAttribute = messageType.GetAttribute<EventTopicAttribute>();
+
+            if (topicAttribute is null)
+            {
+                Log.Logger.Warning("IntegrationEvent {IntegrationEventType} does not have an EventTopicAttribute", messageType.Name);
+
+                continue;
+            }
+
+            var topicName = GetTopicName(messageType, topicAttribute, env);
+
+            var partitionKeyPropertyInfo = messageType.GetProperties()
+                .FirstOrDefault(p => p.GetAttribute<PartitionKeyAttribute>() is not null);
+
+            var partitionKeyGetter = partitionKeyPropertyInfo is not null
+                ? CreatePartitionKeyGetterMethodInfo.MakeGenericMethod(messageType).Invoke(null, [partitionKeyPropertyInfo])
+                : null;
+
+            var setupKafkaRouteMethodInfo = SetupKafkaRouteMethodInfo.MakeGenericMethod(messageType);
+
+            setupKafkaRouteMethodInfo.Invoke(null, [opts, topicName, partitionKeyGetter]);
+        }
+
+        return opts;
     }
 
-    public IEnumerable<Endpoint> DiscoverSenders(Type messageType, IWolverineRuntime runtime)
+    private static void SetupKafkaRoute<TEventType>(WolverineOptions opts, string topicName, Func<TEventType, string>? partitionKeyGetter)
     {
-        if (!IsIntegrationEventType(messageType))
-        {
-            yield break;
-        }
-
-        if (_topicCache.TryGetValue(messageType, out var topicName))
-        {
-            yield return GetEndpoint(runtime, topicName);
-        }
-
-        topicName = CreateTopicName(runtime, messageType);
-
-        if (topicName is null)
-        {
-            yield break;
-        }
-
-        _topicCache[messageType] = topicName;
-
-        yield return GetEndpoint(runtime, topicName);
+        opts.PublishMessage<TEventType>()
+            .ToKafkaTopic(topicName)
+            .CustomizeOutgoing(e =>
+            {
+                if (e.Message is IIntegrationEvent integrationEvent)
+                {
+                    e.PartitionKey = integrationEvent.GetPartitionKey();
+                }
+                else if (e.Message is not null && partitionKeyGetter is not null)
+                {
+                    e.PartitionKey = partitionKeyGetter((TEventType)e.Message);
+                }
+            });
     }
 
-    private static string? CreateTopicName(IWolverineRuntime runtime, Type messageType)
+    /// <summary>
+    ///     Creates a compiled expression that efficiently retrieves a partition key property value as a string.
+    /// </summary>
+    /// <typeparam name="T">The type of the object containing the partition key property.</typeparam>
+    /// <param name="partitionKeyPropertyInfo">
+    ///     The <see cref="PropertyInfo" /> representing the property to be used as the partition key.
+    ///     This property should be decorated with a PartitionKeyAttribute or similar identifier.
+    /// </param>
+    /// <returns>
+    ///     A compiled <see cref="Func{T, TResult}" /> that takes an instance of type <typeparamref name="T" />
+    ///     and returns the partition key property value as a string by calling ToString() on the property value.
+    /// </returns>
+    /// <remarks>
+    ///     This method is called on every event published, therefore performance is important, that is why I'm using expression trees
+    ///     instead of reflection.
+    ///     <para>
+    ///         Generated Code:
+    ///         <code>instance => {partitionKeyProperty}.ToString()</code>
+    ///     </para>
+    /// </remarks>
+    private static Func<T, string> CreatePartitionKeyGetter<T>(PropertyInfo partitionKeyPropertyInfo)
     {
-        var topicAttribute = messageType.GetAttribute<EventTopicAttribute>();
+        var parameter = Expression.Parameter(typeof(T), "instance");
+        var propertyAccessor = Expression.Property(parameter, partitionKeyPropertyInfo);
 
-        if (topicAttribute is null)
-        {
-            runtime.Logger.LogWarning("IntegrationEvent {IntegrationEventType} does not have an EventTopicAttribute", messageType.Name);
+        var toString = typeof(object).GetMethod(nameof(ToString));
+        var toStringCall = Expression.Call(propertyAccessor, toString!);
 
-            return null;
-        }
+        var lambda = Expression.Lambda<Func<T, string>>(toStringCall, parameter);
 
-        var envName = runtime.Services.GetRequiredService<IHostEnvironment>().EnvironmentName switch
+        return lambda.Compile();
+    }
+
+    private static string GetTopicName(Type messageType, EventTopicAttribute topicAttribute, IHostEnvironment env)
+    {
+        var envName = env.EnvironmentName switch
         {
             "Production" => "prod",
             "Test" => "test",
@@ -67,19 +118,6 @@ public class IntegrationEventsConvention : IMessageRoutingConvention
         var domainName = topicAttribute.Domain ?? messageType.Assembly.GetAttribute<DefaultDomainAttribute>()!.Domain;
 
         return $"{envName}.{domainName}.{topicAttribute.Topic}";
-    }
-
-    private static Endpoint GetEndpoint(IWolverineRuntime runtime, string topicName)
-    {
-        //TODO: Review this, it will probably not work, do something with the topic name also if this message has a local handler,
-        //it should also be redirected to the local handler, but async (background) not in the same thread, so go to the local queue,
-        // evaluate if needs to be done here or in the main config
-
-        var kafkaTransport = runtime.Options.Transports.GetOrCreate<KafkaTransport>();
-
-        var endpoints = kafkaTransport.Endpoints().ToList();
-
-        return endpoints[0];
     }
 
     private static bool IsIntegrationEventType(Type messageType) => messageType.Namespace?.EndsWith("IntegrationEvents") == true;

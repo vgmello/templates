@@ -68,13 +68,12 @@ public static class WolverineSetupExtensions
             opts.Policies.AddMiddleware(typeof(OpenTelemetryInstrumentationMiddleware));
             opts.Policies.AddMiddleware<CloudEventMiddleware>();
 
-            opts.RouteWith<IntegrationEventsConvention>();
-
             var kafkaConnectionString = configuration.GetConnectionString("Messaging");
 
             if (!string.IsNullOrEmpty(kafkaConnectionString))
             {
-                opts.UseKafka(kafkaConnectionString);
+                opts.UseKafka(kafkaConnectionString)
+                    .AutoProvision();
 
                 services
                     .AddHealthChecks()
