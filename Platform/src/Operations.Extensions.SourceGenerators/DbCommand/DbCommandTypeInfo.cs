@@ -6,11 +6,11 @@ using System.Collections.Immutable;
 namespace Operations.Extensions.SourceGenerators.DbCommand;
 
 /// <summary>
-/// Abstract base class containing metadata about a type marked with DbCommandAttribute.
+///     Abstract base class containing metadata about a type marked with DbCommandAttribute.
 /// </summary>
 /// <remarks>
-/// This class is used by the source generator to hold all necessary information
-/// about a command type for generating database handlers and parameter providers.
+///     This class is used by the source generator to hold all necessary information
+///     about a command type for generating database handlers and parameter providers.
 /// </remarks>
 internal abstract class DbCommandTypeInfo(
     string name,
@@ -19,23 +19,23 @@ internal abstract class DbCommandTypeInfo(
     DbCommandAttribute dbCommandAttribute)
 {
     /// <summary>
-    /// Represents information about a property that will be mapped to a database parameter.
+    ///     Represents information about a property that will be mapped to a database parameter.
     /// </summary>
     internal class PropertyInfo(string propertyName, string parameterName)
     {
         /// <summary>
-        /// Gets the name of the property in the C# type.
+        ///     Gets the name of the property in the C# type.
         /// </summary>
         public string PropertyName { get; } = propertyName;
 
         /// <summary>
-        /// Gets the name of the database parameter (may differ due to case conversion or Column attribute).
+        ///     Gets the name of the database parameter (may differ due to case conversion or Column attribute).
         /// </summary>
         public string ParameterName { get; } = parameterName;
     }
 
     /// <summary>
-    /// Contains information about the result type of a command.
+    ///     Contains information about the result type of a command.
     /// </summary>
     internal class ResultTypeInfo(
         string typeName,
@@ -45,27 +45,27 @@ internal abstract class DbCommandTypeInfo(
         bool isEnumerableResult)
     {
         /// <summary>
-        /// Gets the simple name of the result type.
+        ///     Gets the simple name of the result type.
         /// </summary>
         public string TypeName { get; } = typeName;
-        
+
         /// <summary>
-        /// Gets the fully qualified name of the result type.
+        ///     Gets the fully qualified name of the result type.
         /// </summary>
         public string QualifiedTypeName { get; } = qualifiedTypeName;
-        
+
         /// <summary>
-        /// Gets the full type name of the generic argument if the result is a collection.
+        ///     Gets the full type name of the generic argument if the result is a collection.
         /// </summary>
         public string GenericArgumentResultFullTypeName { get; } = genericArgumentResultFullTypeName;
-        
+
         /// <summary>
-        /// Gets whether the result type is an integral type (int, long).
+        ///     Gets whether the result type is an integral type (int, long).
         /// </summary>
         public bool IsIntegralType { get; } = isIntegralType;
-        
+
         /// <summary>
-        /// Gets whether the result is a collection type.
+        ///     Gets whether the result is a collection type.
         /// </summary>
         public bool IsEnumerableResult { get; } = isEnumerableResult;
     }

@@ -14,7 +14,7 @@ public class CashierValidationTests
     {
         // Arrange
         var validator = new CreateCustomerValidator();
-        var command = new CreateCashierCommand("John Doe", "john.doe@example.com");
+        var command = new CreateCashierCommand(Guid.Empty, "John Doe", "john.doe@example.com");
 
         // Act
         var result = validator.TestValidate(command);
@@ -30,7 +30,7 @@ public class CashierValidationTests
     {
         // Arrange
         var validator = new CreateCustomerValidator();
-        var command = new CreateCashierCommand(name, "john.doe@example.com");
+        var command = new CreateCashierCommand(Guid.Empty, name, "john.doe@example.com");
 
         // Act
         var result = validator.TestValidate(command);
@@ -45,7 +45,7 @@ public class CashierValidationTests
     {
         // Arrange
         var validator = new CreateCustomerValidator();
-        var command = new CreateCashierCommand("A", "john.doe@example.com");
+        var command = new CreateCashierCommand(Guid.Empty, "A", "john.doe@example.com");
 
         // Act
         var result = validator.TestValidate(command);
@@ -61,7 +61,7 @@ public class CashierValidationTests
         // Arrange
         var validator = new CreateCustomerValidator();
         var longName = new string('A', 101); // 101 characters
-        var command = new CreateCashierCommand(longName, "john.doe@example.com");
+        var command = new CreateCashierCommand(Guid.Empty, longName, "john.doe@example.com");
 
         // Act
         var result = validator.TestValidate(command);
@@ -77,8 +77,8 @@ public class CashierValidationTests
         // Arrange
         var validator = new CreateCustomerValidator();
 
-        var minLengthCommand = new CreateCashierCommand("Jo", "test@example.com"); // 2 characters
-        var maxLengthCommand = new CreateCashierCommand(new string('A', 100), "test@example.com"); // 100 characters
+        var minLengthCommand = new CreateCashierCommand(Guid.Empty, "Jo", "test@example.com"); // 2 characters
+        var maxLengthCommand = new CreateCashierCommand(Guid.Empty, new string('A', 100), "test@example.com"); // 100 characters
 
         // Act
         var minResult = validator.TestValidate(minLengthCommand);

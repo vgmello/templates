@@ -7,7 +7,7 @@ namespace Billing.Cashiers.Commands;
 
 using CashierModel = Cashier;
 
-public record CreateCashierCommand(string Name, string Email) : ICommand<Result<CashierModel>>;
+public record CreateCashierCommand(Guid TenantId, string Name, string Email) : ICommand<Result<CashierModel>>;
 
 public class CreateCustomerValidator : AbstractValidator<CreateCashierCommand>
 {
@@ -24,12 +24,12 @@ public static partial class CreateCashierCommandHandler
     [DbCommand(sp: "billing.cashier_create", nonQuery: true)]
     public partial record InsertCashierCommand(Guid CashierId, string Name, string? Email) : ICommand<int>;
 
-    public static async Task<(Result<CashierModel>, CashierCreated)> Handle(CreateCashierCommand command, IMessageBus messaging,
+    public static async Task<(Result<CashierModel>, CashierCreated?)> Handle(CreateCashierCommand command, IMessageBus messaging,
         CancellationToken cancellationToken)
     {
         if (command.Name.Contains("error"))
         {
-            throw new DivideByZeroException("Forced test exception to simulate error scenarios");
+            throw new DivideByZeroException("Forced test unhandled exception to simulate error scenarios");
         }
 
         var cashierId = Guid.CreateVersion7();
@@ -40,12 +40,13 @@ public static partial class CreateCashierCommandHandler
 
         var result = new CashierModel
         {
+            TenantId = command.TenantId,
             CashierId = cashierId,
             Name = command.Name,
             Email = command.Email
         };
 
-        var createdEvent = new CashierCreated(result);
+        var createdEvent = new CashierCreated(result.TenantId, result);
 
         return (result, createdEvent);
     }

@@ -32,7 +32,7 @@ public class CashierService(IMessageBus bus) : CashiersService.CashiersServiceBa
 
     public override async Task<CashierModel> CreateCashier(CreateCashierRequest request, ServerCallContext context)
     {
-        var command = new CreateCashierCommand(request.Name, request.Email);
+        var command = new CreateCashierCommand(Guid.Empty, request.Name, request.Email);
         var result = await bus.InvokeCommandAsync(command, context.CancellationToken);
 
         return result.Match(

@@ -4,7 +4,6 @@ using JasperFx.Resources;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Operations.ServiceDefaults.Messaging.CloudEvents;
 using Operations.ServiceDefaults.Messaging.Middlewares;
 using System.Reflection;
 using Wolverine;
@@ -15,31 +14,31 @@ using Wolverine.Runtime;
 namespace Operations.ServiceDefaults.Messaging.Wolverine;
 
 /// <summary>
-/// Provides extension methods for configuring Wolverine messaging framework.
+///     Provides extension methods for configuring Wolverine messaging framework.
 /// </summary>
 public static class WolverineSetupExtensions
 {
     /// <summary>
-    /// Gets or sets a value indicating whether to skip service registration.
+    ///     Gets or sets a value indicating whether to skip service registration.
     /// </summary>
     /// <remarks>
-    /// Used primarily for testing scenarios where manual service registration is preferred.
+    ///     Used primarily for testing scenarios where manual service registration is preferred.
     /// </remarks>
     public static bool SkipServiceRegistration { get; set; }
 
     /// <summary>
-    /// Adds Wolverine messaging framework with default configuration.
+    ///     Adds Wolverine messaging framework with default configuration.
     /// </summary>
     /// <param name="builder">The host application builder to configure.</param>
     /// <param name="configure">Optional action to configure Wolverine options.</param>
     /// <returns>The configured host application builder for method chaining.</returns>
     /// <remarks>
-    /// This method:
-    /// <list type="bullet">
-    /// <item>Registers a keyed PostgreSQL data source for the service bus</item>
-    /// <item>Configures Wolverine with sensible defaults</item>
-    /// <item>Skips registration if <see cref="SkipServiceRegistration"/> is true</item>
-    /// </list>
+    ///     This method:
+    ///     <list type="bullet">
+    ///         <item>Registers a keyed PostgreSQL data source for the service bus</item>
+    ///         <item>Configures Wolverine with sensible defaults</item>
+    ///         <item>Skips registration if <see cref="SkipServiceRegistration" /> is true</item>
+    ///     </list>
     /// </remarks>
     public static IHostApplicationBuilder AddWolverine(this IHostApplicationBuilder builder, Action<WolverineOptions>? configure = null)
     {
@@ -54,24 +53,24 @@ public static class WolverineSetupExtensions
     }
 
     /// <summary>
-    /// Adds Wolverine services with default configuration.
+    ///     Adds Wolverine services with default configuration.
     /// </summary>
     /// <param name="services">The service collection to configure.</param>
     /// <param name="env">The hosting environment.</param>
     /// <param name="configuration">The application configuration.</param>
     /// <param name="configure">Optional action to configure Wolverine options.</param>
     /// <remarks>
-    /// Configures:
-    /// <list type="bullet">
-    /// <item>PostgreSQL persistence and transport if connection string is available</item>
-    /// <item>Kafka integration for event streaming if configured</item>
-    /// <item>System.Text.Json serialization</item>
-    /// <item>Exception handling and validation policies</item>
-    /// <item>OpenTelemetry instrumentation middleware</item>
-    /// <item>CloudEvent support</item>
-    /// <item>Request performance tracking</item>
-    /// <item>Health checks for messaging infrastructure</item>
-    /// </list>
+    ///     Configures:
+    ///     <list type="bullet">
+    ///         <item>PostgreSQL persistence and transport if connection string is available</item>
+    ///         <item>Kafka integration for event streaming if configured</item>
+    ///         <item>System.Text.Json serialization</item>
+    ///         <item>Exception handling and validation policies</item>
+    ///         <item>OpenTelemetry instrumentation middleware</item>
+    ///         <item>CloudEvent support</item>
+    ///         <item>Request performance tracking</item>
+    ///         <item>Health checks for messaging infrastructure</item>
+    ///     </list>
     /// </remarks>
     public static void AddWolverineWithDefaults(
         this IServiceCollection services, IHostEnvironment env, IConfiguration configuration, Action<WolverineOptions>? configure)
@@ -109,7 +108,6 @@ public static class WolverineSetupExtensions
 
             opts.Policies.AddMiddleware<RequestPerformanceMiddleware>();
             opts.Policies.AddMiddleware(typeof(OpenTelemetryInstrumentationMiddleware));
-            opts.Policies.AddMiddleware<CloudEventMiddleware>();
 
             var kafkaConnectionString = configuration.GetConnectionString("Messaging");
 
@@ -118,7 +116,7 @@ public static class WolverineSetupExtensions
                 opts.UseKafka(kafkaConnectionString)
                     .AutoProvision();
 
-                opts.SetupIntegrationEvents(env);
+                services.AddSingleton<IWolverineExtension, IntegrationEventsExtensions>();
 
                 services
                     .AddHealthChecks()
@@ -137,13 +135,13 @@ public static class WolverineSetupExtensions
     }
 
     /// <summary>
-    /// Configures Wolverine to discover and register message handlers from domain assemblies.
+    ///     Configures Wolverine to discover and register message handlers from domain assemblies.
     /// </summary>
     /// <param name="options">The Wolverine options to configure.</param>
     /// <param name="applicationAssembly">Optional application assembly. If null, uses the entry assembly.</param>
     /// <returns>The configured Wolverine options for method chaining.</returns>
     /// <remarks>
-    /// Discovers handlers from all assemblies marked with <see cref="DomainAssemblyAttribute"/>.
+    ///     Discovers handlers from all assemblies marked with <see cref="DomainAssemblyAttribute" />.
     /// </remarks>
     public static WolverineOptions ConfigureAppHandlers(this WolverineOptions options, Assembly? applicationAssembly = null)
     {
@@ -158,21 +156,21 @@ public static class WolverineSetupExtensions
     }
 
     /// <summary>
-    /// Configures PostgreSQL for message persistence and transport.
+    ///     Configures PostgreSQL for message persistence and transport.
     /// </summary>
     /// <param name="options">The Wolverine options to configure.</param>
     /// <param name="connectionString">The PostgreSQL connection string.</param>
     /// <returns>The configured Wolverine options for method chaining.</returns>
     /// <remarks>
-    /// This method:
-    /// <list type="bullet">
-    /// <item>Sets up PostgreSQL for both persistence and transport</item>
-    /// <item>Creates a schema based on the service name</item>
-    /// <item>Enables auto-provisioning of database objects</item>
-    /// <item>Uses "queues" as the transport schema</item>
-    /// </list>
-    /// The persistence schema name is derived from the service name by replacing
-    /// dots and hyphens with underscores and converting to lowercase.
+    ///     This method:
+    ///     <list type="bullet">
+    ///         <item>Sets up PostgreSQL for both persistence and transport</item>
+    ///         <item>Creates a schema based on the service name</item>
+    ///         <item>Enables auto-provisioning of database objects</item>
+    ///         <item>Uses "queues" as the transport schema</item>
+    ///     </list>
+    ///     The persistence schema name is derived from the service name by replacing
+    ///     dots and hyphens with underscores and converting to lowercase.
     /// </remarks>
     public static WolverineOptions ConfigurePostgresql(this WolverineOptions options, string connectionString)
     {
@@ -211,19 +209,19 @@ public static class WolverineSetupExtensions
     }
 
     /// <summary>
-    /// Configures Wolverine for reliable message delivery.
+    ///     Configures Wolverine for reliable message delivery.
     /// </summary>
     /// <param name="options">The Wolverine options to configure.</param>
     /// <returns>The configured Wolverine options for method chaining.</returns>
     /// <remarks>
-    /// Enables:
-    /// <list type="bullet">
-    /// <item>Automatic transaction middleware</item>
-    /// <item>Durable local queues for reliable processing</item>
-    /// <item>Durable outbox pattern on all sending endpoints</item>
-    /// </list>
-    /// These settings ensure message delivery reliability and prevent message loss
-    /// in case of failures.
+    ///     Enables:
+    ///     <list type="bullet">
+    ///         <item>Automatic transaction middleware</item>
+    ///         <item>Durable local queues for reliable processing</item>
+    ///         <item>Durable outbox pattern on all sending endpoints</item>
+    ///     </list>
+    ///     These settings ensure message delivery reliability and prevent message loss
+    ///     in case of failures.
     /// </remarks>
     public static WolverineOptions ConfigureReliableMessaging(this WolverineOptions options)
     {

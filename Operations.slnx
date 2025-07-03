@@ -72,6 +72,7 @@
     <File Path="Directory.Packages.props" />
     <File Path="README.md" />
     <File Path="Directory.Build.targets" />
+    <File Path="compose.yaml" />
   </Folder>
   <Folder Name="/Solution Items/.http/">
     <File Path=".http\Accounting.Api.http" />

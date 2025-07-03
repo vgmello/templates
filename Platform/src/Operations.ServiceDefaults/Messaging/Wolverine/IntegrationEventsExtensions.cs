@@ -1,7 +1,9 @@
 // Copyright (c) ABCDEG. All rights reserved.
 
+using CloudNative.CloudEvents;
 using JasperFx.Core.Reflection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
 using Operations.Extensions.Abstractions.Messaging;
 using Serilog;
 using System.Linq.Expressions;
@@ -9,14 +11,17 @@ using System.Reflection;
 using Wolverine;
 using Wolverine.Kafka;
 
+#pragma warning disable S3011
+
 namespace Operations.ServiceDefaults.Messaging.Wolverine;
 
 /// <summary>
-///     Provides extension methods for configuring integration events with Wolverine and Kafka.
+///     Wolverine extension for configuring integration events with Kafka.
 /// </summary>
-public static class IntegrationEventsExtensions
+public class IntegrationEventsExtensions(IOptions<ServiceBusOptions> serviceBusOptions, IHostEnvironment environment) : IWolverineExtension
 {
-#pragma warning disable S3011
+    private const string IntegrationEventsNamespace = ".IntegrationEvents";
+
     private const BindingFlags PrivateStaticBindingFlags = BindingFlags.NonPublic | BindingFlags.Static;
 
     private static readonly MethodInfo SetupKafkaRouteMethodInfo =
@@ -28,11 +33,8 @@ public static class IntegrationEventsExtensions
     /// <summary>
     ///     Sets up integration event routing for Kafka based on event attributes.
     /// </summary>
-    /// <param name="opts">The Wolverine options to configure.</param>
-    /// <param name="env">The hosting environment.</param>
-    /// <returns>The configured Wolverine options for method chaining.</returns>
     /// <remarks>
-    ///     This method:
+    ///     Features:
     ///     <list type="bullet">
     ///         <item>Discovers all integration event types from domain assemblies</item>
     ///         <item>Configures Kafka topic routing based on EventTopicAttribute</item>
@@ -45,7 +47,7 @@ public static class IntegrationEventsExtensions
     ///         <item>Being decorated with EventTopicAttribute</item>
     ///     </list>
     /// </remarks>
-    public static WolverineOptions SetupIntegrationEvents(this WolverineOptions opts, IHostEnvironment env)
+    public void Configure(WolverineOptions options)
     {
         var integrationEventTypes = GetIntegrationEventTypes();
 
@@ -60,7 +62,7 @@ public static class IntegrationEventsExtensions
                 continue;
             }
 
-            var topicName = GetTopicName(messageType, topicAttribute, env);
+            var topicName = GetTopicName(messageType, topicAttribute, environment.EnvironmentName);
 
             var partitionKeyPropertyInfo = messageType.GetProperties()
                 .FirstOrDefault(p => p.GetAttribute<PartitionKeyAttribute>() is not null);
@@ -71,15 +73,17 @@ public static class IntegrationEventsExtensions
 
             var setupKafkaRouteMethodInfo = SetupKafkaRouteMethodInfo.MakeGenericMethod(messageType);
 
-            setupKafkaRouteMethodInfo.Invoke(null, [opts, topicName, partitionKeyGetter]);
+            setupKafkaRouteMethodInfo.Invoke(null, [options, serviceBusOptions.Value, topicName, partitionKeyGetter]);
         }
-
-        return opts;
     }
 
-    private static void SetupKafkaRoute<TEventType>(WolverineOptions opts, string topicName, Func<TEventType, string>? partitionKeyGetter)
+    private static void SetupKafkaRoute<TEventType>(
+        WolverineOptions wolverineOptions,
+        ServiceBusOptions serviceBusOptions,
+        string topicName,
+        Func<TEventType, string>? partitionKeyGetter)
     {
-        opts.PublishMessage<TEventType>()
+        wolverineOptions.PublishMessage<TEventType>()
             .ToKafkaTopic(topicName)
             .CustomizeOutgoing(e =>
             {
@@ -91,6 +95,21 @@ public static class IntegrationEventsExtensions
                 {
                     e.PartitionKey = partitionKeyGetter((TEventType)e.Message);
                 }
+
+                var messageType = e.Message?.GetType();
+
+                var cloudEvent = new CloudEvent
+                {
+                    Id = Guid.CreateVersion7().ToString(),
+                    Type = messageType?.Name ?? typeof(TEventType).Name,
+                    Source = serviceBusOptions.ServiceUrn,
+                    Time = DateTimeOffset.UtcNow,
+                    Data = e.Message,
+                    DataContentType = "application/json"
+                };
+
+                e.Message = cloudEvent;
+                e.ContentType = "application/cloudevents+json";
             });
     }
 
@@ -127,35 +146,6 @@ public static class IntegrationEventsExtensions
         return lambda.Compile();
     }
 
-    /// <summary>
-    ///     Generates a fully qualified topic name based on environment and domain.
-    /// </summary>
-    /// <param name="messageType">The integration event type.</param>
-    /// <param name="topicAttribute">The event topic attribute.</param>
-    /// <param name="env">The hosting environment.</param>
-    /// <returns>A topic name in the format: {env}.{domain}.{topic}</returns>
-    /// <remarks>
-    ///     Environment mapping:
-    ///     <list type="bullet">
-    ///         <item>Production → prod</item>
-    ///         <item>Test → test</item>
-    ///         <item>Others → dev</item>
-    ///     </list>
-    /// </remarks>
-    private static string GetTopicName(Type messageType, EventTopicAttribute topicAttribute, IHostEnvironment env)
-    {
-        var envName = env.EnvironmentName switch
-        {
-            "Production" => "prod",
-            "Test" => "test",
-            _ => "dev"
-        };
-
-        var domainName = topicAttribute.Domain ?? messageType.Assembly.GetAttribute<DefaultDomainAttribute>()!.Domain;
-
-        return $"{envName}.{domainName}.{topicAttribute.Topic}";
-    }
-
     private static IEnumerable<Type> GetIntegrationEventTypes()
     {
         Assembly[] appAssemblies = [..DomainAssemblyAttribute.GetDomainAssemblies(), Extensions.EntryAssembly];
@@ -176,12 +166,37 @@ public static class IntegrationEventsExtensions
             {
                 var name = assembly.GetName().Name;
 
-                return name is not null && domainPrefixes.Any(prefix => prefix.StartsWith(name));
+                return name is not null && domainPrefixes.Any(prefix => name.StartsWith(prefix));
             })
             .ToArray();
 
         return assemblies.SelectMany(a => a.GetTypes()).Where(IsIntegrationEventType);
     }
 
-    private static bool IsIntegrationEventType(Type messageType) => messageType.Namespace?.EndsWith("IntegrationEvents") == true;
+    /// <summary>
+    ///     Generates a fully qualified topic name based on environment and domain.
+    /// </summary>
+    /// <param name="messageType">The integration event type.</param>
+    /// <param name="topicAttribute">The event topic attribute.</param>
+    /// <param name="env">Environment name.</param>
+    /// <returns>A topic name in the format: {env}.{domain}.{topic}[.{version}]</returns>
+    private static string GetTopicName(Type messageType, EventTopicAttribute topicAttribute, string env)
+    {
+        var envName = env switch
+        {
+            "Production" => "prod",
+            "Test" => "test",
+            _ => "dev"
+        };
+
+        var domainName = !string.IsNullOrWhiteSpace(topicAttribute.Domain)
+            ? topicAttribute.Domain
+            : messageType.Assembly.GetAttribute<DefaultDomainAttribute>()!.Domain;
+
+        var versionSuffix = string.IsNullOrWhiteSpace(topicAttribute.Version) ? null : $".{topicAttribute.Version}";
+
+        return $"{envName}.{domainName}.{topicAttribute.Topic}{versionSuffix}".ToLowerInvariant();
+    }
+
+    private static bool IsIntegrationEventType(Type messageType) => messageType.Namespace?.EndsWith(IntegrationEventsNamespace) == true;
 }

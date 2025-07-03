@@ -6,4 +6,4 @@ using Operations.Extensions.Abstractions.Messaging;
 namespace Billing.Contracts.Cashiers.IntegrationEvents;
 
 [EventTopic<Cashier>]
-public record CashierCreated(Cashier Cashier);
+public record CashierCreated([property: PartitionKey] Guid TenantId, Cashier Cashier);

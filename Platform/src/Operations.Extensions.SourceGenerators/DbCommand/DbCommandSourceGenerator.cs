@@ -7,29 +7,29 @@ using Operations.Extensions.SourceGenerators.Extensions;
 namespace Operations.Extensions.SourceGenerators.DbCommand;
 
 /// <summary>
-/// Source generator that creates database command handlers and parameter providers for types marked with DbCommandAttribute.
+///     Source generator that creates database command handlers and parameter providers for types marked with DbCommandAttribute.
 /// </summary>
 /// <remarks>
-/// This generator:
-/// <list type="bullet">
-/// <item>Generates ToDbParams() extension methods for parameter mapping</item>
-/// <item>Creates Wolverine command handlers for database operations</item>
-/// <item>Supports stored procedures, SQL queries, and functions</item>
-/// <item>Handles parameter case conversion (None, SnakeCase)</item>
-/// <item>Respects Column attributes for custom parameter names</item>
-/// </list>
-/// The default parameter case can be configured via MSBuild property: DbCommandDefaultParamCase
+///     This generator:
+///     <list type="bullet">
+///         <item>Generates ToDbParams() extension methods for parameter mapping</item>
+///         <item>Creates Wolverine command handlers for database operations</item>
+///         <item>Supports stored procedures, SQL queries, and functions</item>
+///         <item>Handles parameter case conversion (None, SnakeCase)</item>
+///         <item>Respects Column attributes for custom parameter names</item>
+///     </list>
+///     The default parameter case can be configured via MSBuild property: DbCommandDefaultParamCase
 /// </remarks>
 [Generator]
 public class DbCommandSourceGenerator : IIncrementalGenerator
 {
     /// <summary>
-    /// MSBuild property name for configuring the default parameter case convention.
+    ///     MSBuild property name for configuring the default parameter case convention.
     /// </summary>
     public const string DbCommandDefaultParamCase = nameof(DbCommandDefaultParamCase);
 
     /// <summary>
-    /// Initializes the incremental generator.
+    ///     Initializes the incremental generator.
     /// </summary>
     /// <param name="context">The generator initialization context.</param>
     public void Initialize(IncrementalGeneratorInitializationContext context)
