@@ -11,6 +11,9 @@ using Wolverine.Kafka;
 
 namespace Operations.ServiceDefaults.Messaging.Wolverine;
 
+/// <summary>
+///     Provides extension methods for configuring integration events with Wolverine and Kafka.
+/// </summary>
 public static class IntegrationEventsExtensions
 {
 #pragma warning disable S3011
@@ -22,11 +25,29 @@ public static class IntegrationEventsExtensions
     private static readonly MethodInfo CreatePartitionKeyGetterMethodInfo =
         typeof(IntegrationEventsExtensions).GetMethod(nameof(CreatePartitionKeyGetter), PrivateStaticBindingFlags)!;
 
+    /// <summary>
+    ///     Sets up integration event routing for Kafka based on event attributes.
+    /// </summary>
+    /// <param name="opts">The Wolverine options to configure.</param>
+    /// <param name="env">The hosting environment.</param>
+    /// <returns>The configured Wolverine options for method chaining.</returns>
+    /// <remarks>
+    ///     This method:
+    ///     <list type="bullet">
+    ///         <item>Discovers all integration event types from domain assemblies</item>
+    ///         <item>Configures Kafka topic routing based on EventTopicAttribute</item>
+    ///         <item>Sets up partition key routing using PartitionKeyAttribute or IIntegrationEvent.GetPartitionKey()</item>
+    ///         <item>Generates environment-specific topic names (dev, test, prod)</item>
+    ///     </list>
+    ///     Integration events are identified by:
+    ///     <list type="bullet">
+    ///         <item>Having their namespace end with "IntegrationEvents"</item>
+    ///         <item>Being decorated with EventTopicAttribute</item>
+    ///     </list>
+    /// </remarks>
     public static WolverineOptions SetupIntegrationEvents(this WolverineOptions opts, IHostEnvironment env)
     {
-        var assemblies = DomainAssemblyAttribute.GetDomainAssemblies().Concat([Extensions.EntryAssembly]);
-
-        var integrationEventTypes = assemblies.SelectMany(a => a.GetTypes()).Where(IsIntegrationEventType);
+        var integrationEventTypes = GetIntegrationEventTypes();
 
         foreach (var messageType in integrationEventTypes)
         {
@@ -106,6 +127,21 @@ public static class IntegrationEventsExtensions
         return lambda.Compile();
     }
 
+    /// <summary>
+    ///     Generates a fully qualified topic name based on environment and domain.
+    /// </summary>
+    /// <param name="messageType">The integration event type.</param>
+    /// <param name="topicAttribute">The event topic attribute.</param>
+    /// <param name="env">The hosting environment.</param>
+    /// <returns>A topic name in the format: {env}.{domain}.{topic}</returns>
+    /// <remarks>
+    ///     Environment mapping:
+    ///     <list type="bullet">
+    ///         <item>Production → prod</item>
+    ///         <item>Test → test</item>
+    ///         <item>Others → dev</item>
+    ///     </list>
+    /// </remarks>
     private static string GetTopicName(Type messageType, EventTopicAttribute topicAttribute, IHostEnvironment env)
     {
         var envName = env.EnvironmentName switch
@@ -118,6 +154,33 @@ public static class IntegrationEventsExtensions
         var domainName = topicAttribute.Domain ?? messageType.Assembly.GetAttribute<DefaultDomainAttribute>()!.Domain;
 
         return $"{envName}.{domainName}.{topicAttribute.Topic}";
+    }
+
+    private static IEnumerable<Type> GetIntegrationEventTypes()
+    {
+        Assembly[] appAssemblies = [..DomainAssemblyAttribute.GetDomainAssemblies(), Extensions.EntryAssembly];
+
+        var domainPrefixes = appAssemblies
+            .Select(a => a.GetName().Name)
+            .Where(assemblyName => assemblyName is not null)
+            .Select(assemblyName =>
+            {
+                var mainNamespaceIndex = assemblyName!.IndexOf('.');
+
+                return mainNamespaceIndex >= 0 ? assemblyName[..mainNamespaceIndex] : assemblyName;
+            })
+            .ToHashSet();
+
+        var assemblies = AppDomain.CurrentDomain.GetAssemblies()
+            .Where(assembly =>
+            {
+                var name = assembly.GetName().Name;
+
+                return name is not null && domainPrefixes.Any(prefix => prefix.StartsWith(name));
+            })
+            .ToArray();
+
+        return assemblies.SelectMany(a => a.GetTypes()).Where(IsIntegrationEventType);
     }
 
     private static bool IsIntegrationEventType(Type messageType) => messageType.Namespace?.EndsWith("IntegrationEvents") == true;

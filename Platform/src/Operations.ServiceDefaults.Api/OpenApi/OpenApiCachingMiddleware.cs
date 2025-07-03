@@ -9,6 +9,21 @@ using System.Text;
 
 namespace Operations.ServiceDefaults.Api.OpenApi;
 
+/// <summary>
+/// Middleware that caches OpenAPI documentation to improve performance.
+/// </summary>
+/// <remarks>
+/// This middleware:
+/// <list type="bullet">
+/// <item>Intercepts OpenAPI document requests</item>
+/// <item>Loads XML documentation on first request</item>
+/// <item>Caches generated OpenAPI documents to disk</item>
+/// <item>Serves cached responses with proper ETag headers</item>
+/// <item>Supports both JSON and YAML formats</item>
+/// <item>Handles conditional requests (304 Not Modified)</item>
+/// </list>
+/// The cache is stored in the system temp directory and persists across application restarts.
+/// </remarks>
 public class OpenApiCachingMiddleware(
     ILogger<OpenApiCachingMiddleware> logger,
     IXmlDocumentationService xmlDocService,
