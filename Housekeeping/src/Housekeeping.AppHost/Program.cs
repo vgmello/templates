@@ -4,7 +4,6 @@ using Housekeeping.AppHost.Extensions;
 
 var builder = DistributedApplication.CreateBuilder(args);
 
-// From user secrets Parameters:DbPassword
 var dbPassword = builder.AddParameter("DbPassword", secret: true);
 
 var pgsql = builder
