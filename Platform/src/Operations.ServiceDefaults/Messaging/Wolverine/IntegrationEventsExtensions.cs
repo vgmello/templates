@@ -1,11 +1,12 @@
 // Copyright (c) ABCDEG. All rights reserved.
 
-using CloudNative.CloudEvents;
 using JasperFx.Core.Reflection;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Operations.Extensions.Abstractions.Messaging;
-using Serilog;
+using Operations.ServiceDefaults.Extensions;
 using System.Linq.Expressions;
 using System.Reflection;
 using Wolverine;
@@ -18,8 +19,14 @@ namespace Operations.ServiceDefaults.Messaging.Wolverine;
 /// <summary>
 ///     Wolverine extension for configuring integration events with Kafka.
 /// </summary>
-public class IntegrationEventsExtensions(IOptions<ServiceBusOptions> serviceBusOptions, IHostEnvironment environment) : IWolverineExtension
+public class IntegrationEventsExtensions(
+    ILogger<IntegrationEventsExtensions> logger,
+    IConfiguration configuration,
+    IOptions<ServiceBusOptions> serviceBusOptions,
+    IHostEnvironment environment) : IWolverineExtension
 {
+    internal static string ConnectionStringName => "Messaging";
+
     private const string IntegrationEventsNamespace = ".IntegrationEvents";
 
     private const BindingFlags PrivateStaticBindingFlags = BindingFlags.NonPublic | BindingFlags.Static;
@@ -49,6 +56,17 @@ public class IntegrationEventsExtensions(IOptions<ServiceBusOptions> serviceBusO
     /// </remarks>
     public void Configure(WolverineOptions options)
     {
+        var kafkaConnectionString = configuration.GetConnectionString(ConnectionStringName)!;
+
+        options
+            .UseKafka(kafkaConnectionString)
+            .AutoProvision();
+
+        SetupPublisher(options);
+    }
+
+    private void SetupPublisher(WolverineOptions options)
+    {
         var integrationEventTypes = GetIntegrationEventTypes();
 
         foreach (var messageType in integrationEventTypes)
@@ -57,7 +75,7 @@ public class IntegrationEventsExtensions(IOptions<ServiceBusOptions> serviceBusO
 
             if (topicAttribute is null)
             {
-                Log.Logger.Warning("IntegrationEvent {IntegrationEventType} does not have an EventTopicAttribute", messageType.Name);
+                logger.LogWarning("IntegrationEvent {IntegrationEventType} does not have an EventTopicAttribute", messageType.Name);
 
                 continue;
             }
@@ -77,13 +95,10 @@ public class IntegrationEventsExtensions(IOptions<ServiceBusOptions> serviceBusO
         }
     }
 
-    private static void SetupKafkaRoute<TEventType>(
-        WolverineOptions wolverineOptions,
-        ServiceBusOptions serviceBusOptions,
-        string topicName,
+    private static void SetupKafkaRoute<TEventType>(WolverineOptions options, string topicName,
         Func<TEventType, string>? partitionKeyGetter)
     {
-        wolverineOptions.PublishMessage<TEventType>()
+        options.PublishMessage<TEventType>()
             .ToKafkaTopic(topicName)
             .CustomizeOutgoing(e =>
             {
@@ -95,21 +110,6 @@ public class IntegrationEventsExtensions(IOptions<ServiceBusOptions> serviceBusO
                 {
                     e.PartitionKey = partitionKeyGetter((TEventType)e.Message);
                 }
-
-                var messageType = e.Message?.GetType();
-
-                var cloudEvent = new CloudEvent
-                {
-                    Id = Guid.CreateVersion7().ToString(),
-                    Type = messageType?.Name ?? typeof(TEventType).Name,
-                    Source = serviceBusOptions.ServiceUrn,
-                    Time = DateTimeOffset.UtcNow,
-                    Data = e.Message,
-                    DataContentType = "application/json"
-                };
-
-                e.Message = cloudEvent;
-                e.ContentType = "application/cloudevents+json";
             });
     }
 
@@ -136,9 +136,9 @@ public class IntegrationEventsExtensions(IOptions<ServiceBusOptions> serviceBusO
     private static Func<T, string> CreatePartitionKeyGetter<T>(PropertyInfo partitionKeyPropertyInfo)
     {
         var parameter = Expression.Parameter(typeof(T), "instance");
-        var propertyAccessor = Expression.Property(parameter, partitionKeyPropertyInfo);
-
         var toString = typeof(object).GetMethod(nameof(ToString));
+
+        var propertyAccessor = Expression.Property(parameter, partitionKeyPropertyInfo);
         var toStringCall = Expression.Call(propertyAccessor, toString!);
 
         var lambda = Expression.Lambda<Func<T, string>>(toStringCall, parameter);
@@ -148,7 +148,7 @@ public class IntegrationEventsExtensions(IOptions<ServiceBusOptions> serviceBusO
 
     private static IEnumerable<Type> GetIntegrationEventTypes()
     {
-        Assembly[] appAssemblies = [..DomainAssemblyAttribute.GetDomainAssemblies(), Extensions.EntryAssembly];
+        Assembly[] appAssemblies = [..DomainAssemblyAttribute.GetDomainAssemblies(), ServiceDefaultsExtensions.EntryAssembly];
 
         var domainPrefixes = appAssemblies
             .Select(a => a.GetName().Name)
@@ -179,23 +179,28 @@ public class IntegrationEventsExtensions(IOptions<ServiceBusOptions> serviceBusO
     /// <param name="messageType">The integration event type.</param>
     /// <param name="topicAttribute">The event topic attribute.</param>
     /// <param name="env">Environment name.</param>
-    /// <returns>A topic name in the format: {env}.{domain}.{topic}[.{version}]</returns>
+    /// <returns>A topic name in the format: {env}.{domain}.{scope}.{topic}.{version}</returns>
     private static string GetTopicName(Type messageType, EventTopicAttribute topicAttribute, string env)
     {
         var envName = env switch
         {
+            "Development" => "dev",
             "Production" => "prod",
             "Test" => "test",
-            _ => "dev"
+            _ => env.ToLowerInvariant()
         };
 
         var domainName = !string.IsNullOrWhiteSpace(topicAttribute.Domain)
             ? topicAttribute.Domain
             : messageType.Assembly.GetAttribute<DefaultDomainAttribute>()!.Domain;
 
+        var scope = topicAttribute.Internal ? "internal" : "public";
+
+        var topicName = topicAttribute.ShouldPluralizeTopicName ? topicAttribute.Topic.Pluralize() : topicAttribute.Topic;
+
         var versionSuffix = string.IsNullOrWhiteSpace(topicAttribute.Version) ? null : $".{topicAttribute.Version}";
 
-        return $"{envName}.{domainName}.{topicAttribute.Topic}{versionSuffix}".ToLowerInvariant();
+        return $"{envName}.{domainName}.{scope}.{topicName}{versionSuffix}".ToLowerInvariant();
     }
 
     private static bool IsIntegrationEventType(Type messageType) => messageType.Namespace?.EndsWith(IntegrationEventsNamespace) == true;

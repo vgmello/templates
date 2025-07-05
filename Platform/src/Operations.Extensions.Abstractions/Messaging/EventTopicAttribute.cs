@@ -19,16 +19,16 @@ namespace Operations.Extensions.Abstractions.Messaging;
 /// public class UserCreatedEvent : IIntegrationEvent { }
 /// </code>
 /// </example>
-[AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
-public class EventTopicAttribute(string topic, string? domain = null, string? version = "v1") : Attribute
+[AttributeUsage(AttributeTargets.Class)]
+public class EventTopicAttribute(string topic, string? domain = null, string version = "v1") : Attribute
 {
     /// <summary>
-    ///     Gets the topic name for the event.
+    ///     Topic name for the event.
     /// </summary>
     public string Topic { get; } = topic;
 
     /// <summary>
-    ///     Gets the domain for the event.
+    ///     Domain for the event.
     /// </summary>
     /// <value>
     ///     The domain name for this event, or <c>null</c> to use the assembly's default domain.
@@ -38,8 +38,15 @@ public class EventTopicAttribute(string topic, string? domain = null, string? ve
     /// <summary>
     ///     Event major version (Default: 'v1')
     /// </summary>
-    /// <remarks>When set, it will be appended at the end of the topic name</remarks>
-    public string? Version { get; } = version;
+    public string Version { get; } = version;
+
+    /// <summary>
+    ///     Indicates if the event is internal or public (Default: public)
+    /// </summary>
+    public bool Internal { get; set; } = false;
+
+
+    public virtual bool ShouldPluralizeTopicName => false;
 }
 
 /// <summary>
@@ -52,10 +59,14 @@ public class EventTopicAttribute(string topic, string? domain = null, string? ve
 /// </remarks>
 /// <example>
 ///     <code>
-/// [EventTopic&lt;User&gt;(domain: "users")]
-/// public class UserCreatedEvent : IIntegrationEvent { }
-/// // Results in topic: "user"
+/// [EventTopic&lt;User&gt;(domain: "identity")]
+/// public record UserCreatedEvent(Guid Id);
+/// // Results in topic: "users"
 /// </code>
 /// </example>
-[AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
-public class EventTopicAttribute<TEntity>(string? domain = null) : EventTopicAttribute(typeof(TEntity).Name.ToKebabCase(), domain);
+[AttributeUsage(AttributeTargets.Class)]
+public class EventTopicAttribute<TEntity>(string? domain = null, string version = "v1") :
+    EventTopicAttribute(topic: typeof(TEntity).Name.ToKebabCase(), domain: domain, version: version)
+{
+    public override bool ShouldPluralizeTopicName => true;
+}

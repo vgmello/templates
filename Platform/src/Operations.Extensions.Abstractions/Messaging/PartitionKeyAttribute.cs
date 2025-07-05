@@ -18,5 +18,5 @@ namespace Operations.Extensions.Abstractions.Messaging;
 /// }
 ///     </code>
 /// </example>
-[AttributeUsage(AttributeTargets.Property)]
+[AttributeUsage(AttributeTargets.Property | AttributeTargets.Parameter)]
 public class PartitionKeyAttribute : Attribute;

@@ -17,7 +17,7 @@ namespace Operations.ServiceDefaults;
 /// <summary>
 ///     Provides extension methods for configuring service defaults in the application.
 /// </summary>
-public static class Extensions
+public static class ServiceDefaultsExtensions
 {
     private static Assembly? _entryAssembly;
 

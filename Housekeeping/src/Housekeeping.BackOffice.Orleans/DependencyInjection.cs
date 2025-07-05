@@ -1,7 +1,5 @@
 // Copyright (c) ABCDEG. All rights reserved.
 
-using Dapper;
-
 namespace Housekeeping.BackOffice.Orleans;
 
 public static class DependencyInjection

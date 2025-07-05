@@ -43,7 +43,7 @@ public class DomainAssemblyAttribute(params Type[] typeMarkers) : Attribute
     /// </returns>
     internal static IReadOnlyList<Assembly> GetDomainAssemblies(Assembly? applicationAssembly = null)
     {
-        var targetAssembly = applicationAssembly ?? Extensions.EntryAssembly;
+        var targetAssembly = applicationAssembly ?? ServiceDefaultsExtensions.EntryAssembly;
 
         return targetAssembly.GetCustomAttribute<DomainAssemblyAttribute>()?
             .DomainAssemblyTypeMarkers

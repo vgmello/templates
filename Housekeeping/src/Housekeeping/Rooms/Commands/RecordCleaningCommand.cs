@@ -1,7 +1,6 @@
 // Copyright (c) ABCDEG. All rights reserved.
 
 using Housekeeping.Contracts.Rooms.IntegrationEvents;
-using Housekeeping.Contracts.Rooms.Models;
 
 namespace Housekeeping.Rooms.Commands;
 

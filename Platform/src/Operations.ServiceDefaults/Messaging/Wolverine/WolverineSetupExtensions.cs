@@ -7,7 +7,6 @@ using Microsoft.Extensions.Hosting;
 using Operations.ServiceDefaults.Messaging.Middlewares;
 using System.Reflection;
 using Wolverine;
-using Wolverine.Kafka;
 using Wolverine.Postgresql;
 using Wolverine.Runtime;
 
@@ -90,7 +89,7 @@ public static class WolverineSetupExtensions
 
         services.AddWolverine(ExtensionDiscovery.ManualOnly, opts =>
         {
-            opts.ApplicationAssembly = Extensions.EntryAssembly;
+            opts.ApplicationAssembly = ServiceDefaultsExtensions.EntryAssembly;
             opts.ServiceName = ServiceBusOptions.GetServiceName(env.ApplicationName);
 
             opts.UseSystemTextJsonForSerialization();
@@ -109,13 +108,10 @@ public static class WolverineSetupExtensions
             opts.Policies.AddMiddleware<RequestPerformanceMiddleware>();
             opts.Policies.AddMiddleware(typeof(OpenTelemetryInstrumentationMiddleware));
 
-            var kafkaConnectionString = configuration.GetConnectionString("Messaging");
+            var kafkaConnectionString = configuration.GetConnectionString(IntegrationEventsExtensions.ConnectionStringName);
 
             if (!string.IsNullOrEmpty(kafkaConnectionString))
             {
-                opts.UseKafka(kafkaConnectionString)
-                    .AutoProvision();
-
                 services.AddSingleton<IWolverineExtension, IntegrationEventsExtensions>();
 
                 services
