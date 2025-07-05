@@ -14,4 +14,10 @@
                           OutputItemType="Analyzer" ReferenceOutputAssembly="false"/>
     </ItemGroup>
 
+    <ItemGroup>
+        <AssemblyAttribute Include="Operations.Extensions.Abstractions.Messaging.DefaultDomainAttribute">
+            <Domain>Billing123</Domain>
+        </AssemblyAttribute>
+    </ItemGroup>
+    
 </Project>

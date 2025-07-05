@@ -1,6 +1,7 @@
 // Copyright (c) ABCDEG. All rights reserved.
 
 using Billing.Cashiers.Commands;
+using Billing.Cashiers.Contracts.IntegrationEvents;
 using Billing.Cashiers.Contracts.Models;
 using Billing.Cashiers.Queries;
 
@@ -123,4 +124,14 @@ public class CashiersController(IMessageBus bus) : ControllerBase
     [HttpGet("fake-error")]
     [Tags("Testing")]
     public Task<ActionResult<Cashier>> FakeError() => throw new DivideByZeroException("Fake error");
+}
+
+public static class CashierCreatedHandler
+{
+    public static Task Handle(CashierCreated @event, ILogger logger, IMessageBus messaging, CancellationToken cancellationToken)
+    {
+        logger.LogDebug("Event received. {@Cashier}", @event.Cashier);
+
+        return Task.CompletedTask;
+    }
 }

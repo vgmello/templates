@@ -4,6 +4,7 @@ using JasperFx.Resources;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Operations.ServiceDefaults.Messaging.Kafka;
 using Operations.ServiceDefaults.Messaging.Middlewares;
 using System.Reflection;
 using Wolverine;
@@ -100,19 +101,17 @@ public static class WolverineSetupExtensions
                 opts.ConfigureReliableMessaging();
             }
 
-            opts.Policies.ConventionalLocalRoutingIsAdditive();
-
             opts.Policies.Add<ExceptionHandlingPolicy>();
             opts.Policies.Add<FluentValidationPolicy>();
 
             opts.Policies.AddMiddleware<RequestPerformanceMiddleware>();
             opts.Policies.AddMiddleware(typeof(OpenTelemetryInstrumentationMiddleware));
 
-            var kafkaConnectionString = configuration.GetConnectionString(IntegrationEventsExtensions.ConnectionStringName);
+            var kafkaConnectionString = configuration.GetConnectionString(KafkaIntegrationEventsExtensions.ConnectionStringName);
 
             if (!string.IsNullOrEmpty(kafkaConnectionString))
             {
-                services.AddSingleton<IWolverineExtension, IntegrationEventsExtensions>();
+                services.AddSingleton<IWolverineExtension, KafkaIntegrationEventsExtensions>();
 
                 services
                     .AddHealthChecks()
@@ -123,6 +122,7 @@ public static class WolverineSetupExtensions
             }
 
             opts.ConfigureAppHandlers(opts.ApplicationAssembly);
+            opts.Policies.ConventionalLocalRoutingIsAdditive();
 
             opts.Services.AddResourceSetupOnStartup();
 

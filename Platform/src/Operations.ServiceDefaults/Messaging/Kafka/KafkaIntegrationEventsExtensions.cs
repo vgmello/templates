@@ -14,28 +14,29 @@ using Wolverine.Kafka;
 
 #pragma warning disable S3011
 
-namespace Operations.ServiceDefaults.Messaging.Wolverine;
+namespace Operations.ServiceDefaults.Messaging.Kafka;
 
 /// <summary>
 ///     Wolverine extension for configuring integration events with Kafka.
 /// </summary>
-public class IntegrationEventsExtensions(
-    ILogger<IntegrationEventsExtensions> logger,
+public class KafkaIntegrationEventsExtensions(
+    ILogger<KafkaIntegrationEventsExtensions> logger,
     IConfiguration configuration,
     IOptions<ServiceBusOptions> serviceBusOptions,
+    IOptions<CloudEventsSettings> cloudEventsSettings,
     IHostEnvironment environment) : IWolverineExtension
 {
-    internal static string ConnectionStringName => "Messaging";
-
     private const string IntegrationEventsNamespace = ".IntegrationEvents";
 
     private const BindingFlags PrivateStaticBindingFlags = BindingFlags.NonPublic | BindingFlags.Static;
 
+    internal const string ConnectionStringName = "Messaging";
+
     private static readonly MethodInfo SetupKafkaRouteMethodInfo =
-        typeof(IntegrationEventsExtensions).GetMethod(nameof(SetupKafkaRoute), PrivateStaticBindingFlags)!;
+        typeof(KafkaIntegrationEventsExtensions).GetMethod(nameof(SetupKafkaRoute), PrivateStaticBindingFlags)!;
 
     private static readonly MethodInfo CreatePartitionKeyGetterMethodInfo =
-        typeof(IntegrationEventsExtensions).GetMethod(nameof(CreatePartitionKeyGetter), PrivateStaticBindingFlags)!;
+        typeof(KafkaIntegrationEventsExtensions).GetMethod(nameof(CreatePartitionKeyGetter), PrivateStaticBindingFlags)!;
 
     /// <summary>
     ///     Sets up integration event routing for Kafka based on event attributes.
@@ -58,8 +59,11 @@ public class IntegrationEventsExtensions(
     {
         var kafkaConnectionString = configuration.GetConnectionString(ConnectionStringName)!;
 
+        var cloudEventMapper = new CloudEventMapper(cloudEventsSettings, serviceBusOptions);
+
         options
             .UseKafka(kafkaConnectionString)
+            .ConfigureSenders(cfg => cfg.UseInterop(cloudEventMapper))
             .AutoProvision();
 
         SetupPublisher(options);
@@ -91,14 +95,15 @@ public class IntegrationEventsExtensions(
 
             var setupKafkaRouteMethodInfo = SetupKafkaRouteMethodInfo.MakeGenericMethod(messageType);
 
-            setupKafkaRouteMethodInfo.Invoke(null, [options, serviceBusOptions.Value, topicName, partitionKeyGetter]);
+            setupKafkaRouteMethodInfo.Invoke(null, [options, topicName, partitionKeyGetter]);
         }
     }
 
     private static void SetupKafkaRoute<TEventType>(WolverineOptions options, string topicName,
         Func<TEventType, string>? partitionKeyGetter)
     {
-        options.PublishMessage<TEventType>()
+        options
+            .PublishMessage<TEventType>()
             .ToKafkaTopic(topicName)
             .CustomizeOutgoing(e =>
             {
