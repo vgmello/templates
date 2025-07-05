@@ -1,6 +1,7 @@
 // Copyright (c) ABCDEG. All rights reserved.
 
 using Billing.Cashiers.Commands;
+using Billing.Cashiers.Contracts.Models;
 using Billing.Cashiers.Queries;
 
 namespace Billing.Api.Cashiers;
@@ -24,7 +25,7 @@ public class CashiersController(IMessageBus bus) : ControllerBase
     [HttpGet("{id:guid}")]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType<object>(StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult<Contracts.Cashiers.Models.Cashier>> GetCashier([FromRoute] Guid id, CancellationToken cancellationToken)
+    public async Task<ActionResult<Cashier>> GetCashier([FromRoute] Guid id, CancellationToken cancellationToken)
     {
         var cashier = await bus.InvokeQueryAsync(new GetCashierQuery(id), cancellationToken);
 
@@ -60,7 +61,7 @@ public class CashiersController(IMessageBus bus) : ControllerBase
     /// <response code="409">If a cashier with the same email already exists</response>
     [HttpPost]
     [ProducesResponseType<object>(StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult<Contracts.Cashiers.Models.Cashier>> CreateCashier([FromBody] CreateCashierCommand command,
+    public async Task<ActionResult<Cashier>> CreateCashier([FromBody] CreateCashierCommand command,
         CancellationToken cancellationToken)
     {
         var commandResult = await bus.InvokeCommandAsync(command, cancellationToken);
@@ -82,13 +83,13 @@ public class CashiersController(IMessageBus bus) : ControllerBase
     /// <response code="404">If the cashier is not found</response>
     [HttpPut("{id:guid}")]
     [ProducesResponseType<object>(StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult<Contracts.Cashiers.Models.Cashier>> UpdateCashier([FromRoute] Guid id,
+    public async Task<ActionResult<Cashier>> UpdateCashier([FromRoute] Guid id,
         [FromBody] UpdateCashierCommand command, CancellationToken cancellationToken)
     {
         var commandWithId = command with { CashierId = id };
         var commandResult = await bus.InvokeCommandAsync(commandWithId, cancellationToken);
 
-        return commandResult.Match<ActionResult<Contracts.Cashiers.Models.Cashier>>(
+        return commandResult.Match<ActionResult<Cashier>>(
             cashier => Ok(cashier),
             errors => BadRequest(new { Errors = errors }));
     }
@@ -121,5 +122,5 @@ public class CashiersController(IMessageBus bus) : ControllerBase
     /// <response code="500">Always throws a DivideByZeroException for testing purposes</response>
     [HttpGet("fake-error")]
     [Tags("Testing")]
-    public Task<ActionResult<Contracts.Cashiers.Models.Cashier>> FakeError() => throw new DivideByZeroException("Fake error");
+    public Task<ActionResult<Cashier>> FakeError() => throw new DivideByZeroException("Fake error");
 }

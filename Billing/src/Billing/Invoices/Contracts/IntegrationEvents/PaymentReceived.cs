@@ -1,6 +1,6 @@
 // Copyright (c) ABCDEG. All rights reserved.
 
-namespace Billing.Contracts.Invoices.IntegrationEvents;
+namespace Billing.Invoices.Contracts.IntegrationEvents;
 
 public record PaymentReceived(
     Guid InvoiceId,

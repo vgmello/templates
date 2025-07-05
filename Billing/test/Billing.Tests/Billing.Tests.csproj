@@ -17,7 +17,6 @@
     <ItemGroup>
         <ProjectReference Include="..\..\src\Billing.Api\Billing.Api.csproj"/>
         <ProjectReference Include="..\..\src\Billing.BackOffice\Billing.BackOffice.csproj"/>
-        <ProjectReference Include="..\..\src\Billing.Contracts\Billing.Contracts.csproj"/>
         <ProjectReference Include="..\..\src\Billing\Billing.csproj"/>
     </ItemGroup>
 

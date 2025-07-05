@@ -2,11 +2,12 @@
 
 using Billing.Api.Invoices.Models;
 using Billing.Invoices.Commands;
+using Billing.Invoices.Contracts.Models;
 using Billing.Invoices.Queries;
 
 namespace Billing.Api.Invoices;
 
-using InvoiceModel = Billing.Contracts.Invoices.Models.Invoice;
+using InvoiceModel = Invoice;
 
 /// <summary>
 ///     Manages invoice operations such as retrieval, creation, cancellation, and payment processing.

@@ -1,12 +1,13 @@
 // Copyright (c) ABCDEG. All rights reserved.
 
-using Billing.Contracts.Invoices.IntegrationEvents;
+using Billing.Invoices.Contracts.IntegrationEvents;
+using Billing.Invoices.Contracts.Models;
 using Billing.Invoices.Queries;
 using FluentValidation.Results;
 
 namespace Billing.Invoices.Commands;
 
-using InvoiceModel = Billing.Contracts.Invoices.Models.Invoice;
+using InvoiceModel = Invoice;
 
 public record MarkInvoiceAsPaidCommand(Guid InvoiceId, decimal AmountPaid, DateTime? PaymentDate = null) : ICommand<Result<InvoiceModel>>;
 

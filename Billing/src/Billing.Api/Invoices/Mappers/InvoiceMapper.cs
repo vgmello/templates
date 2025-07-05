@@ -1,6 +1,6 @@
 // Copyright (c) ABCDEG. All rights reserved.
 
-using Billing.Contracts.Invoices.Models;
+using Billing.Invoices.Contracts.Models;
 using Google.Protobuf.WellKnownTypes;
 
 namespace Billing.Api.Invoices.Mappers;

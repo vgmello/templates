@@ -1,7 +1,7 @@
 // Copyright (c) ABCDEG. All rights reserved.
 
 using Billing.Cashiers.Commands;
-using Billing.Contracts.Cashiers.IntegrationEvents;
+using Billing.Cashiers.Contracts.IntegrationEvents;
 using NSubstitute;
 using Operations.Extensions.Messaging;
 using Wolverine;

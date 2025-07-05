@@ -1,7 +1,7 @@
 // Copyright (c) ABCDEG. All rights reserved.
 
+using Billing.Cashiers.Contracts.Models;
 using Billing.Cashiers.Queries;
-using Billing.Contracts.Cashiers.Models;
 
 namespace Billing.Api.Cashiers.Mappers;
 

@@ -1,6 +1,23 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
+    <PropertyGroup>
+        <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+    </PropertyGroup>
+
+    <PropertyGroup>
+        <PackageId>$(AssemblyName)</PackageId>
+        <PackageVersion>$(Version)</PackageVersion>
+        <PackageTags>billing.contracts</PackageTags>
+        <IncludeSource>true</IncludeSource>
+        <Authors>ABCDEG</Authors>
+        <Company>ABCDEG</Company>
+        <Copyright>Copyright (c) ABCDEG. All rights reserved.</Copyright>
+        <RepositoryUrl>https://github.com/ABCDEG/templates</RepositoryUrl>
+        <RepositoryType>git</RepositoryType>
+    </PropertyGroup>
+
     <ItemGroup>
+        <Compile Include="..\Billing\**\Contracts\**\*.cs" Link="%(RecursiveDir)%(Filename)%(Extension)"/>
         <Content Include="..\Billing.Api\**\Protos\**\*.proto" Link="%(RecursiveDir)%(Filename)%(Extension)" Pack="true">
             <PackagePath>Protos</PackagePath>
         </Content>

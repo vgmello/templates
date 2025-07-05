@@ -1,11 +1,12 @@
 // Copyright (c) ABCDEG. All rights reserved.
 
-using Billing.Contracts.Invoices.IntegrationEvents;
+using Billing.Invoices.Contracts.IntegrationEvents;
+using Billing.Invoices.Contracts.Models;
 using FluentValidation.Results;
 
 namespace Billing.Invoices.Commands;
 
-using InvoiceModel = Billing.Contracts.Invoices.Models.Invoice;
+using InvoiceModel = Invoice;
 
 public record CancelInvoiceCommand(Guid InvoiceId) : ICommand<Result<InvoiceModel>>;
 

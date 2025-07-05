@@ -1,7 +1,7 @@
 // Copyright (c) ABCDEG. All rights reserved.
 
 using Accounting.Contracts.Operations.IntegrationEvents;
-using Billing.Contracts.Invoices.IntegrationEvents;
+using Billing.Invoices.Contracts.IntegrationEvents;
 using Billing.Invoices.Events;
 
 namespace Billing.BackOffice.Messaging.AccountingInboxHandler;

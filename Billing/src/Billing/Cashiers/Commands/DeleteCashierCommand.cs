@@ -1,6 +1,6 @@
 // Copyright (c) ABCDEG. All rights reserved.
 
-using Billing.Contracts.Cashiers.IntegrationEvents;
+using Billing.Cashiers.Contracts.IntegrationEvents;
 using FluentValidation.Results;
 
 namespace Billing.Cashiers.Commands;

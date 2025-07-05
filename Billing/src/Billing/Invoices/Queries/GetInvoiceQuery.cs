@@ -1,10 +1,11 @@
 // Copyright (c) ABCDEG. All rights reserved.
 
+using Billing.Invoices.Contracts.Models;
 using FluentValidation.Results;
 
 namespace Billing.Invoices.Queries;
 
-using InvoiceModel = Billing.Contracts.Invoices.Models.Invoice;
+using InvoiceModel = Invoice;
 
 public record GetInvoiceQuery(Guid Id) : IQuery<Result<InvoiceModel>>;
 

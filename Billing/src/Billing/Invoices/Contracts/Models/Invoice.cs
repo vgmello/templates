@@ -1,6 +1,6 @@
 // Copyright (c) ABCDEG. All rights reserved.
 
-namespace Billing.Contracts.Invoices.Models;
+namespace Billing.Invoices.Contracts.Models;
 
 public record Invoice
 {

@@ -1,7 +1,7 @@
 // Copyright (c) ABCDEG. All rights reserved.
 
-using Billing.Contracts.Cashiers.IntegrationEvents;
-using Billing.Contracts.Cashiers.Models;
+using Billing.Cashiers.Contracts.IntegrationEvents;
+using Billing.Cashiers.Contracts.Models;
 
 namespace Billing.Cashiers.Commands;
 

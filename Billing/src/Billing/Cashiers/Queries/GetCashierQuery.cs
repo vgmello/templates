@@ -1,6 +1,6 @@
 // Copyright (c) ABCDEG. All rights reserved.
 
-using Billing.Contracts.Cashiers.Models;
+using Billing.Cashiers.Contracts.Models;
 using Dapper;
 using Npgsql;
 
@@ -10,6 +10,7 @@ public record GetCashierQuery(Guid Id) : IQuery<Cashier>;
 
 /// <summary>
 ///     Example of query handler with db query directly in the handler, with DbCommand attr with custom column.
+///     It works, but it is not really recommended to have the query directly in the main handler, it makes harder to test
 /// </summary>
 public static partial class GetCashierQueryHandler
 {
