@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { Badge } from '$lib/components/ui/badge';
-	import { InvoiceStatus } from '$lib/types/invoice.js';
+	import { InvoiceStatuses } from '$lib/domain/values/InvoiceStatus.js';
 
 	let { status, class: className = '' } = $props<{
 		status: string;
@@ -9,16 +9,16 @@
 
 	// Determine badge variant and additional styling based on status
 	let badgeVariant = $derived((() => {
-		switch (status) {
-			case InvoiceStatus.PAID:
+		switch (status.toLowerCase()) {
+			case InvoiceStatuses.PAID:
 				return 'default' as const;
-			case InvoiceStatus.PENDING:
+			case InvoiceStatuses.PENDING:
 				return 'secondary' as const;
-			case InvoiceStatus.DRAFT:
+			case InvoiceStatuses.DRAFT:
 				return 'outline' as const;
-			case InvoiceStatus.CANCELLED:
+			case InvoiceStatuses.CANCELLED:
 				return 'destructive' as const;
-			case InvoiceStatus.OVERDUE:
+			case InvoiceStatuses.OVERDUE:
 				return 'default' as const;
 			default:
 				return 'outline' as const;
@@ -28,20 +28,20 @@
 	let badgeClass = $derived(() => {
 		let baseClass = '';
 		
-		switch (status) {
-			case InvoiceStatus.PAID:
+		switch (status.toLowerCase()) {
+			case InvoiceStatuses.PAID:
 				baseClass = 'bg-green-100 text-green-800 hover:bg-green-100';
 				break;
-			case InvoiceStatus.PENDING:
+			case InvoiceStatuses.PENDING:
 				baseClass = 'bg-blue-100 text-blue-800 hover:bg-blue-100';
 				break;
-			case InvoiceStatus.DRAFT:
+			case InvoiceStatuses.DRAFT:
 				baseClass = 'bg-gray-100 text-gray-800 hover:bg-gray-100';
 				break;
-			case InvoiceStatus.CANCELLED:
+			case InvoiceStatuses.CANCELLED:
 				baseClass = 'bg-red-100 text-red-800 hover:bg-red-100';
 				break;
-			case InvoiceStatus.OVERDUE:
+			case InvoiceStatuses.OVERDUE:
 				baseClass = 'bg-orange-100 text-orange-800 hover:bg-orange-100';
 				break;
 			default:

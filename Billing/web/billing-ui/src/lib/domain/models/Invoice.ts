@@ -1,5 +1,5 @@
 import { Money } from '../values/Money';
-import { InvoiceStatus, InvoiceStatusValue } from '../values/InvoiceStatus';
+import { InvoiceStatuses, InvoiceStatusValue, type InvoiceStatus } from '../values/InvoiceStatus';
 import type { Currency } from '../values/Currency';
 
 export class Invoice {

@@ -1,7 +1,20 @@
-// API module exports
-
-export { apiClient, ApiError } from './client.js';
+// API clients
 export { cashierApi } from './cashiers.js';
 export { invoiceApi } from './invoices.js';
-export type * from '../types/cashier.js';
-export type * from '../types/invoice.js';
+
+// Types
+export type { 
+	GetCashiersResult, 
+	Cashier, 
+	CreateCashierRequest, 
+	UpdateCashierRequest, 
+	GetCashiersQuery 
+} from './cashiers.js';
+
+export type { 
+	Invoice, 
+	CreateInvoiceRequest, 
+	MarkInvoiceAsPaidRequest, 
+	SimulatePaymentRequest, 
+	GetInvoicesQuery 
+} from './invoices.js';

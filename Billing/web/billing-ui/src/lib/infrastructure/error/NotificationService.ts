@@ -13,7 +13,7 @@ export interface Notification {
 
 export class NotificationService {
 	private static instance: NotificationService | null = null;
-	private notifications = $state<Notification[]>([]);
+	private notifications: Notification[] = [];
 
 	private constructor() {}
 
