@@ -10,7 +10,7 @@ public static class LiquibaseExtensions
         IResourceBuilder<ParameterResource> dbPassword)
     {
         return builder
-            .AddContainer("liquibase", "liquibase/liquibase")
+            .AddContainer("liquibase", "liquibase/liquibase:4.32-alpine")
             .WithBindMount("../../infra/Billing.Database/Liquibase", "/liquibase/changelog")
             .WithEnvironment("LIQUIBASE_COMMAND_USERNAME", "postgres")
             .WithEnvironment("LIQUIBASE_COMMAND_PASSWORD", dbPassword)
