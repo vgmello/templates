@@ -1,5 +1,6 @@
 <script lang="ts">
 	import '../app.css';
+	import '$lib/telemetry/client.js';
 	import { page } from '$app/stores';
 	import { Button } from '$lib/components/ui/button';
 	import { Users, Home, FileText } from '@lucide/svelte';

@@ -2,9 +2,9 @@ import type { PageServerLoad } from './$types';
 import { cashierBffService } from '$lib/server/cashier-bff-service.js';
 import { error } from '@sveltejs/kit';
 
-export const load: PageServerLoad = async () => {
+export const load: PageServerLoad = async ({ locals }) => {
 	try {
-		const cashiers = await cashierBffService.getCashiers();
+		const cashiers = await cashierBffService.getCashiers({}, locals.traceContext);
 		
 		return {
 			cashiers

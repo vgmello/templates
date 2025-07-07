@@ -10,7 +10,7 @@ import type {
 
 export class CashierBffService {
 	// Cashiers list
-	async getCashiers(query: GetCashiersQuery = {}): Promise<GetCashiersResult[]> {
+	async getCashiers(query: GetCashiersQuery = {}, traceContext?: App.Locals['traceContext']): Promise<GetCashiersResult[]> {
 		const params = new URLSearchParams();
 		
 		Object.entries(query).forEach(([key, value]) => {
@@ -22,12 +22,12 @@ export class CashierBffService {
 		const queryString = params.toString();
 		const endpoint = queryString ? `/cashiers?${queryString}` : '/cashiers';
 		
-		return serverApiClient.get<GetCashiersResult[]>(endpoint);
+		return serverApiClient.get<GetCashiersResult[]>(endpoint, traceContext);
 	}
 
 	// Single cashier data
-	async getCashier(id: string): Promise<Cashier> {
-		return serverApiClient.get<Cashier>(`/cashiers/${id}`);
+	async getCashier(id: string, traceContext?: App.Locals['traceContext']): Promise<Cashier> {
+		return serverApiClient.get<Cashier>(`/cashiers/${id}`, traceContext);
 	}
 }
 

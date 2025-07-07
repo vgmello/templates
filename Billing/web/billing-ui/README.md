@@ -5,6 +5,7 @@ Modern SvelteKit web application for the Billing service, providing a responsive
 ## Overview
 
 The Billing UI is a full-stack SvelteKit application that provides:
+
 - Server-side rendering with client-side hydration
 - Type-safe API integration with the Billing backend
 - Responsive design using Tailwind CSS and shadcn-svelte components
@@ -107,6 +108,7 @@ billing-ui/
 ## Features
 
 ### Cashier Management
+
 - List cashiers with pagination
 - Create new cashiers with validation
 - Edit cashier information
@@ -114,6 +116,7 @@ billing-ui/
 - Multi-currency support
 
 ### Invoice Management
+
 - List invoices with filtering by status
 - Create invoices linked to cashiers
 - View invoice details
@@ -124,6 +127,7 @@ billing-ui/
 ### UI Components
 
 The application uses shadcn-svelte components for consistent design:
+
 - **Badge**: Status indicators
 - **Button**: Interactive elements
 - **Card**: Content containers
@@ -141,20 +145,20 @@ The UI integrates with the Billing API through a type-safe client:
 // Example: Fetching cashiers
 import { getCashiers } from '$lib/api/cashiers';
 
-const cashiers = await getCashiers({ 
-  limit: 10, 
-  offset: 0 
+const cashiers = await getCashiers({
+	limit: 10,
+	offset: 0
 });
 
 // Example: Creating an invoice
 import { createInvoice } from '$lib/api/invoices';
 
 const invoice = await createInvoice({
-  name: "Invoice #123",
-  amount: 100.50,
-  currency: "USD",
-  dueDate: new Date(),
-  cashierId: "..."
+	name: 'Invoice #123',
+	amount: 100.5,
+	currency: 'USD',
+	dueDate: new Date(),
+	cashierId: '...'
 });
 ```
 
@@ -164,7 +168,7 @@ Forms use SvelteKit's progressive enhancement:
 
 ```svelte
 <form method="POST" use:enhance>
-  <!-- Form fields -->
+	<!-- Form fields -->
 </form>
 ```
 
@@ -190,6 +194,7 @@ SESSION_SECRET=your-secret-key-here
 ### API Endpoints
 
 The UI expects the Billing API to be available at:
+
 - Development: `http://localhost:8101`
 - Production: Configure via `PUBLIC_API_URL`
 
@@ -254,6 +259,7 @@ CMD ["node", "build"]
 ### Integration with .NET Aspire
 
 When running via .NET Aspire, the UI is automatically configured with:
+
 - Service discovery for API endpoints
 - Health checks
 - Distributed tracing
@@ -264,24 +270,48 @@ When running via .NET Aspire, the UI is automatically configured with:
 ### Common Issues
 
 1. **API Connection Failed**
-   - Verify Billing API is running on port 8101
-   - Check `PUBLIC_API_URL` configuration
-   - Ensure CORS is configured if on different ports
+    - Verify Billing API is running on port 8101
+    - Check `PUBLIC_API_URL` configuration
+    - Ensure CORS is configured if on different ports
 
 2. **Type Errors**
-   - Run `pnpm check` to identify issues
-   - Ensure API types match expected interfaces
-   - Regenerate types if API changed
+    - Run `pnpm check` to identify issues
+    - Ensure API types match expected interfaces
+    - Regenerate types if API changed
 
 3. **Build Failures**
-   - Clear `node_modules` and `.svelte-kit`
-   - Run `pnpm install` fresh
-   - Check Node.js version (18+ required)
+    - Clear `node_modules` and `.svelte-kit`
+    - Run `pnpm install` fresh
+    - Check Node.js version (18+ required)
 
 4. **Test Failures**
-   - Ensure API is running for E2E tests
-   - Check test database is clean
-   - Review Playwright trace on failure
+    - Ensure API is running for E2E tests
+    - Check test database is clean
+    - Review Playwright trace on failure
+
+## OTEL
+
+### Core Packages
+
+@opentelemetry/api
+@opentelemetry/api-logs
+@opentelemetry/exporter-trace-otlp-http
+@opentelemetry/resources
+@opentelemetry/instrumentation
+@opentelemetry/semantic-conventions
+
+### Web SDK
+
+@opentelemetry/sdk-trace-web
+@opentelemetry/instrumentation-fetch
+@opentelemetry/instrumentation-document-load
+
+### Node SDK
+
+@opentelemetry/sdk-node
+@opentelemetry/sdk-logs
+@opentelemetry/sdk-trace-node
+@opentelemetry/instrumentation-http
 
 ## Development Tips
 

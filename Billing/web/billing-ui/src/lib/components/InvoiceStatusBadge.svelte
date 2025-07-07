@@ -11,17 +11,17 @@
 	let badgeVariant = $derived((() => {
 		switch (status) {
 			case InvoiceStatus.PAID:
-				return 'default';
+				return 'default' as const;
 			case InvoiceStatus.PENDING:
-				return 'secondary';
+				return 'secondary' as const;
 			case InvoiceStatus.DRAFT:
-				return 'outline';
+				return 'outline' as const;
 			case InvoiceStatus.CANCELLED:
-				return 'destructive';
+				return 'destructive' as const;
 			case InvoiceStatus.OVERDUE:
-				return 'default';
+				return 'default' as const;
 			default:
-				return 'outline';
+				return 'outline' as const;
 		}
 	})());
 
