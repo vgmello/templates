@@ -1,6 +1,7 @@
 import type { PageServerLoad } from './$types';
-import { invoiceBffService } from '$lib/server/invoice-bff-service.js';
 import { error } from '@sveltejs/kit';
+import { serverApiClient, ApiError } from '$lib/infrastructure';
+import type { InvoiceData } from '$lib/domain';
 
 export const load: PageServerLoad = async ({ params }) => {
 	const { id } = params;
@@ -12,15 +13,15 @@ export const load: PageServerLoad = async ({ params }) => {
 	}
 
 	try {
-		const invoice = await invoiceBffService.getInvoice(id);
+		const invoice = await serverApiClient.get<InvoiceData>(`/invoices/${id}`);
 		
 		return {
 			invoice
 		};
-	} catch (err: any) {
+	} catch (err) {
 		console.error('Failed to load invoice:', err);
 		
-		if (err.status === 404) {
+		if (err instanceof ApiError && err.status === 404) {
 			throw error(404, {
 				message: 'Invoice not found'
 			});
