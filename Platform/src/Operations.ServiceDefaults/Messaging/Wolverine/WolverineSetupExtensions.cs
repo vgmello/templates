@@ -107,11 +107,7 @@ public static class WolverineSetupExtensions
             opts.Policies.AddMiddleware<RequestPerformanceMiddleware>();
             opts.Policies.AddMiddleware(typeof(OpenTelemetryInstrumentationMiddleware));
 
-            // Add local integration events routing for same-domain events
-            services.AddSingleton<IWolverineExtension, LocalIntegrationEventsExtensions>();
-
-            // Add domain events routing using PostgreSQL queues
-            services.AddSingleton<IWolverineExtension, DomainEventsRoutingExtensions>();
+            opts.Policies.ConventionalLocalRoutingIsAdditive();
 
             var kafkaConnectionString = configuration.GetConnectionString(KafkaIntegrationEventsExtensions.ConnectionStringName);
 
@@ -128,7 +124,6 @@ public static class WolverineSetupExtensions
             }
 
             opts.ConfigureAppHandlers(opts.ApplicationAssembly);
-            opts.Policies.ConventionalLocalRoutingIsAdditive();
 
             opts.Services.AddResourceSetupOnStartup();
 
@@ -181,31 +176,9 @@ public static class WolverineSetupExtensions
             .Replace("-", "_")
             .ToLowerInvariant();
 
-#pragma warning disable CS0618 // Remove when EnableMessageTransport is implemented by Wolverine
-#pragma warning disable S125 // Remove when EnableMessageTransport is implemented by Wolverine
-
         options
-            .UsePostgresqlPersistenceAndTransport(connectionString, schema: persistenceSchema, transportSchema: "queues")
-            .AutoProvision();
-
-        // Uncomment the following lines once EnableMessageTransport is fully implemented in Wolverine
-        // options
-        //     .PersistMessagesWithPostgresql(connectionString, schemaName: persistenceSchema)
-        //     .EnableMessageTransport(transport =>
-        //         transport
-        //             .TransportSchemaName("queues")
-        //             .AutoProvision());
-
-#pragma warning restore S125
-#pragma warning restore CS0618
-
-        // options
-        //     .PublishAllMessages()
-        //     .ToPostgresqlQueue("outbound");
-        //
-        // options
-        //     .ListenToPostgresqlQueue("inbound")
-        //     .MaximumMessagesToReceive(50);
+            .PersistMessagesWithPostgresql(connectionString, schemaName: persistenceSchema)
+            .EnableMessageTransport(transport => transport.TransportSchemaName("queues"));
 
         return options;
     }
