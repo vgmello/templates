@@ -11,7 +11,8 @@ export default defineConfig({
 				changeOrigin: true,
 				rewrite: (path) => path.replace(/^\/api/, '')
 			}
-		}
+		},
+		port: 8105
 	},
 	test: {
 		projects: [
