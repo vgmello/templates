@@ -107,6 +107,12 @@ public static class WolverineSetupExtensions
             opts.Policies.AddMiddleware<RequestPerformanceMiddleware>();
             opts.Policies.AddMiddleware(typeof(OpenTelemetryInstrumentationMiddleware));
 
+            // Add local integration events routing for same-domain events
+            services.AddSingleton<IWolverineExtension, LocalIntegrationEventsExtensions>();
+
+            // Add domain events routing using PostgreSQL queues
+            services.AddSingleton<IWolverineExtension, DomainEventsRoutingExtensions>();
+
             var kafkaConnectionString = configuration.GetConnectionString(KafkaIntegrationEventsExtensions.ConnectionStringName);
 
             if (!string.IsNullOrEmpty(kafkaConnectionString))

@@ -2,8 +2,4 @@
 
 namespace Billing.Invoices.Contracts.DomainEvents;
 
-public class InvoiceGenerated
-{
-    public Guid InvoiceId { get; set; }
-    public decimal InvoiceAmount { get; set; }
-}
+public record InvoiceGenerated(Guid InvoiceId, decimal InvoiceAmount);
