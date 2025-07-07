@@ -196,6 +196,28 @@ pnpm test
 
 If you need to download any tools save them on the _temp folder
 
+## Billing UI Architecture Notes
+
+### Current Architecture
+The billing-ui follows a SvelteKit application structure with:
+- **Dual API Client Pattern**: Separate clients for browser (`/lib/api/client.ts`) and server (`/lib/server/api-client.ts`)
+- **BFF Services**: Lightweight aggregation in `/lib/server/*-bff-service.ts`
+- **Telemetry**: OpenTelemetry integration throughout with automatic instrumentation
+- **UI Components**: Using shadcn-svelte pattern in `/lib/components/ui/`
+
+### Key Refactoring Opportunities
+1. **Domain Layer**: Currently missing - business logic scattered across BFF and API layers
+2. **Error Handling**: Basic try-catch, needs domain-specific error types and boundaries
+3. **State Management**: Using basic SvelteKit load functions, could benefit from stores
+4. **Caching**: No caching strategy implemented
+5. **Type Safety**: Good foundation but DTOs and domain models are conflated
+
+### Navigation Tips
+- **API Integration**: Check `/lib/api/` for client-side and `/lib/server/` for SSR
+- **Routes**: Standard SvelteKit structure in `/routes/`
+- **Types**: Currently in `/lib/types/` but should be split into domain/dto/view models
+- **Telemetry**: Configured in `/lib/telemetry/` with both client and server tracing
+
 # Important-instruction-reminders
 ALWAYS do a git pull before starting any work to ensure I'm using the latest version.
 Keep the project documentation (README.md (s)) updated
