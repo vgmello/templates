@@ -9,11 +9,13 @@
     <include file="billing/tables/cashiers.sql"/>
     <include file="billing/tables/cashier_currencies.sql"/>
     <include file="billing/tables/invoices.sql"/>
-    <include file="billing/procedures/create_cashier.sql"/>
-    <include file="billing/procedures/update_cashier.sql"/>
-    <include file="billing/procedures/delete_cashier.sql"/>
-    <include file="billing/procedures/create_invoice.sql"/>
-    <include file="billing/procedures/cancel_invoice.sql"/>
-    <include file="billing/procedures/mark_invoice_as_paid.sql"/>
+    <include file="billing/procedures/cashiers_create.sql"/>
+    <include file="billing/procedures/cashiers_update.sql"/>
+    <include file="billing/procedures/cashiers_delete.sql"/>
+    <include file="billing/procedures/invoices_create.sql"/>
+    <include file="billing/procedures/invoices_cancel.sql"/>
+    <include file="billing/procedures/invoices_mark_paid.sql"/>
+    <include file="billing/procedures/invoices_get_single.sql"/>
+    <include file="billing/procedures/invoices_get.sql"/>
 
 </databaseChangeLog>

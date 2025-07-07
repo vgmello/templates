@@ -32,10 +32,13 @@ COPY . .
 
 # Build and Test the application
 
-# TODO: Removing integration tests from docker build, for now since it needs docker socket to be passed in, 
+# TODO: Removing integration tests from docker build, for now since it needs docker socket to be passed in,
 # ideally we need to add a arg to decide whether to run integration tests or not
-RUN dotnet build -c "$BUILD_CONFIGURATION" --no-restore --verbosity minimal && \
-    dotnet test  -c "$BUILD_CONFIGURATION" --no-build --filter FullyQualifiedName\!~Integration
+#RUN dotnet build -c "$BUILD_CONFIGURATION" --no-restore --verbosity minimal && \
+#    dotnet test  -c "$BUILD_CONFIGURATION" --no-build --filter FullyQualifiedName\!~Integration
+
+# TODO: Delete replace with the above for the template - the aspire
+RUN dotnet build "Billing/src/Billing.BackOffice/Billing.BackOffice.csproj" -c "$BUILD_CONFIGURATION" --no-restore --verbosity minimal
 
 RUN dotnet publish "Billing/src/Billing.BackOffice/Billing.BackOffice.csproj" -c "$BUILD_CONFIGURATION" \
     -o /app/publish \

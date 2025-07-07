@@ -1,0 +1,7 @@
+- name: Home
+  href: index.md
+- name: Content
+  href: content/
+- name: API Reference
+  href: api/
+  homepage: api/Operations.html

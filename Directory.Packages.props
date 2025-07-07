@@ -13,7 +13,8 @@
     <PackageVersion Include="Aspire.Hosting.Orleans" Version="9.3.1" />
     <PackageVersion Include="Aspire.Hosting.PostgreSQL" Version="9.3.1" />
     <PackageVersion Include="Aspire.Npgsql" Version="9.3.1" />
-    <PackageVersion Include="AspNetCore.HealthChecks.Kafka" Version="9.0.0" />
+    <PackageVersion Include="CloudNative.CloudEvents.Kafka" Version="2.8.0" />
+    <PackageVersion Include="CloudNative.CloudEvents.SystemTextJson" Version="2.8.0" />
     <PackageVersion Include="coverlet.collector" Version="6.0.4" />
     <PackageVersion Include="Dapper" Version="2.1.66" />
     <PackageVersion Include="FluentValidation" Version="12.0.0" />
@@ -24,7 +25,10 @@
     <PackageVersion Include="Grpc.AspNetCore.Web" Version="2.71.0" />
     <PackageVersion Include="Grpc.Net.Client" Version="2.71.0" />
     <PackageVersion Include="Grpc.Net.Client.Web" Version="2.71.0" />
-    <PackageVersion Include="Grpc.Tools" Version="2.72.0" />
+    <PackageVersion Include="Grpc.Tools" Version="2.72.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageVersion>
     <PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="9.0.6" />
     <PackageVersion Include="Microsoft.AspNetCore.OpenApi" Version="9.0.6" />
     <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.CodeRefactoring.Testing" Version="1.1.2" />
@@ -58,7 +62,7 @@
     <PackageVersion Include="OpenTelemetry.Instrumentation.Runtime" Version="1.12.0" />
     <PackageVersion Include="Confluent.Kafka.Extensions.OpenTelemetry" Version="0.4.0" />
     <PackageVersion Include="OrleansDashboard" Version="8.2.0" />
-    <PackageVersion Include="Scalar.AspNetCore" Version="2.5.0" />
+    <PackageVersion Include="Scalar.AspNetCore" Version="2.5.3" />
     <PackageVersion Include="Serilog.AspNetCore" Version="9.0.0" />
     <PackageVersion Include="Serilog.Exceptions" Version="8.4.0" />
     <PackageVersion Include="Serilog.Sinks.OpenTelemetry" Version="4.2.0" />
@@ -70,14 +74,12 @@
     <PackageVersion Include="System.ComponentModel.Annotations" Version="5.0.0" />
     <PackageVersion Include="Testcontainers" Version="4.6.0" />
     <PackageVersion Include="Testcontainers.PostgreSql" Version="4.6.0" />
-    <PackageVersion Include="WolverineFx" Version="4.4.0" />
+    <PackageVersion Include="WolverineFx" Version="4.5.0" />
     <PackageVersion Include="WolverineFx.Http" Version="3.10.4" />
     <PackageVersion Include="WolverineFx.Http.FluentValidation" Version="3.10.4" />
-    <PackageVersion Include="WolverineFx.Kafka" Version="4.4.0" />
-    <PackageVersion Include="WolverineFx.Postgresql" Version="4.4.0" />
+    <PackageVersion Include="WolverineFx.Kafka" Version="4.5.0" />
+    <PackageVersion Include="WolverineFx.Postgresql" Version="4.5.0" />
     <PackageVersion Include="Riok.Mapperly" Version="4.2.1" />
-    <PackageVersion Include="CloudNative.CloudEvents" Version="2.8.0" />
-    <PackageVersion Include="CloudNative.CloudEvents.SystemTextJson" Version="2.8.0" />
     <PackageVersion Include="xunit.runner.visualstudio" Version="3.1.1">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>

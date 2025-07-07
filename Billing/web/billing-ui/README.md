@@ -1,94 +1,300 @@
-# Billing Service UI
+# Billing UI
 
-A modern SvelteKit web application for managing the Billing Service cashiers, built with Svelte 5, Tailwind CSS, and shadcn-svelte components.
+Modern SvelteKit web application for the Billing service, providing a responsive interface for managing cashiers and invoices.
 
-## Features
+## Overview
 
-- **Dashboard**: Overview of billing service features
-- **Cashier Management**: Create, view, and manage cashiers
-- **Elegant UI**: Built with shadcn-svelte components and Tailwind CSS
-- **Responsive Design**: Works on desktop and mobile devices
-- **Real-time Data**: Connects to the Billing API for live data
+The Billing UI is a full-stack SvelteKit application that provides:
+- Server-side rendering with client-side hydration
+- Type-safe API integration with the Billing backend
+- Responsive design using Tailwind CSS and shadcn-svelte components
+- Form handling with progressive enhancement
+- Real-time validation and error handling
 
 ## Tech Stack
 
 - **Framework**: SvelteKit with Svelte 5
-- **Styling**: Tailwind CSS
-- **Components**: shadcn-svelte
+- **Language**: TypeScript
+- **Styling**: Tailwind CSS + shadcn-svelte components
 - **Icons**: Lucide Svelte
-- **API**: REST API communication with Billing Service
-
-## Prerequisites
-
-- Node.js 18+ 
-- npm
-- Billing Service API running on http://localhost:8101 (HTTP) and localhost:8102 (gRPC)
+- **Testing**: Vitest (unit) + Playwright (E2E)
+- **Database**: PostgreSQL with Drizzle ORM (for auth/session management)
 
 ## Getting Started
 
-1. **Install dependencies**
-   ```bash
-   npm install
-   ```
+### Prerequisites
 
-2. **Start development server**
-   ```bash
-   npm run dev
-   ```
+- Node.js 18+ and pnpm (or npm)
+- Billing API running on http://localhost:8101
+- PostgreSQL for session storage (optional, uses API's database)
 
-3. **Open in browser**
-   ```
-   http://localhost:3001
-   ```
+### Installation
+
+```bash
+# Install dependencies
+pnpm install
+
+# Start development server
+pnpm dev
+
+# The UI will be available at http://localhost:5173
+```
+
+### Development Commands
+
+```bash
+# Development server with hot reload
+pnpm dev
+
+# Type checking
+pnpm check
+pnpm check:watch  # Watch mode
+
+# Linting and formatting
+pnpm lint         # Check code style
+pnpm format       # Auto-format code
+
+# Testing
+pnpm test:unit    # Unit tests with Vitest
+pnpm test:e2e     # E2E tests with Playwright
+pnpm test         # Run all tests
+
+# Building
+pnpm build        # Production build
+pnpm preview      # Preview production build
+
+# Database (for auth/sessions)
+pnpm db:push      # Push schema changes
+pnpm db:migrate   # Run migrations
+pnpm db:studio    # Open Drizzle Studio
+```
 
 ## Project Structure
 
 ```
-src/
-├── lib/
-│   ├── components/ui/     # shadcn-svelte components
-│   ├── api.js            # API service layer
-│   └── utils.js          # Utility functions
-├── routes/
-│   ├── +layout.svelte    # App layout
-│   ├── +page.svelte      # Dashboard
-│   └── cashiers/         # Cashier management pages
-└── app.css              # Global styles
+billing-ui/
+├── src/
+│   ├── routes/               # SvelteKit routes (pages)
+│   │   ├── +layout.svelte   # Root layout
+│   │   ├── +page.svelte     # Home/dashboard
+│   │   ├── cashiers/        # Cashier management
+│   │   │   ├── +page.svelte # List view
+│   │   │   ├── create/      # Create form
+│   │   │   └── [id]/        # Detail/edit views
+│   │   └── invoices/        # Invoice management
+│   │       ├── +page.svelte # List view
+│   │       ├── create/      # Create form
+│   │       └── [id]/        # Detail view
+│   ├── lib/
+│   │   ├── api/             # API client layer
+│   │   │   ├── client.ts    # Base HTTP client
+│   │   │   ├── cashiers.ts  # Cashier endpoints
+│   │   │   └── invoices.ts  # Invoice endpoints
+│   │   ├── components/      # Reusable components
+│   │   │   ├── ui/          # shadcn-svelte components
+│   │   │   └── *.svelte     # Custom components
+│   │   ├── server/          # Server-side utilities
+│   │   │   ├── auth.ts      # Authentication
+│   │   │   └── db/          # Database schema
+│   │   ├── types/           # TypeScript types
+│   │   └── utils/           # Utility functions
+│   └── app.html             # HTML template
+├── tests/                    # Test files
+├── static/                   # Static assets
+└── *.config.js              # Configuration files
 ```
 
-## Available Scripts
-
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
-- `npm run preview` - Preview production build
-- `npm run check` - Type checking
-
-## API Integration
-
-The app connects to the Billing Service API via gRPC at `localhost:8102`. If the API is unavailable, the app will fall back to mock data for development purposes.
-
-### Endpoints Used
-
-- `GET /cashiers` - List all cashiers
-- `GET /cashiers/{id}` - Get cashier details
-- `POST /cashiers` - Create new cashier
-- `PUT /cashiers/{id}` - Update cashier
-- `DELETE /cashiers/{id}` - Delete cashier
-
-## Features Overview
-
-### Dashboard
-- Service overview with quick navigation
-- Feature cards for different service areas
+## Features
 
 ### Cashier Management
-- **List View**: Grid of cashier cards with key information
-- **Create Form**: Multi-step form for adding new cashiers
-- **Detail View**: Complete cashier information and payment configurations
-- **Edit/Delete**: Manage existing cashiers
+- List cashiers with pagination
+- Create new cashiers with validation
+- Edit cashier information
+- Delete cashiers (with confirmation)
+- Multi-currency support
+
+### Invoice Management
+- List invoices with filtering by status
+- Create invoices linked to cashiers
+- View invoice details
+- Cancel unpaid invoices
+- Mark invoices as paid
+- Copy invoice reference numbers
 
 ### UI Components
-- Responsive design with mobile-first approach
-- Loading states and error handling
-- Form validation and user feedback
-- Elegant card layouts and typography
+
+The application uses shadcn-svelte components for consistent design:
+- **Badge**: Status indicators
+- **Button**: Interactive elements
+- **Card**: Content containers
+- **Dialog**: Modal interactions
+- **Input**: Form fields
+- **Table**: Data display
+- **CurrencyInput**: Formatted currency entry
+- **CurrencyDisplay**: Formatted currency display
+
+### API Integration
+
+The UI integrates with the Billing API through a type-safe client:
+
+```typescript
+// Example: Fetching cashiers
+import { getCashiers } from '$lib/api/cashiers';
+
+const cashiers = await getCashiers({ 
+  limit: 10, 
+  offset: 0 
+});
+
+// Example: Creating an invoice
+import { createInvoice } from '$lib/api/invoices';
+
+const invoice = await createInvoice({
+  name: "Invoice #123",
+  amount: 100.50,
+  currency: "USD",
+  dueDate: new Date(),
+  cashierId: "..."
+});
+```
+
+### Form Handling
+
+Forms use SvelteKit's progressive enhancement:
+
+```svelte
+<form method="POST" use:enhance>
+  <!-- Form fields -->
+</form>
+```
+
+Server-side actions handle validation and API calls, providing a seamless experience even without JavaScript.
+
+## Configuration
+
+### Environment Variables
+
+Create a `.env` file for local development:
+
+```bash
+# API Configuration
+PUBLIC_API_URL=http://localhost:8101
+
+# Database (for sessions)
+DATABASE_URL=postgres://postgres:password@@localhost:54320/billing
+
+# Session Secret
+SESSION_SECRET=your-secret-key-here
+```
+
+### API Endpoints
+
+The UI expects the Billing API to be available at:
+- Development: `http://localhost:8101`
+- Production: Configure via `PUBLIC_API_URL`
+
+## Testing
+
+### Unit Tests
+
+Unit tests use Vitest and test individual components:
+
+```bash
+pnpm test:unit
+```
+
+### E2E Tests
+
+End-to-end tests use Playwright to test full user workflows:
+
+```bash
+# Run tests
+pnpm test:e2e
+
+# Run in UI mode
+pnpm test:e2e -- --ui
+
+# Run specific test
+pnpm test:e2e demo.test.ts
+```
+
+## Deployment
+
+### Building for Production
+
+```bash
+# Build the application
+pnpm build
+
+# Preview the build
+pnpm preview
+```
+
+### Docker Support
+
+The UI can be containerized and deployed with the Billing service:
+
+```dockerfile
+FROM node:20-alpine AS builder
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci
+COPY . .
+RUN npm run build
+
+FROM node:20-alpine
+WORKDIR /app
+COPY --from=builder /app/build ./build
+COPY --from=builder /app/package*.json ./
+RUN npm ci --production
+EXPOSE 3000
+CMD ["node", "build"]
+```
+
+### Integration with .NET Aspire
+
+When running via .NET Aspire, the UI is automatically configured with:
+- Service discovery for API endpoints
+- Health checks
+- Distributed tracing
+- Centralized logging
+
+## Troubleshooting
+
+### Common Issues
+
+1. **API Connection Failed**
+   - Verify Billing API is running on port 8101
+   - Check `PUBLIC_API_URL` configuration
+   - Ensure CORS is configured if on different ports
+
+2. **Type Errors**
+   - Run `pnpm check` to identify issues
+   - Ensure API types match expected interfaces
+   - Regenerate types if API changed
+
+3. **Build Failures**
+   - Clear `node_modules` and `.svelte-kit`
+   - Run `pnpm install` fresh
+   - Check Node.js version (18+ required)
+
+4. **Test Failures**
+   - Ensure API is running for E2E tests
+   - Check test database is clean
+   - Review Playwright trace on failure
+
+## Development Tips
+
+1. **Type Safety**: Leverage TypeScript for API integration
+2. **Component Reuse**: Use shadcn-svelte components consistently
+3. **Progressive Enhancement**: Ensure forms work without JavaScript
+4. **Accessibility**: Test with keyboard navigation and screen readers
+5. **Performance**: Use SvelteKit's preloading and code splitting
+
+## Contributing
+
+1. Follow the existing code style (Prettier configuration)
+2. Write tests for new features
+3. Update types when API changes
+4. Ensure accessibility standards are met
+5. Test on mobile devices for responsive design

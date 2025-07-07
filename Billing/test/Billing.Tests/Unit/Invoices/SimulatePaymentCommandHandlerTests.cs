@@ -1,7 +1,7 @@
 // Copyright (c) ABCDEG. All rights reserved.
 
 using Billing.Invoices.Commands;
-using Billing.Contracts.Invoices.IntegrationEvents;
+using Billing.Invoices.Contracts.IntegrationEvents;
 using NSubstitute;
 using Operations.Extensions.Abstractions.Messaging;
 using Operations.Extensions.Messaging;

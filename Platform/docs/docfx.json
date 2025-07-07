@@ -1,0 +1,87 @@
+{
+  "$schema": "https://raw.githubusercontent.com/dotnet/docfx/main/schemas/docfx.schema.json",
+  "metadata": [
+    {
+      "src": [
+        {
+          "src": "../src",
+          "files": [
+            "**/bin/Release/**/Operations*.dll",
+            "**/bin/Debug/**/Operations*.dll"
+          ],
+          "exclude": [
+            "**/*.AppHost.dll"
+          ]
+        }
+      ],
+      "output": "api",
+      "namespaceLayout": "nested",
+      "categoryLayout": "nested"
+    }
+  ],
+  "build": {
+    "content": [
+      {
+        "files": [
+          "**/*.{md,yml}"
+        ],
+        "exclude": [
+          "_site/**",
+          "obj/**",
+          "bin/**"
+        ]
+      },
+      {
+        "src": "../",
+        "files": [
+          "README.md"
+        ],
+        "dest": ""
+      }
+    ],
+    "resource": [
+      {
+        "files": [
+          "images/**"
+        ]
+      }
+    ],
+    "src": [
+      {
+        "src": "../samples",
+        "files": [
+          "**/*.cs"
+        ],
+        "name": "samples"
+      }
+    ],
+    "output": "_site",
+    "template": [
+      "default",
+      "modern",
+      "templates/ms_theme"
+    ],
+    "globalMetadata": {
+      "_appName": "Platform Operations Service",
+      "_appTitle": "Platform Operations Service Documentation",
+      "_enableSearch": true,
+      "_searchIndexUseMetadata": true,
+      "_enableNewTab": true,
+      "pdf": false,
+      "_appLogoPath": "",
+      "_appFaviconPath": "images/favicon.ico",
+      "_gitContribute": {
+        "repo": "https://github.com/your-org/platform-operations-service",
+        "branch": "main"
+      },
+      "_gitUrlPattern": "github",
+      "_enableBreadcrumb": true
+    },
+    "fileMetadata": {
+      "_enableSearch": {
+        "content/**/*.md": true,
+        "../README.md": true
+      }
+    }
+  }
+}

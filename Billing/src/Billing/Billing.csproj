@@ -12,8 +12,12 @@
         <ProjectReference Include="..\..\..\Platform\src\Operations.Extensions\Operations.Extensions.csproj"/>
         <ProjectReference Include="..\..\..\Platform\src\Operations.Extensions.SourceGenerators\Operations.Extensions.SourceGenerators.csproj"
                           OutputItemType="Analyzer" ReferenceOutputAssembly="false"/>
-
-        <ProjectReference Include="..\Billing.Contracts\Billing.Contracts.csproj"/>
     </ItemGroup>
 
+    <ItemGroup>
+        <AssemblyAttribute Include="Operations.Extensions.Abstractions.Messaging.DefaultDomainAttribute">
+            <Domain>Billing123</Domain>
+        </AssemblyAttribute>
+    </ItemGroup>
+    
 </Project>

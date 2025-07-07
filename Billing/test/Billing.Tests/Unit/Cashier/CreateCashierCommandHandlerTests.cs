@@ -1,7 +1,7 @@
 // Copyright (c) ABCDEG. All rights reserved.
 
-using Billing.Cashier.Commands;
-using Billing.Contracts.Cashier.IntegrationEvents;
+using Billing.Cashiers.Commands;
+using Billing.Cashiers.Contracts.IntegrationEvents;
 using NSubstitute;
 using Operations.Extensions.Messaging;
 using Wolverine;
@@ -19,7 +19,7 @@ public class CreateCashierCommandHandlerTests
         messagingMock.InvokeCommandAsync(Arg.Any<CreateCashierCommandHandler.InsertCashierCommand>(), Arg.Any<CancellationToken>())
             .Returns(1);
 
-        var command = new CreateCashierCommand("John Doe", "john.doe@example.com");
+        var command = new CreateCashierCommand(Guid.Empty, "John Doe", "john.doe@example.com");
 
         // Act
         var (result, integrationEvent) = await CreateCashierCommandHandler.Handle(command, messagingMock, CancellationToken.None);
@@ -56,8 +56,8 @@ public class CreateCashierCommandHandlerTests
         messagingMock.InvokeCommandAsync(Arg.Any<CreateCashierCommandHandler.InsertCashierCommand>(), Arg.Any<CancellationToken>())
             .Returns(1);
 
-        var command1 = new CreateCashierCommand("Cashier 1", "cashier1@test.com");
-        var command2 = new CreateCashierCommand("Cashier 2", "cashier2@test.com");
+        var command1 = new CreateCashierCommand(Guid.Empty, "Cashier 1", "cashier1@test.com");
+        var command2 = new CreateCashierCommand(Guid.Empty, "Cashier 2", "cashier2@test.com");
 
         // Act
         var handlerResult1 = await CreateCashierCommandHandler.Handle(command1, messagingMock, CancellationToken.None);
@@ -75,12 +75,12 @@ public class CreateCashierCommandHandlerTests
     {
         // Arrange
         var messagingMock = Substitute.For<IMessageBus>();
-        var command = new CreateCashierCommand("error", "test@example.com");
+        var command = new CreateCashierCommand(Guid.Empty, "error", "test@example.com");
 
         // Act & Assert
         var exception = await Should.ThrowAsync<DivideByZeroException>(async () =>
             await CreateCashierCommandHandler.Handle(command, messagingMock, CancellationToken.None));
 
-        exception.Message.ShouldBe("Forced test exception to simulate error scenarios");
+        exception.Message.ShouldBe("Forced test unhandled exception to simulate error scenarios");
     }
 }

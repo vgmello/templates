@@ -8,12 +8,35 @@ using Wolverine;
 
 namespace Operations.ServiceDefaults.Messaging.Middlewares;
 
+/// <summary>
+///     Wolverine middleware that tracks message processing performance and logs execution metrics.
+/// </summary>
+/// <remarks>
+///     This middleware:
+///     <list type="bullet">
+///         <item>Records message processing start and end times</item>
+///         <item>Logs message receipt, completion, and failures</item>
+///         <item>Updates messaging metrics for monitoring</item>
+///         <item>Tracks message processing duration</item>
+///     </list>
+///     The middleware is automatically applied to all message handlers via the messaging policy.
+/// </remarks>
 public partial class RequestPerformanceMiddleware
 {
     private string _messageTypeName = string.Empty;
     private long _startedTime;
     private MessagingMetrics? _messagingMetrics;
 
+    /// <summary>
+    ///     Executes before message processing begins.
+    /// </summary>
+    /// <param name="logger">The logger instance.</param>
+    /// <param name="envelope">The message envelope containing metadata.</param>
+    /// <param name="meterStore">The metrics store for recording telemetry.</param>
+    /// <remarks>
+    ///     This method captures the start time, logs message receipt, and increments
+    ///     the message received counter in the metrics system.
+    /// </remarks>
     public void Before(ILogger logger, Envelope envelope, MessagingMeterStore meterStore)
     {
         _messageTypeName = envelope.GetMessageName();
@@ -27,6 +50,15 @@ public partial class RequestPerformanceMiddleware
         _messagingMetrics.MessageReceived();
     }
 
+    /// <summary>
+    ///     Executes after message processing completes (successfully or with failure).
+    /// </summary>
+    /// <param name="logger">The logger instance.</param>
+    /// <param name="envelope">The message envelope containing metadata and failure information.</param>
+    /// <remarks>
+    ///     This method calculates the elapsed time, logs the outcome (success or failure),
+    ///     and records the processing duration and any exceptions in the metrics system.
+    /// </remarks>
     public void Finally(ILogger logger, Envelope envelope)
     {
         var elapsedTime = Stopwatch.GetElapsedTime(_startedTime);

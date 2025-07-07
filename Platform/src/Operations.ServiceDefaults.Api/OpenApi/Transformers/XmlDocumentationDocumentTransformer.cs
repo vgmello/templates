@@ -9,6 +9,18 @@ using System.Reflection;
 
 namespace Operations.ServiceDefaults.Api.OpenApi.Transformers;
 
+/// <summary>
+///     Transforms OpenAPI documents by enriching them with XML documentation and assembly metadata.
+/// </summary>
+/// <remarks>
+///     This transformer enhances the OpenAPI specification with:
+///     <list type="bullet">
+///         <item>Controller documentation as tag descriptions</item>
+///         <item>Assembly company information as contact details</item>
+///         <item>Assembly copyright as license information</item>
+///         <item>Assembly version as custom metadata</item>
+///     </list>
+/// </remarks>
 public class XmlDocumentationDocumentTransformer(
     ILogger<XmlDocumentationDocumentTransformer> logger,
     IXmlDocumentationService xmlDocumentationService

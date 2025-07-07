@@ -1,298 +1,203 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+## Billing Service
 
-## Common Commands
+### Quick Start
 
-### Build and Run
+#### Using .NET Aspire (Recommended)
 ```bash
-# Build entire solution
-dotnet build Operations.slnx
-
-# Run specific service
-dotnet run --project Billing/src/Billing.Api
-dotnet run --project Accounting/src/Accounting.Api
-
-# Run tests
-dotnet test
-
-# Run with Docker Compose
-docker-compose up --build
-```
-
-### Docker Build Commands
-```bash
-# Build individual service images
-docker build -t billing-api -f Billing/src/Billing.Api/Dockerfile .
-docker build -t billing-backoffice -f Billing/src/Billing.BackOffice/Dockerfile .
-docker build -t accounting-api -f Accounting/src/Accounting.Api/Dockerfile .
-docker build -t accounting-backoffice -f Accounting/src/Accounting.BackOffice/Dockerfile .
-
-# Run individual containers
-docker run -p 8101:8080 billing-api
-docker run -p 8121:8080 accounting-api
-```
-
-### Database Setup (Required before first run)
-```bash
-cd Billing/infra/Billing.Database/
-
-# Step 1: Setup databases
-liquibase update --defaults-file liquibase.setup.properties
-
-# Step 2: Service bus schema  
-liquibase update --defaults-file liquibase.servicebus.properties
-
-# Step 3: Domain schema
-liquibase update
-```
-
-### Database Management
-```bash
-# Check migration status
-liquibase status
-
-# View migration history
-liquibase history
-
-# Rollback last migration
-liquibase rollback-count 1
-```
-
-## Architecture Overview
-
-This is a .NET 9 microservices system using Domain-Driven Design with these core patterns:
-
-### Service Structure
-Each service follows this pattern:
-- `*.Api` - REST/gRPC endpoints
-- `*.BackOffice` - Background jobs and event handlers  
-- `*.Contracts` - Integration events and shared models
-- `*` (Core) - Domain logic, commands, queries, entities
-- `*.AppHost` - .NET Aspire orchestration
-- `*.Tests` - Integration and architecture tests
-
-### Technology Stack
-- **Messaging**: WolverineFx for CQRS/Event Sourcing
-- **Communication**: gRPC with Protocol Buffers
-- **Database**: PostgreSQL with Liquibase migrations
-- **Orchestration**: .NET Aspire for service discovery
-- **Observability**: OpenTelemetry, Serilog, Health Checks
-- **Validation**: FluentValidation with automatic registration
-
-### Key Services
-- **Accounting** - Ledgers, business day operations
-- **Billing** - Cashiers, invoices, payments
-- **Platform/Operations** - Shared infrastructure
-
-## Database Architecture
-
-Multi-database approach with separate databases per service:
-- Main domain databases (e.g., `billing`)
-- Shared `service_bus` database for messaging
-- Hierarchical Liquibase changelogs with automatic inclusion
-
-## Testing Approach
-
-- **xUnit v3** with Microsoft Testing Platform
-- **Integration tests** using WebApplicationFactory and Testcontainers
-- **Architecture tests** with NetArchTest to enforce layering
-- **Mocking** with NSubstitute, assertions with Shouldly
-
-## Port Configuration
-
-This system uses a structured port allocation pattern optimized for macOS compatibility:
-
-### **Service Port Ranges**
-- **Billing**: 8100-8119 (20 ports)
-- **Accounting**: 8120-8139 (20 ports)  
-- **Operations**: 8140-8159 (20 ports)
-
-### **Port Pattern Within Each Service**
-```
-XX00: Aspire Resource Service (HTTP)
-XX01: Main API (HTTP)
-XX02: Main API (gRPC)
-XX03: BackOffice (HTTP)
-XX04: Orleans (HTTP)
-XX10: Aspire Resource Service (HTTPS)
-XX11: Main API (HTTPS)
-XX13: BackOffice (HTTPS)
-XX14: Orleans (HTTPS)
-XX19: Documentation (last port of range)
-```
-
-### **Aspire Dashboard Ports**
-- **HTTP**: Service base + 10,000 (e.g., 8100 → 18100)
-- **HTTPS**: Service base + 10,010 (e.g., 8100 → 18110)
-
-### **Current Service Ports**
-
-#### **Billing Service (8100-8119)**
-- Aspire Dashboard: 18100 (HTTP), 18110 (HTTPS)
-- Aspire Resource: 8100 (HTTP), 8110 (HTTPS)
-- API: 8101 (HTTP), 8111 (HTTPS), 8102 (gRPC)
-- BackOffice: 8103 (HTTP), 8113 (HTTPS)
-- Orleans: 8104 (HTTP), 8114 (HTTPS)
-- Documentation: 8119
-
-#### **Accounting Service (8120-8139)**
-- Aspire Dashboard: 18120 (HTTP), 18130 (HTTPS)
-- Aspire Resource: 8120 (HTTP), 8130 (HTTPS)
-- API: 8121 (HTTP), 8131 (HTTPS), 8122 (gRPC)
-- BackOffice: 8123 (HTTP), 8133 (HTTPS)
-- Orleans: 8124 (HTTP), 8134 (HTTPS)
-- Documentation: 8139 (reserved)
-
-#### **Operations Service (8140-8159)**
-- Aspire Dashboard: 18140 (HTTP), 18150 (HTTPS)
-- Aspire Resource: 8140 (HTTP), 8150 (HTTPS)
-- Documentation: 8159 (reserved)
-
-### **Shared Services (Standard Ports)**
-- **PostgreSQL**: 5432
-- **OpenTelemetry**: 4317 (HTTPS), 4318 (HTTP)
-
-## API Testing
-
-### Docker Compose Testing (Billing Service)
-```bash
-# Start billing services with database migrations
-docker compose -f docker-compose.billing.yml up -d
-
-# Wait for services to start (about 10 seconds)
-sleep 10
-
-# Test API - Create a cashier
-curl -X POST http://localhost:5061/cashiers \
-  -H "Content-Type: application/json" \
-  -d '{
-    "name": "John Doe",
-    "email": "john.doe@example.com", 
-    "currencies": ["USD", "EUR"]
-  }'
-
-# Verify in database
-docker exec billing-db psql -U postgres -d billing -c "SELECT * FROM billing.cashiers;"
-
-# Clean up
-docker compose -f docker-compose.billing.yml down
-```
-
-### Manual API Testing
-```bash
-# Create cashier
-curl -X POST http://localhost:5061/cashiers \
-  -H "Content-Type: application/json" \
-  -d '{"name": "Jane Smith", "email": "jane@example.com", "currencies": ["USD"]}'
-
-# Get cashiers
-curl http://localhost:5061/cashiers
-
-# Create invoice
-curl -X POST http://localhost:5061/invoices \
-  -H "Content-Type: application/json" \
-  -d '{"cashierId": "CASHIER_ID", "amount": 100.00, "currency": "USD"}'
-```
-
-## UI Integration
-
-### **Frontend Architecture**
-- **SvelteKit UI** located at `Billing/web/billing-ui/`
-- **gRPC Communication** with Billing API using `@grpc/grpc-js`
-- **Integrated with Aspire** orchestration for development
-- **Responsive Design** with Tailwind CSS and Lucide icons
-
-### **Aspire Integration**
-```csharp
-// In Billing.AppHost/Program.cs
-var billingUi = builder
-    .AddNpmApp("billing-ui", "../../../Billing/web/billing-ui")
-    .WithReference(billingApi)
-    .WithEnvironment("GRPC_HOST", () => billingApi.GetEndpoint("grpc").Host)
-    .WithEnvironment("GRPC_PORT", () => billingApi.GetEndpoint("grpc").Port.ToString())
-    .WithHttpEndpoint(env: "PORT")
-    .WithExternalHttpEndpoints()
-    .PublishAsDockerFile();
-```
-
-### **UI Development Commands**
-```bash
-# Install UI dependencies
-cd Billing/web/billing-ui && npm install
-
-# Run UI in development mode
-npm run dev
-
-# Build UI for production
-npm run build
-
-# Run UI tests (requires backend to be running - see below)
-npm run test:ui
-
-# Run UI tests with mocked API (standalone, no backend required)
-npm run test:mock
-```
-
-### **Backend Setup for UI Tests**
-UI Playwright tests require the backend gRPC API to be running. The UI tests use the gRPC API only.
-
-```bash
-# Method 1: Run full Aspire orchestration (recommended)
 cd Billing/src/Billing.AppHost
 dotnet run
-
-# Method 2: Run API standalone for testing
-cd Billing/src/Billing.Api
-dotnet run --launch-profile http
-# This runs HTTP on port 8101 and gRPC on port 8102
-
-# Method 3: Using Docker Compose (minimal setup)
-docker compose -f Billing/compose.yml up billing-api -d
 ```
 
-**Important:** 
-- All Playwright tests should use `npm run test:ui` as the command prefix
-- Backend must be running on port 8102 (gRPC) for UI tests to pass
-- Use `npm run test:mock` for tests without backend dependency
+This automatically:
+- Sets up PostgreSQL databases with Liquibase migrations
+- Starts all services (UI, API, BackOffice, Orleans)
+- Configures service discovery and dependencies
+- Provides observability dashboard
 
-## Recent Updates
+Access Points:
+- **Aspire Dashboard**: http://localhost:18100
+- **Billing Web UI**: http://localhost:8105
+- **Billing API**: http://localhost:8101/scalar
+- **Orleans Dashboard**: http://localhost:8104/dashboard
+- **Documentation**: http://localhost:8119
 
-### **Stored Procedures Refactored (2024)**
-- Changed naming pattern from `action_resource` to `resource_action`
-- Updated procedures: `cashier_create`, `cashier_update`, `cashier_delete`, `invoice_create`, `invoice_update`, `invoice_cancel`
-- All C# references updated to match new procedure names
+#### Using Docker Compose
+```bash
+# Backend services only
+docker compose -f Billing/compose.yml --profile api up -d
 
-### **OpenAPI Documentation Added**
-- Comprehensive documentation for all controllers with XML summaries
-- Response types and error codes properly documented
-- Tags added for better API organization using Microsoft OpenAPI extensions
+# Backend + documentation
+docker compose -f Billing/compose.yml --profile api --profile docs up -d
 
-### **Result Pattern Implementation**
-- `GetInvoice` query updated to use Result pattern instead of exceptions
-- Uses OneOf library with ValidationFailure for error handling
-- Consistent error handling across query operations
+# All services (including Aspire dashboard)
+docker compose -f Billing/compose.yml --profile api --profile backoffice --profile aspire up -d
+```
 
-### **Integration Events Refactored**
-- Removed "Event" suffix from all integration events
-- Updated filenames and all references across the codebase
-- Events: `CashierCreated`, `InvoicePaid`, `CashierUpdated`, etc.
+### Architecture Overview
 
-### **Cancellation Token Support**
-- Added cancellation tokens to all CashiersController operations
-- Improved async operation handling and cancellation support
+#### Backend Services
+- **Billing.Api** - REST + gRPC API (ports 8101/8102)
+  - Cashier management endpoints
+  - Invoice processing endpoints
+  - Health checks and OpenAPI documentation
+- **Billing.BackOffice** - Event-driven background processing (port 8103)
+  - Wolverine-based message handling
+  - Integration event processing
+- **Billing.BackOffice.Orleans** - Stateful invoice processing (port 8104)
+  - Orleans actors with 3-replica clustering
+  - Azure Storage persistence
+- **Billing** (Core) - Domain logic with DDD patterns
+  - Commands, queries, entities
+  - FluentValidation
+  - Source-generated DB commands
 
-## Development Notes
+#### Frontend
+- **billing-ui** - SvelteKit application (port 8105)
+  - Svelte 5 with TypeScript
+  - Tailwind CSS + shadcn-svelte components
+  - Server-side rendering with client hydration
 
-- **Prerequisites**: PostgreSQL running on localhost:5432
-- **Service Discovery**: Automatic via .NET Aspire
+### API Endpoints
+
+#### REST API
+
+**Cashiers**
+- `GET /cashiers` - List cashiers (paginated)
+- `GET /cashiers/{id}` - Get specific cashier
+- `POST /cashiers` - Create cashier
+- `PUT /cashiers/{id}` - Update cashier
+- `DELETE /cashiers/{id}` - Delete cashier
+
+**Invoices**
+- `GET /invoices` - List invoices (filtered, paginated)
+- `GET /invoices/{id}` - Get specific invoice
+- `POST /invoices` - Create invoice
+- `PUT /invoices/{id}/cancel` - Cancel invoice
+- `PUT /invoices/{id}/mark-paid` - Mark invoice as paid
+- `POST /invoices/{id}/simulate-payment` - Simulate payment (testing)
+
+#### gRPC Services
+- `cashiers.CashiersService` - Full cashier CRUD
+- `invoices.InvoicesService` - Full invoice management
+
+### Frontend Development
+
+#### Setup
+```bash
+cd Billing/web/billing-ui
+pnpm install  # or npm install
+```
+
+#### Development Commands
+```bash
+pnpm dev          # Start dev server (http://localhost:5173)
+pnpm build        # Build for production
+pnpm preview      # Preview production build
+pnpm check        # TypeScript type checking
+pnpm lint         # ESLint + Prettier check
+pnpm format       # Auto-format code
+pnpm test:unit    # Run unit tests with Vitest
+pnpm test:e2e     # Run E2E tests with Playwright
+```
+
+#### Key Features
+- Server-side rendering with form actions
+- Type-safe API client with generated types
+- Responsive design with mobile support
+- Currency formatting and input components
+- Real-time validation and error handling
+
+### Database
+
+#### Structure
+- **billing** database - Main application data
+  - `cashiers` - Cashier information
+  - `cashier_currencies` - Multi-currency support
+  - `invoices` - Invoice records
+- **service_bus** database - Wolverine messaging
+- Managed by Liquibase migrations
+
+#### Connection String
+```
+Host=localhost;Port=54320;Database=billing;Username=postgres;Password=password@
+```
+
+### Testing
+
+#### Backend Tests
+```bash
+# All tests
+dotnet test
+
+# Specific project
+dotnet test Billing/test/Billing.Tests
+
+# With coverage
+dotnet test --collect:"XPlat Code Coverage"
+```
+
+Test Categories:
+- **Unit** - Isolated component tests with mocks
+- **Integration** - Real PostgreSQL via Testcontainers
+- **Architecture** - NetArchTest rule enforcement
+
+#### Frontend Tests
+```bash
+cd Billing/web/billing-ui
+
+# Unit tests (Vitest)
+pnpm test:unit
+
+# E2E tests (Playwright)
+pnpm test:e2e
+
+# All tests
+pnpm test
+```
+
+### Integration Events
+
+**Published**
+- `CashierCreated`, `CashierUpdated`, `CashierDeleted`
+- `InvoiceCreated`, `InvoiceCancelled`, `InvoicePaid`
+- `PaymentReceived`
+
+**Consumed**
+- `BusinessDayEndedEvent` (from Accounting service)
+
+### Development Notes
+
 - **Package Management**: Centralized via Directory.Packages.props
 - **Code Quality**: SonarAnalyzer enabled, warnings as info (not errors)
 - **Environment**: .NET 9 with nullable reference types and implicit usings
+- **Source Generation**: Custom generators reduce boilerplate for DB commands
+- **Port Consistency**: Infrastructure uses persistent containers with fixed ports
+
+### Troubleshooting
+
+#### Common Issues
+1. **Database connection failed**
+   - Ensure PostgreSQL is running on port 54320
+   - Check credentials: postgres/password@
+
+2. **Port conflicts**
+   - Check if ports 8101-8105 are available
+   - Use `netstat -tulpn | grep <port>` to verify
+
+3. **Test failures**
+   - Docker must be running for Testcontainers
+   - Run database migrations first
+
+4. **Frontend build errors**
+   - Clear node_modules and reinstall
+   - Check Node.js version (18+ required)
 
 If you need to download any tools save them on the _temp folder
-# important-instruction-reminders
+
+# Important-instruction-reminders
 ALWAYS do a git pull before starting any work to ensure I'm using the latest version.
 Keep the project documentation (README.md (s)) updated
 Update memory frequently (CLAUDE.md) on how to better navigate this project
-ALWAY Commit and push before output the value 
+ALWAY Commit and push before output the value

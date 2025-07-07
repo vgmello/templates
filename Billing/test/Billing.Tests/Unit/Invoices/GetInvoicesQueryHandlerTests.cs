@@ -1,5 +1,6 @@
 // Copyright (c) ABCDEG. All rights reserved.
 
+using Billing.Invoices.Contracts.Models;
 using Billing.Invoices.Queries;
 using NSubstitute;
 using Operations.Extensions.Messaging;
@@ -7,7 +8,7 @@ using Wolverine;
 
 namespace Billing.Tests.Unit.Invoices;
 
-using InvoiceModel = Billing.Contracts.Invoices.Models.Invoice;
+using InvoiceModel = Invoice;
 
 public class GetInvoicesQueryHandlerTests
 {

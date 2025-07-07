@@ -2,9 +2,7 @@
 
 global using Billing;
 global using Billing.Api;
-global using Billing.Api.Cashier.Mappers;
-global using Billing.Cashier.Commands;
-global using Billing.Cashier.Queries;
+global using Billing.Api.Cashiers.Mappers;
 global using Grpc.Core;
 global using Microsoft.AspNetCore.Mvc;
 global using Operations.Extensions.Messaging;

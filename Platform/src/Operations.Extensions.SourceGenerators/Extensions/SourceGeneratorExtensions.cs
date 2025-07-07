@@ -19,9 +19,7 @@ internal static class SourceGeneratorExtensions
     public static T? GetConstructorArgument<T>(this AttributeData attribute, int index)
     {
         if (attribute.ConstructorArguments.Length > index && attribute.ConstructorArguments[index].Value is T argValue)
-        {
             return argValue;
-        }
 
         return default;
     }
@@ -78,7 +76,7 @@ internal static class SourceGeneratorExtensions
                                  SymbolEqualityComparer.Default.Equals(constructor.Parameters[0].Type, constructor.ContainingType);
 
         return !isCloneConstructor && constructor is { IsImplicitlyDeclared: false, Parameters.Length: > 0 }
-                                   && constructor.GetAttribute(typeof(CompilerGeneratedAttribute).FullName ?? string.Empty) is null
+                                   && constructor.GetAttribute(typeof(CompilerGeneratedAttribute).FullName!) is null
                                    && constructor.ContainingType.DeclaringSyntaxReferences.Any(sr =>
                                        sr.GetSyntax() is RecordDeclarationSyntax
                                        {

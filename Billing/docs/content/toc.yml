@@ -4,3 +4,5 @@
   href: api-reference.md
 - name: Database Schema
   href: database.md
+- name: Frontend Development
+  href: frontend.md

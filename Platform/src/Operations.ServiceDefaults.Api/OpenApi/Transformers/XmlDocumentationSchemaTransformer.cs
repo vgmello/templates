@@ -10,6 +10,19 @@ using System.Text.Json.Serialization;
 
 namespace Operations.ServiceDefaults.Api.OpenApi.Transformers;
 
+/// <summary>
+///     Transforms OpenAPI schemas by enriching them with XML documentation from model types.
+/// </summary>
+/// <remarks>
+///     This transformer enhances schema specifications with:
+///     <list type="bullet">
+///         <item>Type XML documentation as schema description</item>
+///         <item>Property documentation for all public properties</item>
+///         <item>Nullable type information</item>
+///         <item>Enum value listings</item>
+///         <item>Support for JsonPropertyName attributes</item>
+///     </list>
+/// </remarks>
 public class XmlDocumentationSchemaTransformer(
     ILogger<XmlDocumentationSchemaTransformer> logger,
     IXmlDocumentationService xmlDocumentationService

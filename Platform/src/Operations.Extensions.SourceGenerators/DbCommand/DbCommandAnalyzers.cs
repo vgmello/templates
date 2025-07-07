@@ -20,17 +20,17 @@ internal static class DbCommandAnalyzers
         id: "DB_COMMAND_GEN002",
         title: "Command missing ICommand<TResult> interface",
         messageFormat:
-        "Class '{0}' is decorated with DbCommandAttribute specifying 'sp' or 'sql' for handler generation, " +
+        "Class '{0}' is decorated with DbCommandAttribute specifying 'sp', 'sql', or 'fn' for handler generation, " +
         "but it does not implement ICommand<TResult> or IQuery<TResult>. Handler cannot be generated without a result type.",
         category: "DbCommandSourceGenerator",
         DiagnosticSeverity.Error,
         isEnabledByDefault: true);
 
-    private static readonly DiagnosticDescriptor SpAndSqlPassedInDbCommandError = new(
+    private static readonly DiagnosticDescriptor MutuallyExclusivePropertiesError = new(
         id: "DB_COMMAND_GEN003",
-        title: "Both Sp and Sql properties specified in DbCommandAttribute",
-        messageFormat: "Class '{0}' has both 'Sp' and 'Sql' properties specified in DbCommandAttribute. " +
-                       "These properties are mutually exclusive - specify either a stored procedure name or SQL query text, but not both.",
+        title: "Mutually exclusive properties specified in DbCommandAttribute",
+        messageFormat: "Class '{0}' has multiple command properties specified in DbCommandAttribute. " +
+                       "The properties 'Sp', 'Sql', and 'Fn' are mutually exclusive - specify only one of these.",
         category: "DbCommandSourceGenerator",
         DiagnosticSeverity.Error,
         isEnabledByDefault: true);
@@ -44,7 +44,8 @@ internal static class DbCommandAnalyzers
         DbCommandTypeInfo.ResultTypeInfo? resultTypeInfo, DbCommandAttribute dbCommandAttribute, List<Diagnostic> diagnostics)
     {
         if (resultTypeInfo is null && (!string.IsNullOrWhiteSpace(dbCommandAttribute.Sp) ||
-                                       !string.IsNullOrWhiteSpace(dbCommandAttribute.Sql)))
+                                       !string.IsNullOrWhiteSpace(dbCommandAttribute.Sql) ||
+                                       !string.IsNullOrWhiteSpace(dbCommandAttribute.Fn)))
         {
             var typeLocation = typeSymbol.Locations.FirstOrDefault() ?? Location.None;
             var diagnostic = Diagnostic.Create(CommandMissingInterfaceError, typeLocation, typeSymbol.Name);
@@ -70,17 +71,24 @@ internal static class DbCommandAnalyzers
     }
 
     /// <summary>
-    ///     Validates that the DbCommand attribute has either Sp or Sql specified, but not both.
-    ///     Adds a DB_COMMAND_GEN003 error diagnostic if both Sp and Sql properties are provided,
+    ///     Validates that the DbCommand attribute has only one of Sp, Sql, or Fn specified.
+    ///     Adds a DB_COMMAND_GEN003 error diagnostic if multiple properties are provided,
     ///     as these are mutually exclusive options for specifying the database command.
     /// </summary>
-    public static void ExecuteSpAndSqlAnalyzer(INamedTypeSymbol typeSymbol,
+    public static void ExecuteMutuallyExclusivePropertiesAnalyzer(INamedTypeSymbol typeSymbol,
         DbCommandAttribute dbCommandAttribute, List<Diagnostic> diagnostics)
     {
-        if (!string.IsNullOrWhiteSpace(dbCommandAttribute.Sp) && !string.IsNullOrWhiteSpace(dbCommandAttribute.Sql))
+        var providedProperties = new List<bool>
+        {
+            !string.IsNullOrWhiteSpace(dbCommandAttribute.Sp),
+            !string.IsNullOrWhiteSpace(dbCommandAttribute.Sql),
+            !string.IsNullOrWhiteSpace(dbCommandAttribute.Fn)
+        };
+
+        if (providedProperties.Count(p => p) > 1)
         {
             var typeLocation = typeSymbol.Locations.FirstOrDefault() ?? Location.None;
-            var diagnostic = Diagnostic.Create(SpAndSqlPassedInDbCommandError, typeLocation, typeSymbol.Name);
+            var diagnostic = Diagnostic.Create(MutuallyExclusivePropertiesError, typeLocation, typeSymbol.Name);
 
             diagnostics.Add(diagnostic);
         }

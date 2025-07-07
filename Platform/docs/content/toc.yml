@@ -1,0 +1,22 @@
+- name: Overview
+  href: overview.md
+- name: Architecture
+  href: architecture/toc.yml
+- name: API
+  href: api/toc.yml
+- name: Database Integration
+  href: database-integration/toc.yml
+- name: Extensions
+  href: extensions/toc.yml
+- name: Health Checks
+  href: healthchecks/toc.yml
+- name: Logging
+  href: logging/toc.yml
+- name: Messaging
+  href: messaging/toc.yml
+- name: OpenTelemetry
+  href: opentelemetry/toc.yml
+- name: Source Generators
+  href: source-generators/toc.yml
+- name: Domain Assembly Attribute
+  href: domain-assembly-attribute.md

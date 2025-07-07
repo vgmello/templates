@@ -6,11 +6,32 @@ using Operations.Extensions.SourceGenerators.Extensions;
 
 namespace Operations.Extensions.SourceGenerators.DbCommand;
 
+/// <summary>
+///     Source generator that creates database command handlers and parameter providers for types marked with DbCommandAttribute.
+/// </summary>
+/// <remarks>
+///     This generator:
+///     <list type="bullet">
+///         <item>Generates ToDbParams() extension methods for parameter mapping</item>
+///         <item>Creates Wolverine command handlers for database operations</item>
+///         <item>Supports stored procedures, SQL queries, and functions</item>
+///         <item>Handles parameter case conversion (None, SnakeCase)</item>
+///         <item>Respects Column attributes for custom parameter names</item>
+///     </list>
+///     The default parameter case can be configured via MSBuild property: DbCommandDefaultParamCase
+/// </remarks>
 [Generator]
 public class DbCommandSourceGenerator : IIncrementalGenerator
 {
+    /// <summary>
+    ///     MSBuild property name for configuring the default parameter case convention.
+    /// </summary>
     public const string DbCommandDefaultParamCase = nameof(DbCommandDefaultParamCase);
 
+    /// <summary>
+    ///     Initializes the incremental generator.
+    /// </summary>
+    /// <param name="context">The generator initialization context.</param>
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
         var defaultParamCaseProvider = context.AnalyzerConfigOptionsProvider
@@ -56,8 +77,9 @@ public class DbCommandSourceGenerator : IIncrementalGenerator
     private static void GenerateHandlerPart(SourceProductionContext spc, DbCommandTypeInfo dbCommandTypeInfo)
     {
         if (string.IsNullOrWhiteSpace(dbCommandTypeInfo.DbCommandAttribute.Sp) &&
-            string.IsNullOrWhiteSpace(dbCommandTypeInfo.DbCommandAttribute.Sql))
-            return; // No handler needed if Sp or Sql is not provided
+            string.IsNullOrWhiteSpace(dbCommandTypeInfo.DbCommandAttribute.Sql) &&
+            string.IsNullOrWhiteSpace(dbCommandTypeInfo.DbCommandAttribute.Fn))
+            return; // No handler needed if Sp, Sql, or Fn is not provided
 
         var generatedHandlerSource = DbCommandHandlerSourceGenWriter.Write(dbCommandTypeInfo);
 

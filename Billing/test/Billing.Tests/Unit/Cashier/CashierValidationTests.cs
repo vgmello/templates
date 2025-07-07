@@ -1,6 +1,6 @@
 // Copyright (c) ABCDEG. All rights reserved.
 
-using Billing.Cashier.Commands;
+using Billing.Cashiers.Commands;
 using FluentValidation.TestHelper;
 
 namespace Billing.Tests.Unit.Cashier;
@@ -13,8 +13,8 @@ public class CashierValidationTests
     public void CreateCashierValidator_WithValidData_ShouldNotHaveValidationErrors()
     {
         // Arrange
-        var validator = new CreateCustomerValidator();
-        var command = new CreateCashierCommand("John Doe", "john.doe@example.com");
+        var validator = new CreateCashierValidator();
+        var command = new CreateCashierCommand(Guid.Empty, "John Doe", "john.doe@example.com");
 
         // Act
         var result = validator.TestValidate(command);
@@ -29,8 +29,8 @@ public class CashierValidationTests
     public void CreateCashierValidator_WithEmptyName_ShouldHaveValidationError(string name)
     {
         // Arrange
-        var validator = new CreateCustomerValidator();
-        var command = new CreateCashierCommand(name, "john.doe@example.com");
+        var validator = new CreateCashierValidator();
+        var command = new CreateCashierCommand(Guid.Empty, name, "john.doe@example.com");
 
         // Act
         var result = validator.TestValidate(command);
@@ -44,8 +44,8 @@ public class CashierValidationTests
     public void CreateCashierValidator_WithNameTooShort_ShouldHaveValidationError()
     {
         // Arrange
-        var validator = new CreateCustomerValidator();
-        var command = new CreateCashierCommand("A", "john.doe@example.com");
+        var validator = new CreateCashierValidator();
+        var command = new CreateCashierCommand(Guid.Empty, "A", "john.doe@example.com");
 
         // Act
         var result = validator.TestValidate(command);
@@ -59,9 +59,9 @@ public class CashierValidationTests
     public void CreateCashierValidator_WithNameTooLong_ShouldHaveValidationError()
     {
         // Arrange
-        var validator = new CreateCustomerValidator();
+        var validator = new CreateCashierValidator();
         var longName = new string('A', 101); // 101 characters
-        var command = new CreateCashierCommand(longName, "john.doe@example.com");
+        var command = new CreateCashierCommand(Guid.Empty, longName, "john.doe@example.com");
 
         // Act
         var result = validator.TestValidate(command);
@@ -75,10 +75,10 @@ public class CashierValidationTests
     public void CreateCashierValidator_WithValidNameBoundaries_ShouldNotHaveValidationErrors()
     {
         // Arrange
-        var validator = new CreateCustomerValidator();
+        var validator = new CreateCashierValidator();
 
-        var minLengthCommand = new CreateCashierCommand("Jo", "test@example.com"); // 2 characters
-        var maxLengthCommand = new CreateCashierCommand(new string('A', 100), "test@example.com"); // 100 characters
+        var minLengthCommand = new CreateCashierCommand(Guid.Empty, "Jo", "test@example.com"); // 2 characters
+        var maxLengthCommand = new CreateCashierCommand(Guid.Empty, new string('A', 100), "test@example.com"); // 100 characters
 
         // Act
         var minResult = validator.TestValidate(minLengthCommand);

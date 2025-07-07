@@ -81,26 +81,207 @@ POST /Cashiers
 }
 ```
 
-### Invoices Controller
-
-Base URL: `/Invoices`
-
-#### Get Invoices
+#### Update Cashier
 ```http
-GET /Invoices
+PUT /Cashiers/{id}
+```
+
+**Parameters:**
+- `id` (UUID): The unique identifier of the cashier
+
+**Request Body:**
+```json
+{
+  "name": "John Smith",
+  "email": "john.smith@example.com",
+  "version": 1
+}
 ```
 
 **Response:**
 ```json
-[
-  {
-    "id": "123e4567-e89b-12d3-a456-426614174000",
-    "status": "Pending",
-    "amount": 100.00,
-    "currency": "USD",
-    "createdAt": "2024-01-01T10:00:00Z"
-  }
-]
+{
+  "id": "123e4567-e89b-12d3-a456-426614174000",
+  "name": "John Smith",
+  "email": "john.smith@example.com",
+  "createdAt": "2024-01-01T10:00:00Z",
+  "updatedAt": "2024-01-01T11:00:00Z",
+  "version": 2
+}
+```
+
+#### Delete Cashier
+```http
+DELETE /Cashiers/{id}
+```
+
+**Parameters:**
+- `id` (UUID): The unique identifier of the cashier
+
+**Response:**
+- `204 No Content`: Cashier successfully deleted
+- `404 Not Found`: Cashier not found
+
+### Invoices Controller
+
+Base URL: `/Invoices`
+
+#### Get Invoice
+```http
+GET /Invoices/{id}
+```
+
+**Parameters:**
+- `id` (UUID): The unique identifier of the invoice
+
+**Response:**
+```json
+{
+  "id": "123e4567-e89b-12d3-a456-426614174000",
+  "cashierId": "456e7890-e89b-12d3-a456-426614174000",
+  "status": "Pending",
+  "amount": 100.00,
+  "currency": "USD",
+  "description": "Invoice for services",
+  "createdAt": "2024-01-01T10:00:00Z",
+  "updatedAt": "2024-01-01T10:00:00Z",
+  "version": 1
+}
+```
+
+#### Get Invoices (Filtered)
+```http
+GET /Invoices?status=Pending&cashierId=456e7890-e89b-12d3-a456-426614174000&pageNumber=1&pageSize=20
+```
+
+**Query Parameters:**
+- `status` (string, optional): Filter by status (Pending, Paid, Cancelled)
+- `cashierId` (UUID, optional): Filter by cashier
+- `fromDate` (DateTime, optional): Filter invoices created after this date
+- `toDate` (DateTime, optional): Filter invoices created before this date
+- `pageNumber` (int): Page number (default: 1)
+- `pageSize` (int): Items per page (default: 20)
+
+**Response:**
+```json
+{
+  "items": [
+    {
+      "id": "123e4567-e89b-12d3-a456-426614174000",
+      "cashierId": "456e7890-e89b-12d3-a456-426614174000",
+      "status": "Pending",
+      "amount": 100.00,
+      "currency": "USD",
+      "createdAt": "2024-01-01T10:00:00Z"
+    }
+  ],
+  "totalCount": 1,
+  "pageNumber": 1,
+  "pageSize": 20
+}
+```
+
+#### Create Invoice
+```http
+POST /Invoices
+```
+
+**Request Body:**
+```json
+{
+  "cashierId": "456e7890-e89b-12d3-a456-426614174000",
+  "amount": 100.00,
+  "currency": "USD",
+  "description": "Invoice for services"
+}
+```
+
+**Response:**
+```json
+{
+  "id": "123e4567-e89b-12d3-a456-426614174000",
+  "cashierId": "456e7890-e89b-12d3-a456-426614174000",
+  "status": "Pending",
+  "amount": 100.00,
+  "currency": "USD",
+  "description": "Invoice for services",
+  "createdAt": "2024-01-01T10:00:00Z",
+  "updatedAt": "2024-01-01T10:00:00Z",
+  "version": 1
+}
+```
+
+#### Cancel Invoice
+```http
+PUT /Invoices/{id}/cancel
+```
+
+**Parameters:**
+- `id` (UUID): The unique identifier of the invoice
+
+**Response:**
+```json
+{
+  "id": "123e4567-e89b-12d3-a456-426614174000",
+  "status": "Cancelled",
+  "updatedAt": "2024-01-01T11:00:00Z",
+  "version": 2
+}
+```
+
+#### Mark Invoice as Paid
+```http
+PUT /Invoices/{id}/mark-paid
+```
+
+**Parameters:**
+- `id` (UUID): The unique identifier of the invoice
+
+**Request Body:**
+```json
+{
+  "paymentReference": "PAY-123456",
+  "paymentDate": "2024-01-01T11:00:00Z",
+  "paymentMethod": "CreditCard"
+}
+```
+
+**Response:**
+```json
+{
+  "id": "123e4567-e89b-12d3-a456-426614174000",
+  "status": "Paid",
+  "paymentReference": "PAY-123456",
+  "paymentDate": "2024-01-01T11:00:00Z",
+  "updatedAt": "2024-01-01T11:00:00Z",
+  "version": 2
+}
+```
+
+#### Simulate Payment (Testing Only)
+```http
+POST /Invoices/{id}/simulate-payment
+```
+
+**Parameters:**
+- `id` (UUID): The unique identifier of the invoice
+
+**Request Body:**
+```json
+{
+  "paymentAmount": 100.00,
+  "paymentMethod": "CreditCard"
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Payment simulation completed",
+  "invoiceId": "123e4567-e89b-12d3-a456-426614174000",
+  "newStatus": "Paid"
+}
 ```
 
 ## gRPC API
@@ -168,6 +349,133 @@ message CreateCashierRequest {
   string email = 2;
 }
 ```
+
+#### UpdateCashier
+```protobuf
+rpc UpdateCashier (UpdateCashierRequest) returns (Cashier);
+```
+
+**Request:**
+```protobuf
+message UpdateCashierRequest {
+  string id = 1;
+  string name = 2;
+  string email = 3;
+  int32 version = 4;
+}
+```
+
+#### DeleteCashier
+```protobuf
+rpc DeleteCashier (DeleteCashierRequest) returns (google.protobuf.Empty);
+```
+
+**Request:**
+```protobuf
+message DeleteCashierRequest {
+  string id = 1;
+}
+```
+
+### Invoices Service
+
+Service definition: `InvoicesService`
+
+#### GetInvoice
+```protobuf
+rpc GetInvoice (GetInvoiceRequest) returns (Invoice);
+```
+
+**Request:**
+```protobuf
+message GetInvoiceRequest {
+  string id = 1;
+}
+```
+
+**Response:**
+```protobuf
+message Invoice {
+  string id = 1;
+  string cashier_id = 2;
+  string status = 3;
+  double amount = 4;
+  string currency = 5;
+  string description = 6;
+  google.protobuf.Timestamp created_at = 7;
+  google.protobuf.Timestamp updated_at = 8;
+  int32 version = 9;
+}
+```
+
+#### GetInvoices
+```protobuf
+rpc GetInvoices (GetInvoicesRequest) returns (GetInvoicesResponse);
+```
+
+**Request:**
+```protobuf
+message GetInvoicesRequest {
+  string status = 1;
+  string cashier_id = 2;
+  google.protobuf.Timestamp from_date = 3;
+  google.protobuf.Timestamp to_date = 4;
+  int32 page_number = 5;
+  int32 page_size = 6;
+}
+```
+
+**Response:**
+```protobuf
+message GetInvoicesResponse {
+  repeated Invoice invoices = 1;
+  int32 total_count = 2;
+  int32 page_number = 3;
+  int32 page_size = 4;
+}
+```
+
+#### CreateInvoice
+```protobuf
+rpc CreateInvoice (CreateInvoiceRequest) returns (Invoice);
+```
+
+**Request:**
+```protobuf
+message CreateInvoiceRequest {
+  string cashier_id = 1;
+  double amount = 2;
+  string currency = 3;
+  string description = 4;
+}
+```
+
+#### CancelInvoice
+```protobuf
+rpc CancelInvoice (CancelInvoiceRequest) returns (Invoice);
+```
+
+**Request:**
+```protobuf
+message CancelInvoiceRequest {
+  string id = 1;
+  string reason = 2;
+}
+```
+
+#### MarkInvoiceAsPaid
+```protobuf
+rpc MarkInvoiceAsPaid (MarkInvoiceAsPaidRequest) returns (Invoice);
+```
+
+**Request:**
+```protobuf
+message MarkInvoiceAsPaidRequest {
+  string id = 1;
+  string payment_reference = 2;
+  google.protobuf.Timestamp payment_date = 3;
+  string payment_method = 4;
+}
 
 ## Error Handling
 

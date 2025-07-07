@@ -1,25 +1,18 @@
-import { cashierGrpcService } from '$lib/server/grpc-client';
-import { error } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
+import { cashierBffService } from '$lib/server/cashier-bff-service.js';
+import { error } from '@sveltejs/kit';
 
 export const load: PageServerLoad = async () => {
 	try {
-		const cashiers = await cashierGrpcService.getCashiers();
+		const cashiers = await cashierBffService.getCashiers();
+		
 		return {
 			cashiers
 		};
 	} catch (err) {
 		console.error('Failed to load cashiers:', err);
-		
-		// For edge deployment, we want to handle this gracefully
-		if ((err as any).code === 'UNAVAILABLE') {
-			// Return empty state if service is unavailable
-			return {
-				cashiers: [],
-				serviceUnavailable: true
-			};
-		}
-		
-		throw error(500, `Failed to load cashiers: ${(err as Error).message}`);
+		throw error(500, {
+			message: 'Failed to load cashiers. Please try again later.'
+		});
 	}
-}
+};

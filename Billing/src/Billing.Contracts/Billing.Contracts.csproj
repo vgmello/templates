@@ -1,16 +1,38 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
+    <PropertyGroup>
+        <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+    </PropertyGroup>
+
+    <PropertyGroup>
+        <PackageId>$(AssemblyName)</PackageId>
+        <PackageVersion>$(Version)</PackageVersion>
+        <PackageTags>billing.contracts</PackageTags>
+        <IncludeSource>true</IncludeSource>
+        <Authors>ABCDEG</Authors>
+        <Company>ABCDEG</Company>
+        <Copyright>Copyright (c) ABCDEG. All rights reserved.</Copyright>
+        <RepositoryUrl>https://github.com/ABCDEG/templates</RepositoryUrl>
+        <RepositoryType>git</RepositoryType>
+    </PropertyGroup>
+
     <ItemGroup>
-        <PackageReference Include="Google.Protobuf"/>
-        <PackageReference Include="Grpc.Net.Client"/>
-        <PackageReference Include="Grpc.Tools" PrivateAssets="All"/>
+        <Compile Include="..\Billing\**\Contracts\IntegrationEvents\*.cs" Link="%(RecursiveDir)%(Filename)%(Extension)"/>
+        <Compile Include="..\Billing\**\Contracts\Models\*.cs" Link="%(RecursiveDir)%(Filename)%(Extension)"/>
+        <Content Include="..\Billing.Api\**\Protos\**\*.proto" Link="%(RecursiveDir)%(Filename)%(Extension)" Pack="true">
+            <PackagePath>Protos</PackagePath>
+        </Content>
+        <Content Include="Billing.Contracts.props" Pack="true" PackagePath="build/"/>
     </ItemGroup>
 
     <ItemGroup>
-        <Protobuf Include="..\Billing.Api\**\Protos\**\*.proto"
-                  ProtoRoot="..\Billing.Api\"
-                  GrpcServices="Both"
-                  Link="%(RecursiveDir)%(Filename)%(Extension)"/>
+        <ProjectReference Include="..\..\..\Platform\src\Operations.Extensions.Abstractions\Operations.Extensions.Abstractions.csproj"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <AssemblyAttribute Include="Operations.Extensions.Abstractions.Messaging.DefaultDomainAttribute">
+            <Domain>Billing123</Domain>
+        </AssemblyAttribute>
     </ItemGroup>
 
 </Project>

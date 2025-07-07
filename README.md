@@ -107,7 +107,7 @@ cd Billing/src/Billing.AppHost
 dotnet run
 ```
 
-### 📊 Accounting Domain  
+### 📊 Accounting Domain
 ```bash
 # Clone and run Accounting services
 git clone <repository-url>
@@ -124,7 +124,7 @@ dotnet run
 
 **Access Points:**
 - **Billing Aspire Dashboard**: http://localhost:18100
-- **Accounting Aspire Dashboard**: http://localhost:18120  
+- **Accounting Aspire Dashboard**: http://localhost:18120
 - **Operations Aspire Dashboard**: http://localhost:18140
 - **Domain APIs**: Available through respective Aspire dashboards
 
@@ -134,32 +134,29 @@ The system uses a structured port allocation optimized for macOS compatibility:
 
 #### **Service Port Ranges**
 - **Billing**: 8100-8119 (20 ports)
-- **Accounting**: 8120-8139 (20 ports)  
+- **Accounting**: 8120-8139 (20 ports)
 - **Operations**: 8140-8159 (20 ports)
-
-#### **Port Pattern Within Each Service**
-```
-XX00: Aspire Resource Service (HTTP)
-XX01: Main API (HTTP)
-XX02: Main API (gRPC)
-XX03: BackOffice (HTTP)
-XX04: Orleans (HTTP)
-XX10: Aspire Resource Service (HTTPS)
-XX11: Main API (HTTPS)
-XX13: BackOffice (HTTPS)
-XX14: Orleans (HTTPS)
-XX19: Documentation (last port of range)
-```
 
 #### **Aspire Dashboard Ports**
 - **HTTP**: Service base + 10,000 (e.g., 8100 → 18100)
 - **HTTPS**: Service base + 10,010 (e.g., 8100 → 18110)
 
+#### **Port Pattern Within Each Service**
+```
+Aspire Resource Service: XX00 (HTTP) / XX10 (HTTPS)
+Main API: XX01 (HTTP) / XX11 (HTTPS) / XX02 (gRPC-HTTP)
+BackOffice: XX03 (HTTP) / XX13 (HTTPS)
+Orleans: XX04 (HTTP) / XX14 (HTTPS)
+Documentation: XX19 (reserved for last port of range)
+```
+
+> **Note**: HTTPS ports follow the pattern of HTTP port + 10 (e.g., HTTP 8101 → HTTPS 8111)
+
 #### **Service Access Points**
 - **Billing Service**: http://localhost:8101 (API), http://localhost:8119 (Docs)
 - **Accounting Service**: http://localhost:8121 (API), http://localhost:8139 (Docs - reserved)
 - **Operations Service**: http://localhost:8159 (Docs - reserved)
-- **Shared Services**: PostgreSQL (5432), OTLP (4317/4318)
+- **Shared Services**: PostgreSQL (54320), OTLP (4317/4318)
 
 ---
 
@@ -337,7 +334,7 @@ Command and Query separation with automatic handler discovery:
 // Command
 public record CreateLedgerCommand(string Name, LedgerType Type) : ICommand<Guid>;
 
-// Query  
+// Query
 public record GetLedgerQuery(Guid Id) : IQuery<Ledger>;
 
 // Handlers auto-discovered and registered
@@ -372,9 +369,9 @@ public async Task CreateCashier_ShouldReturnSuccess()
     // Integration test with Testcontainers PostgreSQL
     await using var app = new BillingApiWebAppFactory();
     var client = app.CreateClient();
-    
+
     var response = await client.PostAsJsonAsync("/cashiers", new CreateCashierRequest(...));
-    
+
     response.StatusCode.ShouldBe(HttpStatusCode.Created);
 }
 ```
@@ -405,7 +402,7 @@ Production-ready monitoring and tracing:
 │   └── infra/                      # Infrastructure (database)
 │
 ├── 📊 Accounting/                  # Accounting microservice
-│   ├── src/                        # Source code  
+│   ├── src/                        # Source code
 │   ├── test/                       # Tests
 │   └── infra/                      # Infrastructure (database)
 │
@@ -427,7 +424,7 @@ Production-ready monitoring and tracing:
 The template uses centralized configuration management:
 
 - **Directory.Build.props** - Shared MSBuild properties and package references
-- **Directory.Packages.props** - Centralized package version management  
+- **Directory.Packages.props** - Centralized package version management
 - **Operations.ruleset** - Code analysis rules
 - **.editorconfig** - Code style enforcement
 

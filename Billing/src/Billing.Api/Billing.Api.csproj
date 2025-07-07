@@ -10,6 +10,7 @@
         <PackageReference Include="Grpc.AspNetCore"/>
         <PackageReference Include="Aspire.Npgsql"/>
         <PackageReference Include="Riok.Mapperly"/>
+        <PackageReference Include="Grpc.Tools"/>
     </ItemGroup>
 
     <ItemGroup>
@@ -19,7 +20,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <None Include="**/Protos/**/*.proto"/>
+        <Protobuf Include="**/Protos/**/*.proto" ProtoRoot="." GrpcServices="Server"/>
     </ItemGroup>
 
     <ItemGroup>

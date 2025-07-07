@@ -9,6 +9,19 @@ using System.Reflection;
 
 namespace Operations.ServiceDefaults.Api.OpenApi.Transformers;
 
+/// <summary>
+///     Transforms OpenAPI operations by enriching them with XML documentation from action methods.
+/// </summary>
+/// <remarks>
+///     This transformer enhances operation specifications with:
+///     <list type="bullet">
+///         <item>Method XML documentation as operation summary and description</item>
+///         <item>Parameter documentation including examples and default values</item>
+///         <item>Response documentation from XML response tags</item>
+///         <item>Return type documentation for successful responses</item>
+///         <item>Default response descriptions for common HTTP status codes</item>
+///     </list>
+/// </remarks>
 public class XmlDocumentationOperationTransformer(
     ILogger<XmlDocumentationOperationTransformer> logger,
     IXmlDocumentationService xmlDocumentationService

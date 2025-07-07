@@ -2,6 +2,7 @@
 
     <PropertyGroup>
         <IsTestProject>true</IsTestProject>
+        <NoWarn>$(NoWarn);CS0436;</NoWarn>
     </PropertyGroup>
 
     <ItemGroup>
@@ -10,17 +11,20 @@
         <PackageReference Include="NetArchTest.Rules"/>
         <PackageReference Include="Testcontainers"/>
         <PackageReference Include="Testcontainers.PostgreSql"/>
+        <PackageReference Include="Grpc.Tools"/>
     </ItemGroup>
 
     <ItemGroup>
         <ProjectReference Include="..\..\src\Billing.Api\Billing.Api.csproj"/>
         <ProjectReference Include="..\..\src\Billing.BackOffice\Billing.BackOffice.csproj"/>
-        <ProjectReference Include="..\..\src\Billing.Contracts\Billing.Contracts.csproj"/>
         <ProjectReference Include="..\..\src\Billing\Billing.csproj"/>
     </ItemGroup>
 
     <ItemGroup>
-        <Folder Include="Integration\Invoices\" />
+        <Protobuf Include="..\..\src\Billing.Api\**\Protos\**\*.proto"
+                  ProtoRoot="..\..\src\Billing.Api\"
+                  GrpcServices="Client"
+                  Link="Integration\%(RecursiveDir)%(Filename)%(Extension)"/>
     </ItemGroup>
 
 </Project>

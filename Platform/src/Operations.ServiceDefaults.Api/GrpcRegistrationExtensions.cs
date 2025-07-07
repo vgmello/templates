@@ -8,6 +8,9 @@ using Microsoft.AspNetCore.Routing;
 
 namespace Operations.ServiceDefaults.Api;
 
+/// <summary>
+///     Provides extension methods for automatic gRPC service registration.
+/// </summary>
 [ExcludeFromCodeCoverage]
 public static class GrpcRegistrationExtensions
 {
@@ -16,11 +19,34 @@ public static class GrpcRegistrationExtensions
     private static readonly MethodInfo GrpcMapServiceMethod = typeof(GrpcEndpointRouteBuilderExtensions)
         .GetMethod(nameof(GrpcEndpointRouteBuilderExtensions.MapGrpcService), STATIC_METHODS)!;
 
-    public static void MapGrpcServices(this IEndpointRouteBuilder routeBuilder) =>
+    /// <summary>
+    ///     Maps all gRPC services found in the entry assembly to endpoints.
+    /// </summary>
+    /// <param name="routeBuilder">The endpoint route builder to register services with.</param>
+    /// <remarks>
+    ///     This method uses reflection to discover all gRPC service implementations
+    ///     in the entry assembly and automatically registers them as endpoints.
+    ///     Services are identified by inheriting from a base class with the
+    ///     <see cref="BindServiceMethodAttribute" />.
+    /// </remarks>
+    public static void MapGrpcServices(this IEndpointRouteBuilder routeBuilder)
+    {
         routeBuilder.MapGrpcServices(Assembly.GetEntryAssembly()!);
+    }
 
-    public static void MapGrpcServices(this IEndpointRouteBuilder routeBuilder, Type assemblyMarker) =>
+    /// <summary>
+    ///     Maps all gRPC services found in the specified type's assembly to endpoints.
+    /// </summary>
+    /// <param name="routeBuilder">The endpoint route builder to register services with.</param>
+    /// <param name="assemblyMarker">A type whose assembly will be scanned for gRPC services.</param>
+    /// <remarks>
+    ///     This overload allows specifying a different assembly than the entry assembly
+    ///     by providing a marker type from the target assembly.
+    /// </remarks>
+    public static void MapGrpcServices(this IEndpointRouteBuilder routeBuilder, Type assemblyMarker)
+    {
         routeBuilder.MapGrpcServices(assemblyMarker.Assembly);
+    }
 
     private static void MapGrpcServices(this IEndpointRouteBuilder routeBuilder, Assembly assembly)
     {
@@ -36,7 +62,7 @@ public static class GrpcRegistrationExtensions
     private static void MapGrpcService(Type grpcServiceType, IEndpointRouteBuilder routeBuilder)
     {
         var typedGrpcMapServiceMethod = GrpcMapServiceMethod.MakeGenericMethod(grpcServiceType);
-        typedGrpcMapServiceMethod.Invoke(null, new[] { routeBuilder });
+        typedGrpcMapServiceMethod.Invoke(null, [routeBuilder]);
     }
 
     private static bool IsGrpcService(Type type)

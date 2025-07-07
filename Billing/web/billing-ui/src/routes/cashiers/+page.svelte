@@ -1,199 +1,241 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import { onMount } from 'svelte';
-	import Button from "$lib/components/ui/button.svelte";
-	import Card from "$lib/components/ui/card.svelte";
-	import Badge from "$lib/components/ui/badge.svelte";
-	import Input from "$lib/components/ui/input.svelte";
-	import { Plus, User, Mail, CreditCard, Search, Filter, AlertCircle } from "lucide-svelte";
-	import { cashierStore } from '$lib/stores/cashier.svelte';
+	import { Button } from '$lib/components/ui/button';
+	import { Card, CardHeader, CardTitle, CardContent } from '$lib/components/ui/card';
+	import { Input } from '$lib/components/ui/input';
+	import { Plus, Search, Pencil, Trash2, User, Mail, Hash, Settings, UserPlus } from '@lucide/svelte';
+	import { cashierApi, type GetCashiersResult } from '$lib';
 
-	// Get SSR data
-	let { data } = $props();
+	type Props = {
+		data: {
+			cashiers: GetCashiersResult[];
+		};
+	};
+	
+	let { data }: Props = $props();
+	let cashiers = $state<GetCashiersResult[]>(data.cashiers);
+	let error = $state<string | null>(null);
+	let searchTerm = $state('');
 
-	// Initialize store with SSR data
-	onMount(() => {
-		cashierStore.initializeCashiers(data.cashiers);
-	});
+	// Reactive filtered cashiers
+	let filteredCashiers = $derived(
+		cashiers.filter(cashier => 
+			cashier.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+			cashier.email.toLowerCase().includes(searchTerm.toLowerCase())
+		)
+	);
 
-	// Direct access to store properties - they're already reactive
-	// No need to wrap in $derived since the store properties are $state/$derived
+	async function refreshCashiers() {
+		try {
+			cashiers = await cashierApi.getCashiers();
+		} catch (err) {
+			error = err instanceof Error ? err.message : 'Failed to refresh cashiers';
+			console.error('Error refreshing cashiers:', err);
+		}
+	}
 
-	function handleCreateCashier() {
+	async function deleteCashier(id: string, name: string) {
+		if (!confirm(`Are you sure you want to delete cashier "${name}"?`)) {
+			return;
+		}
+
+		try {
+			await cashierApi.deleteCashier(id);
+			await refreshCashiers(); // Reload the list
+		} catch (err) {
+			error = err instanceof Error ? err.message : 'Failed to delete cashier';
+			console.error('Error deleting cashier:', err);
+		}
+	}
+
+	function editCashier(id: string) {
+		goto(`/cashiers/${id}/edit`);
+	}
+
+	function createCashier() {
 		goto('/cashiers/create');
 	}
 
-	function handleCashierClick(cashierId: string) {
-		goto(`/cashiers/${cashierId}`);
-	}
-
-	function handleSearchChange(event: Event) {
-		const target = event.target as HTMLInputElement;
-		cashierStore.setSearchTerm(target.value);
-	}
-
-	function handleCurrencyFilterChange(event: Event) {
-		const target = event.target as HTMLSelectElement;
-		cashierStore.setCurrencyFilter(target.value);
-	}
-
-	function clearFilters() {
-		cashierStore.clearFilters();
-	}
-
-	function dismissError() {
-		cashierStore.clearError();
-	}
 </script>
 
 <svelte:head>
-	<title>Cashiers - Billing Service</title>
+	<title>Cashier Management - Billing System</title>
 </svelte:head>
 
-<div class="container mx-auto px-4 py-8">
-	<div class="space-y-6">
-		<!-- Error Banner -->
-		{#if cashierStore.error}
-			<Card class="p-4 border-destructive bg-destructive/10">
-				<div class="flex items-center gap-3">
-					<AlertCircle class="h-5 w-5 text-destructive" />
-					<div class="flex-1">
-						<p class="text-sm font-medium text-destructive">Error loading cashiers</p>
-						<p class="text-sm text-destructive/80">{cashierStore.error}</p>
-					</div>
-					<Button onclick={dismissError} variant="ghost" size="sm">
-						Dismiss
-					</Button>
-				</div>
-			</Card>
-		{/if}
-
-		<!-- Header -->
-		<div class="flex items-center justify-between">
-			<div class="space-y-1">
-				<h1 class="text-3xl font-bold tracking-tight">Cashiers</h1>
-				<p class="text-muted-foreground">
-					Manage cashiers and their payment configurations. {cashierStore.totalCashiers} total, {cashierStore.configuredCashiers} configured.
-					{#if data.serviceUnavailable}
-						<span class="text-yellow-600">(Service temporarily unavailable)</span>
-					{/if}
-				</p>
-			</div>
-			<Button onclick={handleCreateCashier} class="gap-2">
-				<Plus class="h-4 w-4" />
-				Add Cashier
-			</Button>
+<div class="container mx-auto p-6 space-y-8">
+	<!-- Header Section with Clear Hierarchy -->
+	<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+		<div class="space-y-1">
+			<h1 class="text-3xl font-bold tracking-tight text-foreground">Cashiers</h1>
+			<p class="text-muted-foreground">Manage cashiers and their payment configurations. {filteredCashiers.length} total, {filteredCashiers.filter(c => c.email).length} configured.</p>
 		</div>
+		<Button onclick={createCashier} class="flex items-center gap-2 h-10 px-6">
+			<Plus size={18} />
+			Add Cashier
+		</Button>
+	</div>
 
-		<!-- Search and Filter -->
-		{#if cashierStore.totalCashiers > 0}
-			<Card class="p-4">
-				<div class="flex flex-col sm:flex-row gap-4">
-					<div class="flex-1 relative">
-						<Search class="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-						<Input
-							type="text"
-							placeholder="Search cashiers by name or email..."
-							value={cashierStore.searchTerm}
-							oninput={handleSearchChange}
-							class="pl-10"
-						/>
-					</div>
-					<div class="flex items-center gap-2">
-						<Filter class="h-4 w-4 text-muted-foreground" />
-						<select 
-							value={cashierStore.currencyFilter}
-							onchange={handleCurrencyFilterChange}
-							class="h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-						>
-							<option value="all">All Currencies</option>
-							{#each cashierStore.availableCurrencies as currency}
-								<option value={currency}>{currency}</option>
-							{/each}
-						</select>
-					</div>
+	<!-- Search and Filter Bar -->
+	<div class="flex flex-col sm:flex-row gap-4 items-stretch sm:items-center">
+		<div class="relative flex-1 max-w-md">
+			<Search size={16} class="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" />
+			<Input
+				bind:value={searchTerm}
+				placeholder="Search cashiers by name or email..."
+				class="pl-10 h-10"
+			/>
+		</div>
+		<div class="flex items-center gap-2 text-sm text-muted-foreground">
+			<span class="flex items-center gap-1 px-2 py-1 bg-secondary rounded-md text-secondary-foreground">
+				<User size={12} />
+				All Currencies
+			</span>
+		</div>
+	</div>
+
+	<!-- Main Content Area -->
+	{#if error}
+		<Card class="border-destructive/50 bg-destructive/5">
+			<CardContent class="flex flex-col items-center justify-center py-12 space-y-4">
+				<div class="rounded-full bg-destructive/10 p-3">
+					<Settings size={24} class="text-destructive" />
 				</div>
-			</Card>
-		{/if}
-
-		<!-- Cashiers Grid -->
-		{#if cashierStore.filteredCashiers.length === 0 && cashierStore.totalCashiers === 0}
-				<Card class="p-12">
-					<div class="text-center space-y-4">
-						<User class="h-12 w-12 mx-auto text-muted-foreground" />
-						<div class="space-y-2">
-							<h3 class="text-lg font-semibold">No cashiers found</h3>
-							<p class="text-sm text-muted-foreground max-w-sm mx-auto">
-								Get started by creating your first cashier to handle payments.
-							</p>
-						</div>
-						<Button onclick={handleCreateCashier} class="gap-2">
-							<Plus class="h-4 w-4" />
-							Create First Cashier
-						</Button>
-					</div>
-				</Card>
-		{:else if cashierStore.filteredCashiers.length === 0}
-			<Card class="p-12">
-				<div class="text-center space-y-4">
-					<Search class="h-12 w-12 mx-auto text-muted-foreground" />
-					<div class="space-y-2">
-						<h3 class="text-lg font-semibold">No cashiers found</h3>
-						<p class="text-sm text-muted-foreground max-w-sm mx-auto">
-							No cashiers match your current search and filter criteria.
-						</p>
-					</div>
-					<Button onclick={clearFilters} variant="outline">
-						Clear Filters
+				<div class="text-center space-y-2">
+					<h3 class="font-semibold text-destructive">Something went wrong</h3>
+					<p class="text-sm text-muted-foreground max-w-md">{error}</p>
+				</div>
+				<Button onclick={refreshCashiers} variant="outline" class="gap-2">
+					<Settings size={16} />
+					Try Again
+				</Button>
+			</CardContent>
+		</Card>
+	{:else if filteredCashiers.length === 0}
+		<Card class="border-dashed border-2">
+			<CardContent class="flex flex-col items-center justify-center py-24 space-y-6">
+				<div class="rounded-full bg-muted p-4">
+					<UserPlus size={32} class="text-muted-foreground" />
+				</div>
+				<div class="text-center space-y-2 max-w-md">
+					<h3 class="text-lg font-semibold">
+						{searchTerm ? 'No matching cashiers' : 'No cashiers yet'}
+					</h3>
+					<p class="text-muted-foreground">
+						{searchTerm 
+							? `No cashiers found matching "${searchTerm}". Try adjusting your search terms.`
+							: 'Get started by adding your first cashier to manage payments and configurations.'
+						}
+					</p>
+				</div>
+				{#if !searchTerm}
+					<Button onclick={createCashier} class="gap-2">
+						<Plus size={16} />
+						Add Your First Cashier
 					</Button>
-				</div>
-			</Card>
-		{:else}
-			<div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-				{#each cashierStore.filteredCashiers as cashier, index (`${cashier.cashierId}-${index}`)}
-					<Card class="p-6 hover:shadow-md transition-shadow cursor-pointer" onclick={() => handleCashierClick(cashier.cashierId)}>
-						<div class="space-y-4">
-							<div class="flex items-start justify-between">
-								<div class="space-y-1">
-									<h3 class="font-semibold flex items-center gap-2">
-										<User class="h-4 w-4" />
+				{/if}
+			</CardContent>
+		</Card>
+	{:else}
+		<!-- Cashiers Grid -->
+		<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+			{#each filteredCashiers as cashier}
+				<Card class="group hover:shadow-lg transition-all duration-200 hover:border-primary/20 bg-card">
+					<CardContent class="p-6">
+						<!-- Card Header with Avatar and Status -->
+						<div class="flex items-start justify-between mb-4">
+							<div class="flex items-start gap-3">
+								<div class="rounded-full bg-primary/10 p-2 group-hover:bg-primary/20 transition-colors">
+									<User size={20} class="text-primary" />
+								</div>
+								<div class="space-y-1 flex-1 min-w-0">
+									<h3 class="font-semibold text-foreground truncate" title={cashier.name}>
 										{cashier.name}
 									</h3>
-									<p class="text-sm text-muted-foreground flex items-center gap-2">
-										<Mail class="h-3 w-3" />
-										{cashier.email}
-									</p>
-								</div>
-							</div>
-
-							{#if cashier.cashierPayments && cashier.cashierPayments.length > 0}
-								<div class="space-y-2">
-									<p class="text-xs font-medium text-muted-foreground flex items-center gap-1">
-										<CreditCard class="h-3 w-3" />
-										Supported Currencies
-									</p>
-									<div class="flex flex-wrap gap-1">
-										{#each cashier.cashierPayments as payment}
-											<Badge variant="secondary" class="text-xs">
-												{payment.currency}
-											</Badge>
-										{/each}
+									<div class="flex items-center gap-1">
+										{#if cashier.email}
+											<span class="px-2 py-0.5 bg-orange-100 text-orange-800 text-xs font-medium rounded-full">
+												Setup Required
+											</span>
+										{:else}
+											<span class="px-2 py-0.5 bg-gray-100 text-gray-600 text-xs font-medium rounded-full">
+												No currencies configured
+											</span>
+										{/if}
 									</div>
 								</div>
-							{:else}
-								<div class="space-y-2">
-									<p class="text-xs font-medium text-muted-foreground">No currencies configured</p>
-									<Badge variant="outline" class="text-xs">Setup Required</Badge>
-								</div>
-							{/if}
-
-							<div class="flex items-center text-xs text-muted-foreground">
-								<span>Created: {new Date(cashier.createdDateUtc || Date.now()).toLocaleDateString()}</span>
 							</div>
 						</div>
-					</Card>
-				{/each}
+
+						<!-- Cashier Details -->
+						<div class="space-y-3 mb-6">
+							<!-- Email -->
+							<div class="flex items-center gap-2 text-sm">
+								<Mail size={14} class="text-muted-foreground flex-shrink-0" />
+								<span class="text-muted-foreground truncate">
+									{cashier.email || 'No email provided'}
+								</span>
+							</div>
+
+							<!-- Cashier ID -->
+							<div class="flex items-center gap-2 text-sm">
+								<Hash size={14} class="text-muted-foreground flex-shrink-0" />
+								<span class="font-mono text-muted-foreground text-xs truncate" title={cashier.cashierId}>
+									{cashier.cashierId}
+								</span>
+							</div>
+						</div>
+
+						<!-- Created Date -->
+						<div class="text-xs text-muted-foreground mb-4 border-t pt-3">
+							Created: {new Date().toLocaleDateString('en-US', { 
+								month: 'short', 
+								day: 'numeric', 
+								year: 'numeric' 
+							})}
+						</div>
+
+						<!-- Action Buttons -->
+						<div class="flex gap-2">
+							<Button
+								size="sm"
+								variant="outline"
+								onclick={() => editCashier(cashier.cashierId)}
+								class="flex-1 gap-2 group-hover:border-primary/30 transition-colors"
+							>
+								<Pencil size={14} />
+								Edit
+							</Button>
+							<Button
+								size="sm"
+								variant="ghost"
+								onclick={() => deleteCashier(cashier.cashierId, cashier.name)}
+								class="text-destructive hover:text-destructive hover:bg-destructive/10"
+							>
+								<Trash2 size={14} />
+							</Button>
+						</div>
+					</CardContent>
+				</Card>
+			{/each}
+		</div>
+
+		<!-- Summary Footer -->
+		{#if filteredCashiers.length > 0}
+			<div class="flex items-center justify-between pt-6 border-t">
+				<p class="text-sm text-muted-foreground">
+					Showing {filteredCashiers.length} of {cashiers.length} cashiers
+				</p>
+				<div class="flex items-center gap-4 text-sm text-muted-foreground">
+					<span class="flex items-center gap-1">
+						<div class="w-2 h-2 rounded-full bg-green-500"></div>
+						{filteredCashiers.filter(c => c.email).length} configured
+					</span>
+					<span class="flex items-center gap-1">
+						<div class="w-2 h-2 rounded-full bg-orange-500"></div>
+						{filteredCashiers.filter(c => !c.email).length} setup required
+					</span>
+				</div>
 			</div>
 		{/if}
-	</div>
+	{/if}
 </div>

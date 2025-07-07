@@ -4,14 +4,16 @@ using Billing.AppHost.Extensions;
 
 var builder = DistributedApplication.CreateBuilder(args);
 
-// From user secrets Parameters:DbPassword
 var dbPassword = builder.AddParameter("DbPassword", secret: true);
 
 var pgsql = builder
-    .AddPostgres("billing-db", password: dbPassword)
+    .AddPostgres("billing-db", password: dbPassword, port: 54320)
     .WithImage("postgres", "17-alpine")
     .WithContainerName("billing-db")
+    .WithEndpointProxySupport(false)
     .WithPgAdmin(pgAdmin => pgAdmin
+        .WithHostPort(port: 54321)
+        .WithEndpointProxySupport(false)
         .WithImage("dpage/pgadmin4", "latest")
         .WithLifetime(ContainerLifetime.Persistent)
         .WithUrlForEndpoint("http", url => url.DisplayText = "PgAdmin (DB Management)"))
@@ -19,11 +21,13 @@ var pgsql = builder
 
 var database = pgsql.AddDatabase(name: "BillingDb", databaseName: "billing");
 var serviceBusDb = pgsql.AddDatabase(name: "ServiceBus", databaseName: "service_bus");
-var liquibase = builder.AddLiquibaseMigrations(pgsql, dbPassword);
+builder.AddLiquibaseMigrations(pgsql, dbPassword);
 
-var kafka = builder
-    .AddKafka("messaging")
-    .WithKafkaUI(r => r.WithUrlForEndpoint("http", url => url.DisplayText = "Kafka UI"));
+var kafka = builder.AddKafka("messaging", port: 59092);
+kafka.WithKafkaUI(resource => resource
+    .WithHostPort(port: 59093)
+    .WaitFor(kafka)
+    .WithUrlForEndpoint("http", url => url.DisplayText = "Kafka UI"));
 
 var storage = builder.AddAzureStorage("billing-azure-storage").RunAsEmulator();
 var clustering = storage.AddTables("OrleansClustering");
@@ -41,18 +45,8 @@ var billingApi = builder
     .WithReference(database)
     .WithReference(serviceBusDb)
     .WithReference(kafka)
-    .WaitForCompletion(liquibase)
+    .WaitFor(database)
     .WithHttpHealthCheck("/health/internal");
-
-builder
-    .AddNpmApp("billing-ui", "../../../Billing/web/billing-ui", "dev")
-    .WithEnvironment("GRPC_HOST", () => billingApi.GetGrpcEndpoint().Host)
-    .WithEnvironment("GRPC_PORT", () => billingApi.GetGrpcEndpoint().Port.ToString())
-    .WithHttpEndpoint(env: "PORT", port: 8105)
-    .WithExternalHttpEndpoints()
-    .WithReference(billingApi)
-    .WaitFor(billingApi)
-    .PublishAsDockerFile();
 
 builder
     .AddProject<Projects.Billing_BackOffice>("billing-backoffice")
@@ -60,34 +54,44 @@ builder
     .WithReference(database)
     .WithReference(serviceBusDb)
     .WithReference(kafka)
-    .WaitForCompletion(liquibase)
+    .WaitFor(database)
     .WithHttpHealthCheck("/health/internal");
-
-builder
-    .AddProject<Projects.Billing_BackOffice_Orleans>("billing-backoffice-orleans")
-    .WithEnvironment("ServiceName", "Billing")
-    .WithEnvironment("Orleans__UseLocalhostClustering", "false")
-    .WithEnvironment("Aspire__Azure__Data__Tables__DisableHealthChecks", "true")
-    .WithReference(orleans)
-    .WithReference(database)
-    .WithReference(serviceBusDb)
-    .WithReference(kafka)
-    .WaitForCompletion(liquibase)
-    .WithReplicas(3)
-    .WithUrlForEndpoint("https", url =>
-    {
-        url.DisplayText = "Dashboard";
-        url.Url = "/dashboard";
-    })
-    .WithHttpHealthCheck("/health/internal");
-
-builder
-    .AddContainer("billing-docs", "billing-docfx")
-    .WithDockerfile("../../docs")
-    .WithBindMount("../../", "/app")
-    .WithHttpEndpoint(port: 8119, targetPort: 8080, name: "http")
-    .WithArgs("docs/docfx.json", "--serve", "--hostname=*", "--logLevel=error")
-    .WithUrlForEndpoint("http", url => url.DisplayText = "App Documentation")
-    .WithHttpHealthCheck("toc.json");
+//
+// builder
+//     .AddProject<Projects.Billing_BackOffice_Orleans>("billing-backoffice-orleans")
+//     .WithEnvironment("ServiceName", "Billing")
+//     .WithEnvironment("Orleans__UseLocalhostClustering", "false")
+//     .WithEnvironment("Aspire__Azure__Data__Tables__DisableHealthChecks", "true")
+//     .WithReference(orleans)
+//     .WithReference(database)
+//     .WithReference(serviceBusDb)
+//     .WithReference(kafka)
+//     .WaitFor(pgsql)
+//     .WithReplicas(3)
+//     .WithUrlForEndpoint("https", url =>
+//     {
+//         url.DisplayText = "Dashboard";
+//         url.Url = "/dashboard";
+//     })
+//     .WithHttpHealthCheck("/health/internal");
+//
+// builder
+//     .AddNpmApp("billing-ui", "../../../Billing/web/billing-ui", "dev")
+//     .WithEnvironment("GRPC_HOST", () => billingApi.GetGrpcEndpoint().Host)
+//     .WithEnvironment("GRPC_PORT", () => billingApi.GetGrpcEndpoint().Port.ToString())
+//     .WithHttpEndpoint(env: "PORT", port: 8105, isProxied: false)
+//     .WithUrlForEndpoint("http", url => url.DisplayText = "Billing UI")
+//     .WithReference(billingApi)
+//     .WaitFor(billingApi)
+//     .PublishAsDockerFile();
+//
+// builder
+//     .AddContainer("billing-docs", "billing-docfx")
+//     .WithDockerfile("../../docs")
+//     .WithBindMount("../../", "/app")
+//     .WithHttpEndpoint(port: 8119, targetPort: 8080, name: "http")
+//     .WithArgs("docs/docfx.json", "--serve", "--hostname=*", "--logLevel=error")
+//     .WithUrlForEndpoint("http", url => url.DisplayText = "App Documentation")
+//     .WithHttpHealthCheck("toc.json");
 
 await builder.Build().RunAsync();

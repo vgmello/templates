@@ -2,43 +2,14 @@
 // for information about these interfaces
 declare global {
 	namespace App {
-		// interface Error {}
-		// interface Locals {}
-		// interface PageData {}
-		// interface PageState {}
-		// interface Platform {}
-	}
-}
+		interface Locals {
+			user: import('$lib/server/auth').SessionValidationResult['user'];
+			session: import('$lib/server/auth').SessionValidationResult['session'];
+		}
+	} // interface Error {}
+	// interface Locals {}
+} // interface PageData {}
+// interface PageState {}
 
-// Cashier types
-export interface CashierPayment {
-	currency: string;
-	isActive: boolean;
-	createdDateUtc: string;
-	description?: string;
-}
-
-export interface Cashier {
-	cashierId: string;
-	name: string;
-	email: string;
-	cashierPayments: CashierPayment[];
-	createdDateUtc: string;
-	updatedDateUtc: string;
-	version: number;
-}
-
-export interface CreateCashierRequest {
-	name: string;
-	email: string;
-	currencies: string[];
-}
-
-export interface UpdateCashierRequest {
-	name?: string;
-	email?: string;
-	currencies?: string[];
-}
-
-
+// interface Platform {}
 export {};

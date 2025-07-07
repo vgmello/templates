@@ -7,6 +7,7 @@ using DotNet.Testcontainers.Builders;
 using DotNet.Testcontainers.Networks;
 using Grpc.Net.Client;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Operations.ServiceDefaults;
 using Operations.ServiceDefaults.Api;
 using Operations.ServiceDefaults.Messaging.Wolverine;
 using Serilog;
@@ -66,6 +67,7 @@ public class IntegrationTestFixture : WebApplicationFactory<Program>, IAsyncLife
         builder.UseSetting("ConnectionStrings:ServiceBus", _postgres.GetDbConnectionString("service_bus"));
 
         WolverineSetupExtensions.SkipServiceRegistration = true;
+        ServiceDefaultsExtensions.EntryAssembly = typeof(Program).Assembly;
 
         builder.ConfigureServices((ctx, services) =>
         {

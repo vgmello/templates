@@ -4,14 +4,18 @@ namespace Operations.Extensions.Abstractions.Dapper;
 
 /// <summary>
 ///     Attribute to define database command properties and behavior for a class.
-///     Triggers generation of a ToDbParams() method. If 'sp' or 'sql' is provided,
+///     Triggers generation of a ToDbParams() method. If 'sp', 'sql', or 'fn' is provided,
 ///     also triggers generation of a command handler method.
 /// </summary>
 /// <remarks>
 ///     Initializes a new instance of the <see cref="DbCommandAttribute" /> class.
 /// </remarks>
-/// <param name="sp">The name of the stored procedure. Mutually exclusive with <paramref name="sql" />.</param>
-/// <param name="sql">The SQL query text. Mutually exclusive with <paramref name="sp" />.</param>
+/// <param name="sp">The name of the stored procedure. Mutually exclusive with <paramref name="sql" /> and <paramref name="fn" />.</param>
+/// <param name="sql">The SQL query text. Mutually exclusive with <paramref name="sp" /> and <paramref name="fn" />.</param>
+/// <param name="fn">
+///     The function SQL query text. Parameters will be auto-generated based on record properties. Mutually exclusive with
+///     <paramref name="sp" /> and <paramref name="sql" />.
+/// </param>
 /// <param name="paramsCase">DB params case</param>
 /// <param name="nonQuery">
 ///     Indicates the nature of the command, with its primary effect on commands implementing ICommand&lt;int&gt;.
@@ -28,6 +32,7 @@ namespace Operations.Extensions.Abstractions.Dapper;
 public sealed class DbCommandAttribute(
     string? sp = null,
     string? sql = null,
+    string? fn = null,
     DbParamsCase paramsCase = DbParamsCase.Unset,
     bool nonQuery = false,
     string? dataSource = null) : Attribute
@@ -41,6 +46,12 @@ public sealed class DbCommandAttribute(
     ///     If set, a command handler will be generated using this SQL query.
     /// </summary>
     public string? Sql { get; } = sql;
+
+    /// <summary>
+    ///     If set, a command handler will be generated using this function SQL query.
+    ///     Parameters will be automatically appended based on record properties.
+    /// </summary>
+    public string? Fn { get; } = fn;
 
     /// <summary>
     ///     Specifies how property names are converted to database parameter names in the generated ToDbParams() method.

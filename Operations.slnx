@@ -1,18 +1,4 @@
 <Solution>
-  <Folder Name="/Accounting/">
-    <Project Path="Accounting\src\Accounting.Api\Accounting.Api.csproj" Type="Classic C#" />
-    <Project Path="Accounting\src\Accounting.AppHost\Accounting.AppHost.csproj" Type="Classic C#" />
-    <Project Path="Accounting\src\Accounting.BackOffice.Orleans\Accounting.BackOffice.Orleans.csproj" Type="Classic C#" />
-    <Project Path="Accounting\src\Accounting.BackOffice\Accounting.BackOffice.csproj" Type="Classic C#" />
-    <Project Path="Accounting\src\Accounting.Contracts\Accounting.Contracts.csproj" Type="Classic C#" />
-    <Project Path="Accounting\src\Accounting\Accounting.csproj" Type="Classic C#" />
-  </Folder>
-  <Folder Name="/Accounting/Infra/">
-    <Project Path="Accounting\infra\Accounting.Database\Accounting.Database.csproj" Type="Classic C#" />
-  </Folder>
-  <Folder Name="/Accounting/Tests/">
-    <Project Path="Accounting\test\Accounting.Tests\Accounting.Tests.csproj" Type="Classic C#" />
-  </Folder>
   <Folder Name="/Billing/">
     <Project Path="Billing\src\Billing.Api\Billing.Api.csproj" Type="Classic C#" />
     <Project Path="Billing\src\Billing.AppHost\Billing.AppHost.csproj" Type="Classic C#" />
@@ -25,6 +11,7 @@
     <Project Path="Billing\infra\Billing.Database\Billing.Database.csproj" Type="Classic C#" />
   </Folder>
   <Folder Name="/Billing/Solution Items/">
+    <Project Path="Billing\docs\Billing.Docs.csproj" Type="Classic C#" />
     <File Path="Billing\README.md" />
     <File Path="Billing\compose.yml" />
   </Folder>
@@ -32,7 +19,6 @@
     <Project Path="Billing\test\Billing.Tests\Billing.Tests.csproj" Type="Classic C#" />
   </Folder>
   <Folder Name="/Platform/">
-    <Project Path="Platform\src\Operations.AppHost\Operations.AppHost.csproj" Type="Classic C#" />
     <Project Path="Platform\src\Operations.Extensions.Abstractions\Operations.Extensions.Abstractions.csproj" Type="Classic C#" />
     <Project Path="Platform\src\Operations.Extensions.SourceGenerators\Operations.Extensions.SourceGenerators.csproj" Type="Classic C#" />
     <Project Path="Platform\src\Operations.Extensions\Operations.Extensions.csproj" Type="Classic C#" />
@@ -53,9 +39,11 @@
     <File Path="Directory.Packages.props" />
     <File Path="README.md" />
     <File Path="Directory.Build.targets" />
+    <File Path="compose.yaml" />
   </Folder>
   <Folder Name="/Solution Items/.http/">
     <File Path=".http\Accounting.Api.http" />
     <File Path=".http\Billing.Api.http" />
+    <File Path=".http\Housekeeping.Api.http" />
   </Folder>
 </Solution>
