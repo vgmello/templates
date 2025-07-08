@@ -16,7 +16,7 @@ const config = {
 			"$lib/components": "src/lib/components",
 			"$lib/utils": "src/lib/utils"
 		}
-	}
+	},
 };
 
 export default config;

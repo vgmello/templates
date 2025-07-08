@@ -20,7 +20,7 @@ export interface InvoiceCreateData {
 
 export class InvoiceBffService {
 	// Optimized invoice list with summary - combines 2 API calls into 1 aggregated response
-	async getInvoicesWithSummary(query?: GetInvoicesQuery): Promise<InvoicesWithSummary> {
+	async getInvoicesWithSummary(query?: GetInvoicesQuery, traceContext?: App.Locals['traceContext']): Promise<InvoicesWithSummary> {
 		const params = new URLSearchParams();
 		
 		if (query?.status) params.append('status', query.status);
@@ -35,7 +35,7 @@ export class InvoiceBffService {
 		
 		// Fetch invoices and calculate summary in parallel
 		const [invoices] = await Promise.all([
-			serverApiClient.get<Invoice[]>(endpoint)
+			serverApiClient.get<Invoice[]>(endpoint, traceContext)
 		]);
 
 		// Calculate summary from invoices data (client-side aggregation)
@@ -54,13 +54,13 @@ export class InvoiceBffService {
 	}
 
 	// Single invoice data
-	async getInvoice(id: string): Promise<Invoice> {
-		return serverApiClient.get<Invoice>(`/invoices/${id}`);
+	async getInvoice(id: string, traceContext?: App.Locals['traceContext']): Promise<Invoice> {
+		return serverApiClient.get<Invoice>(`/invoices/${id}`, traceContext);
 	}
 
 	// Invoice create page data - loads cashiers for dropdown
-	async getInvoiceCreateData(): Promise<InvoiceCreateData> {
-		const cashiers = await serverApiClient.get<GetCashiersResult[]>('/cashiers');
+	async getInvoiceCreateData(traceContext?: App.Locals['traceContext']): Promise<InvoiceCreateData> {
+		const cashiers = await serverApiClient.get<GetCashiersResult[]>('/cashiers', traceContext);
 		return { cashiers };
 	}
 }

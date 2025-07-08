@@ -16,8 +16,8 @@
 
     <ItemGroup>
         <AssemblyAttribute Include="Operations.Extensions.Abstractions.Messaging.DefaultDomainAttribute">
-            <Domain>Billing123</Domain>
+            <Domain>Billing</Domain>
         </AssemblyAttribute>
     </ItemGroup>
-    
+
 </Project>

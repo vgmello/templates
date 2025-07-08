@@ -8,8 +8,10 @@ using System.Diagnostics;
 using OpenTelemetry;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
+using OpenTelemetry.Context.Propagation;
 using Operations.ServiceDefaults.Messaging.Telemetry;
 using System.Diagnostics.Metrics;
+using OpenTelemetry.Resources;
 
 namespace Operations.ServiceDefaults.OpenTelemetry;
 
@@ -26,13 +28,16 @@ public static class OpenTelemetrySetupExtensions
     /// <remarks>
     ///     This method configures:
     ///     <list type="bullet">
+    ///         <item>W3C Trace Context and Baggage propagation for distributed tracing</item>
     ///         <item>Activity source for custom tracing with configurable name</item>
     ///         <item>Messaging meter for custom metrics collection</item>
     ///         <item>OpenTelemetry logging with formatted messages and scopes</item>
     ///         <item>OTLP exporter for sending telemetry data</item>
     ///         <item>Metrics collection for ASP.NET Core, HTTP client, runtime, and Wolverine</item>
     ///         <item>Distributed tracing with filtering for health check endpoints</item>
-    ///         <item>HTTP client instrumentation with path filtering</item>
+    ///         <item>HTTP client instrumentation with path filtering and exception recording</item>
+    ///         <item>gRPC client instrumentation for service-to-service calls</item>
+    ///         <item>Configurable sampling (100% in development, 10% in production)</item>
     ///     </list>
     ///     Configuration can be customized via:
     ///     <list type="bullet">
@@ -48,13 +53,12 @@ public static class OpenTelemetrySetupExtensions
         var messagingMeterName = builder.Configuration.GetValue<string>("OpenTelemetry:MessagingMeterName")
                                  ?? $"{builder.Environment.ApplicationName}.Messaging";
 
-        var activitySource = new ActivitySource(activitySourceName);
-        builder.Services.AddSingleton(activitySource);
+        builder.Services.AddSingleton(new ActivitySource(activitySourceName));
 
-        builder.Services.AddKeyedSingleton<Meter>(MessagingMeterStore.MessagingMeterKey, (provider, _) =>
-            provider.GetRequiredService<IMeterFactory>().Create(messagingMeterName));
-
-        builder.Services.AddSingleton<MessagingMeterStore>();
+        builder.Services
+            .AddSingleton<MessagingMeterStore>()
+            .AddKeyedSingleton<Meter>(MessagingMeterStore.MessagingMeterKey,
+                (provider, _) => provider.GetRequiredService<IMeterFactory>().Create(messagingMeterName));
 
         builder.Logging.AddOpenTelemetry(logging =>
         {
@@ -62,27 +66,42 @@ public static class OpenTelemetrySetupExtensions
             logging.IncludeScopes = true;
         });
 
+        // Configure W3C Trace Context and Baggage propagation
+        Sdk.SetDefaultTextMapPropagator(new CompositeTextMapPropagator([
+            new TraceContextPropagator(),
+            new BaggagePropagator()
+        ]));
+
         builder.Services.AddOpenTelemetry()
             .UseOtlpExporter()
+            .ConfigureResource(resource => resource
+                .AddAttributes(new Dictionary<string, object>
+                {
+                    ["env"] = builder.Environment.EnvironmentName
+                }))
             .WithMetrics(metrics => metrics
                 .AddMeter(activitySourceName)
+                .AddMeter(messagingMeterName)
                 .AddAspNetCoreInstrumentation()
                 .AddHttpClientInstrumentation()
                 .AddRuntimeInstrumentation()
-                .AddMeter(nameof(Wolverine))
-                .AddMeter(messagingMeterName))
+                .AddMeter(nameof(Wolverine)))
             .WithTracing(tracing => tracing
                 .AddSource(activitySourceName)
-                .AddAspNetCoreInstrumentation(t => t.Filter = ctx =>
+                .AddAspNetCoreInstrumentation(options =>
                 {
-                    if (ctx.Request.Path.Value?.StartsWith("/health/") == true)
-                        return false;
+                    options.Filter = ctx =>
+                    {
+                        if (ctx.Request.Path.Value?.StartsWith("/health/") == true)
+                            return false;
 
-                    return true;
+                        return true;
+                    };
+                    options.RecordException = true;
                 })
-                .AddHttpClientInstrumentation(ctx =>
+                .AddHttpClientInstrumentation(options =>
                 {
-                    ctx.FilterHttpRequestMessage = message =>
+                    options.FilterHttpRequestMessage = message =>
                     {
                         var requestPath = message.RequestUri?.AbsolutePath;
 
@@ -91,7 +110,18 @@ public static class OpenTelemetrySetupExtensions
 
                         return !ExcludedClientPaths.Any(requestPath.Contains);
                     };
-                }));
+
+                    options.RecordException = true;
+                })
+                .AddGrpcClientInstrumentation(options =>
+                {
+                    options.SuppressDownstreamInstrumentation = false;
+                    options.EnrichWithHttpRequestMessage = (activity, message) =>
+                    {
+                        activity.SetTag("grpc.request.uri", message.RequestUri?.ToString());
+                    };
+                })
+                .SetSampler(new TraceIdRatioBasedSampler(builder.Environment.IsDevelopment() ? 1.0 : 0.1)));
 
         return builder;
     }

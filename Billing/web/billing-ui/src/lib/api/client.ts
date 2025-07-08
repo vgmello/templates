@@ -1,5 +1,8 @@
 // API client configuration and base functions
 
+import { getTracer, createSpan } from '$lib/telemetry/tracing.js';
+import { BROWSER } from 'esm-env';
+
 export class ApiError extends Error {
 	constructor(
 		message: string,
@@ -13,6 +16,7 @@ export class ApiError extends Error {
 
 class ApiClient {
 	private baseUrl: string;
+	private tracer = BROWSER ? getTracer('billing-ui-client') : null;
 
 	constructor(baseUrl = '/api') {
 		this.baseUrl = baseUrl;
@@ -23,7 +27,41 @@ class ApiClient {
 		options: RequestInit = {}
 	): Promise<T> {
 		const url = `${this.baseUrl}${endpoint}`;
-		
+		const method = options.method || 'GET';
+		const spanName = `${method} ${endpoint}`;
+
+		// If tracing is available, create a span for this request
+		if (this.tracer && BROWSER) {
+			return this.tracer.startActiveSpan(spanName, async (span) => {
+				try {
+					span.setAttributes({
+						'http.method': method,
+						'http.url': url,
+						'http.target': endpoint,
+						'component': 'billing-ui-client'
+					});
+
+					const result = await this.executeRequest<T>(url, options);
+					span.setStatus({ code: 1 }); // OK
+					return result;
+				} catch (error) {
+					span.recordException(error as Error);
+					span.setStatus({ 
+						code: 2, 
+						message: error instanceof Error ? error.message : 'Unknown error' 
+					});
+					throw error;
+				} finally {
+					span.end();
+				}
+			});
+		} else {
+			// Fallback for server-side rendering or when tracing is not available
+			return this.executeRequest<T>(url, options);
+		}
+	}
+
+	private async executeRequest<T>(url: string, options: RequestInit): Promise<T> {
 		const config: RequestInit = {
 			headers: {
 				'Content-Type': 'application/json',

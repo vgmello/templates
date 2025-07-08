@@ -15,11 +15,7 @@ public class BusinessDayEndedHandler(ILogger<BusinessDayEndedHandler> logger, IM
         var invoiceId = Guid.CreateVersion7();
         var customerId = Guid.CreateVersion7();
 
-        await messageBus.PublishAsync(new InvoiceGenerated
-        {
-            InvoiceId = invoiceId,
-            InvoiceAmount = 500.75m
-        });
+        await messageBus.PublishAsync(new InvoiceGenerated(invoiceId, 500.75m));
 
         await messageBus.PublishAsync(new InvoiceFinalized
         {
@@ -33,4 +29,5 @@ public class BusinessDayEndedHandler(ILogger<BusinessDayEndedHandler> logger, IM
 
 // This declared in this file, for example purposes,
 // in a real-world scenario is supposed to be declared in a different domain/project
+[EventTopic("operations", domain: "accounting")]
 public record BusinessDayEnded(DateTime BusinessDate, string Market, string Region);

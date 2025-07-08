@@ -2,6 +2,7 @@
 
 using Operations.Extensions.Abstractions.Messaging;
 using Operations.ServiceDefaults.Messaging.Wolverine;
+using Operations.ServiceDefaults.Messaging.Kafka;
 using System.Diagnostics;
 using Wolverine;
 
@@ -39,12 +40,15 @@ public static class OpenTelemetryInstrumentationMiddleware
     public static Activity? Before(ActivitySource activitySource, Envelope envelope)
     {
         var activityName = envelope.GetMessageName();
-        var activity = activitySource.StartActivity(activityName);
+
+        var parentTraceId = ExtractParentTraceIdFromIncomingMessage(envelope);
+        var activity = activitySource.StartActivity(activityName, ActivityKind.Consumer, parentId: parentTraceId);
 
         if (activity is null)
             return null;
 
         activity.SetTag("message.id", envelope.Id.ToString());
+        activity.SetTag("messaging.destination", envelope.Destination?.ToString() ?? "unknown");
 
         if (envelope.Message is not null)
         {
@@ -100,4 +104,19 @@ public static class OpenTelemetryInstrumentationMiddleware
 
     private static bool IsQuery(object message) =>
         message.GetType().GetInterfaces().Any(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IQuery<>));
+
+    private static string? ExtractParentTraceIdFromIncomingMessage(Envelope envelope)
+    {
+        if (envelope.Headers.TryGetValue(DistributedTracingExtensions.TraceParentAttribute.Name, out var traceParentHeader))
+        {
+            return traceParentHeader;
+        }
+
+        if (!string.IsNullOrEmpty(envelope.ParentId))
+        {
+            return envelope.ParentId;
+        }
+
+        return null;
+    }
 }
