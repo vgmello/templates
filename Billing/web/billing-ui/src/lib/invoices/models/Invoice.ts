@@ -1,5 +1,5 @@
 import { Money } from '$lib/core/values/Money';
-import { InvoiceStatusValue, type InvoiceStatus } from '$lib/core/values/InvoiceStatus';
+import type { InvoiceStatus } from '$lib/core/values/InvoiceStatus';
 import type { Currency } from '$lib/core/values/Currency';
 
 export class Invoice {
@@ -17,20 +17,6 @@ export class Invoice {
 	items = $state<InvoiceItem[]>([]);
 	createdAt = $state<Date>(new Date());
 	updatedAt = $state<Date>(new Date());
-
-	statusValue = $derived(new InvoiceStatusValue(this.status));
-
-	isOverdue = $derived(this.status === 'pending' && new Date() > this.dueDate);
-
-	canBeCancelled = $derived(this.statusValue.canBeCancelled());
-
-	canBePaid = $derived(this.statusValue.canBePaid());
-
-	canBeEdited = $derived(this.statusValue.canBeEdited());
-
-	totalAmount = $derived(
-		this.items.reduce((sum, item) => sum.add(item.total), Money.zero(this.amount.currency))
-	);
 
 	constructor(data?: Partial<InvoiceData>) {
 		if (data) {
@@ -56,57 +42,6 @@ export class Invoice {
 		if (data.items !== undefined) {
 			this.items = data.items.map((item) => new InvoiceItem(item));
 		}
-	}
-
-	cancel(): void {
-		if (!this.canBeCancelled) {
-			throw new Error('Invoice cannot be cancelled in its current status');
-		}
-		this.status = 'cancelled';
-		this.updatedAt = new Date();
-	}
-
-	markPaid(): void {
-		if (!this.canBePaid) {
-			throw new Error('Invoice cannot be marked as paid in its current status');
-		}
-		this.status = 'paid';
-		this.updatedAt = new Date();
-	}
-
-	addItem(item: InvoiceItem): void {
-		if (!this.canBeEdited) {
-			throw new Error('Invoice cannot be edited in its current status');
-		}
-		this.items = [...this.items, item];
-		this.updatedAt = new Date();
-	}
-
-	removeItem(itemId: string): void {
-		if (!this.canBeEdited) {
-			throw new Error('Invoice cannot be edited in its current status');
-		}
-		this.items = this.items.filter((item) => item.id !== itemId);
-		this.updatedAt = new Date();
-	}
-
-	validate(): string[] {
-		const errors: string[] = [];
-
-		if (!this.customerName) {
-			errors.push('Customer name is required');
-		}
-		if (!this.customerEmail) {
-			errors.push('Customer email is required');
-		}
-		if (this.items.length === 0) {
-			errors.push('At least one item is required');
-		}
-		if (this.dueDate < this.issueDate) {
-			errors.push('Due date must be after issue date');
-		}
-
-		return errors;
 	}
 }
 

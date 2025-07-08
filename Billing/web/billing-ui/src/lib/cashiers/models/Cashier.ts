@@ -12,10 +12,6 @@ export class Cashier {
 
 	displayName = $derived(this.name || this.email || 'Unknown Cashier');
 
-	canHandleCurrency = $derived((currency: Currency) =>
-		this.supportedCurrencies.includes(currency)
-	);
-
 	constructor(data?: Partial<CashierData>) {
 		if (data) {
 			this.updateFrom(data);

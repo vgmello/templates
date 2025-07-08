@@ -43,9 +43,9 @@
 				(statusFilter === 'active' && cashier.isActive) ||
 				(statusFilter === 'inactive' && !cashier.isActive);
 
-			// Currency filter using domain model method
+			// Currency filter
 			const matchesCurrency = currencyFilter === 'all' || 
-				cashier.canHandleCurrency(currencyFilter);
+				cashier.supportedCurrencies.includes(currencyFilter);
 
 			return matchesSearch && matchesStatus && matchesCurrency;
 		})
