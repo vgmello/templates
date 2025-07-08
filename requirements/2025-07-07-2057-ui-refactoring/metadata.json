@@ -1,0 +1,32 @@
+{
+  "id": "ui-refactoring",
+  "started": "2025-07-07T20:57:00Z",
+  "lastUpdated": "2025-07-07T21:05:00Z",
+  "status": "active",
+  "phase": "complete",
+  "progress": {
+    "discovery": {
+      "answered": 5,
+      "total": 5
+    },
+    "detail": {
+      "answered": 5,
+      "total": 5
+    }
+  },
+  "contextFiles": [
+    "/lib/server/CashierBffService.ts",
+    "/lib/server/InvoiceBffService.ts",
+    "/lib/server/api-client.ts",
+    "/lib/api-client.ts",
+    "/lib/telemetry/browser.ts",
+    "/lib/telemetry/server.ts",
+    "hooks.server.ts"
+  ],
+  "relatedFeatures": [
+    "Payment processing",
+    "Invoice generation",
+    "Multi-currency support",
+    "OpenTelemetry tracing"
+  ]
+}

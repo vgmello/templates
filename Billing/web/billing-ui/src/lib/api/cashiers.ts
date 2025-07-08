@@ -1,57 +1,56 @@
-// API functions for cashier management
+import { apiClient } from '$lib/infrastructure/api/ApiClient';
 
-import { apiClient } from './client.js';
-import type {
-	Cashier,
-	CreateCashierRequest,
-	UpdateCashierRequest,
-	GetCashiersQuery,
-	GetCashiersResult
-} from '../types/cashier.js';
+export interface GetCashiersResult {
+	cashierId: string;
+	name: string;
+	email: string;
+	createdDateUtc?: string;
+}
+
+export interface Cashier {
+	cashierId: string;
+	tenantId: string;
+	name: string;
+	email: string;
+	cashierPayments: any[];
+}
+
+export interface CreateCashierRequest {
+	name: string;
+	email: string;
+}
+
+export interface UpdateCashierRequest {
+	cashierId?: string;
+	name: string;
+	email: string;
+}
+
+export interface GetCashiersQuery {
+	page?: number;
+	pageSize?: number;
+	search?: string;
+	sortBy?: string;
+	sortOrder?: 'asc' | 'desc';
+}
 
 export const cashierApi = {
-	/**
-	 * Get all cashiers with optional filtering
-	 */
-	async getCashiers(query: GetCashiersQuery = {}): Promise<GetCashiersResult[]> {
-		const params = new URLSearchParams();
-		
-		Object.entries(query).forEach(([key, value]) => {
-			if (value !== undefined) {
-				params.append(key, value.toString());
-			}
-		});
-
-		const queryString = params.toString();
-		const endpoint = queryString ? `/cashiers?${queryString}` : '/cashiers';
-		
-		return apiClient.get<GetCashiersResult[]>(endpoint);
+	async getCashiers(query?: GetCashiersQuery): Promise<GetCashiersResult[]> {
+		return apiClient.get<GetCashiersResult[]>('/cashiers', query);
 	},
 
-	/**
-	 * Get a specific cashier by ID
-	 */
 	async getCashier(id: string): Promise<Cashier> {
 		return apiClient.get<Cashier>(`/cashiers/${id}`);
 	},
 
-	/**
-	 * Create a new cashier
-	 */
-	async createCashier(data: CreateCashierRequest): Promise<Cashier> {
-		return apiClient.post<Cashier>('/cashiers', data);
+	async createCashier(request: CreateCashierRequest): Promise<Cashier> {
+		return apiClient.post<Cashier>('/cashiers', request);
 	},
 
-	/**
-	 * Update an existing cashier
-	 */
-	async updateCashier(id: string, data: UpdateCashierRequest): Promise<Cashier> {
-		return apiClient.put<Cashier>(`/cashiers/${id}`, data);
+	async updateCashier(id: string, request: UpdateCashierRequest): Promise<Cashier> {
+		return apiClient.put<Cashier>(`/cashiers/${id}`, request);
 	},
 
-	/**
-	 * Delete a cashier
-	 */
 	async deleteCashier(id: string): Promise<void> {
 		return apiClient.delete<void>(`/cashiers/${id}`);
 	}
