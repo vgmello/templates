@@ -4,6 +4,7 @@
 	import { Card, CardContent } from '$lib/components/ui/card';
 	import { Input } from '$lib/components/ui/input';
 	import { CurrencyDisplay } from '$lib/components/ui/currency-display';
+	import { Select } from '$lib/components/ui/select';
 	import {
 		Plus,
 		Search,
