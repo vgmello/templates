@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { formatCurrency } from '$lib/utils/currency.js';
-	import { cn } from '$lib/utils.js';
+	import { formatCurrency } from '$lib/infrastructure/utils/currency.js';
+	import { cn } from '$lib/infrastructure/utils/utils.js';
 
 	type Props = {
 		amount: number;

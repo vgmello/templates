@@ -15,7 +15,7 @@
 		Settings,
 		UserPlus
 	} from '@lucide/svelte';
-	import type { GetCashiersResult } from '$lib';
+	import type { GetCashiersResult } from '$lib/cashiers';
 	import type { ActionData } from './$types';
 
 	type Props = {

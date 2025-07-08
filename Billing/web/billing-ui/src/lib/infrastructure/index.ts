@@ -23,3 +23,8 @@ export {
 } from './error/NotificationService';
 export { default as ErrorBoundary } from './error/ErrorBoundary.svelte';
 export { default as NotificationDisplay } from './error/NotificationDisplay.svelte';
+
+// Utilities
+export { cn } from './utils/utils.js';
+export { formatCurrency } from './utils/currency.js';
+export { formatDate, formatDateForInput, isOverdue } from './utils/date.js';

@@ -1,6 +1,6 @@
 import type { Actions } from './$types';
 import { redirect, fail } from '@sveltejs/kit';
-import { cashierApi } from '$lib/api';
+import { cashierApi } from '$lib/cashiers';
 import { ApiError } from '$lib/infrastructure';
 
 export const actions: Actions = {

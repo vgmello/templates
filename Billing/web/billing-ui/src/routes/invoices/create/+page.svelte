@@ -7,8 +7,8 @@
 	import { CurrencyInput } from '$lib/ui/currency-input';
 	import { Select } from '$lib/ui/select';
 	import { ArrowLeft, Save, FileText, DollarSign, Calendar, User } from '@lucide/svelte';
-	import type { GetCashiersResult } from '$lib';
-	import { formatDateForInput } from '$lib/utils/date.js';
+	import type { GetCashiersResult } from '$lib/cashiers';
+	import { formatDateForInput } from '$lib/infrastructure/utils/date.js';
 	import type { ActionData } from './$types';
 
 	type Props = {

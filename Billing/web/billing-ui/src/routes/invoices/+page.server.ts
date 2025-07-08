@@ -1,8 +1,8 @@
 import type { PageServerLoad, Actions } from './$types';
 import { error, fail } from '@sveltejs/kit';
-import { invoiceApi } from '$lib/api';
+import { invoiceApi } from '$lib/invoices';
 import { ApiError } from '$lib/infrastructure';
-import type { InvoiceStatus } from '$lib/api';
+import type { InvoiceStatus } from '$lib/invoices';
 
 export const load: PageServerLoad = async ({ url }) => {
 	try {

@@ -1,6 +1,6 @@
 import type { PageServerLoad, Actions } from './$types';
 import { error, fail } from '@sveltejs/kit';
-import { cashierApi } from '$lib/api';
+import { cashierApi } from '$lib/cashiers';
 import { ApiError } from '$lib/infrastructure';
 
 export const load: PageServerLoad = async ({ url, depends }) => {

@@ -15,10 +15,10 @@
 		AlertCircle,
 		Copy
 	} from '@lucide/svelte';
-	import type { InvoiceDTO as Invoice } from '$lib/api';
+	import type { InvoiceDTO as Invoice } from '$lib/invoices';
 	import type { InvoiceSummary } from '$lib/invoices';
 	import { InvoiceStatusBadge } from '$lib/invoices';
-	import { formatDate, isOverdue } from '$lib/utils/date.js';
+	import { formatDate, isOverdue } from '$lib/infrastructure/utils/date.js';
 
 	type Props = {
 		data: {

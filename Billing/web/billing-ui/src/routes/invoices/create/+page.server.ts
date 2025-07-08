@@ -1,6 +1,7 @@
 import type { PageServerLoad, Actions } from './$types';
 import { error, redirect, fail } from '@sveltejs/kit';
-import { cashierApi, invoiceApi } from '$lib/api';
+import { cashierApi } from '$lib/cashiers';
+import { invoiceApi } from '$lib/invoices';
 import { ApiError } from '$lib/infrastructure';
 
 export const load: PageServerLoad = async () => {
