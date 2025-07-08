@@ -1,7 +1,9 @@
 import type { PageServerLoad, Actions } from './$types';
 import { error, redirect, fail, isRedirect } from '@sveltejs/kit';
-import { invoiceApi } from '$lib/invoices';
-import { cashierApi } from '$lib/cashiers';
+import { GetInvoiceQuery } from '$lib/invoices/actions/GetInvoiceQuery';
+import { UpdateInvoiceCommand } from '$lib/invoices/actions/UpdateInvoiceCommand';
+import { GetCashiersQuery } from '$lib/cashiers';
+import { ValidationError } from '$lib/invoices/validators/InvoiceValidator';
 import { ApiError } from '$lib/infrastructure';
 
 export const load: PageServerLoad = async ({ params }) => {
@@ -16,8 +18,8 @@ export const load: PageServerLoad = async ({ params }) => {
 	try {
 		// Load invoice and cashiers in parallel for better performance
 		const [invoice, cashiers] = await Promise.all([
-			invoiceApi.getInvoice(id),
-			cashierApi.getCashiers()
+			new GetInvoiceQuery(id).execute(),
+			new GetCashiersQuery().execute()
 		]);
 
 		return {
@@ -59,46 +61,29 @@ export const actions: Actions = {
 		const dueDate = data.get('dueDate') as string;
 		const cashierId = data.get('cashierId') as string;
 
-		// Server-side validation
-		const errors: Record<string, string> = {};
-
-		if (!name?.trim()) {
-			errors.name = 'Invoice name is required';
-		} else if (name.trim().length < 2) {
-			errors.name = 'Invoice name must be at least 2 characters';
-		} else if (name.trim().length > 200) {
-			errors.name = 'Invoice name must not exceed 200 characters';
-		}
-
-		if (!amount || isNaN(Number(amount)) || Number(amount) <= 0) {
-			errors.amount = 'Amount must be a positive number';
-		}
-
-		if (!currency) {
-			errors.currency = 'Currency is required';
-		}
-
-		if (Object.keys(errors).length > 0) {
-			return fail(400, {
-				success: false,
-				errors,
-				values: { name, amount, currency, dueDate, cashierId }
-			});
-		}
-
 		try {
-			await invoiceApi.updateInvoice(id, {
-				name: name.trim(),
-				amount: Number(amount),
-				currency: currency || 'USD',
+			const command = new UpdateInvoiceCommand(id, {
+				name: name || undefined,
+				amount: amount ? Number(amount) : undefined,
+				currency: currency || undefined,
 				dueDate: dueDate || undefined,
 				cashierId: cashierId || undefined
 			});
+
+			await command.execute();
 
 			throw redirect(303, `/invoices/${id}`);
 		} catch (err) {
 			if (isRedirect(err)) {
 				throw err;
+			}
+
+			if (err instanceof ValidationError) {
+				return fail(400, {
+					success: false,
+					errors: err.errors,
+					values: { name, amount, currency, dueDate, cashierId }
+				});
 			}
 
 			console.error('Failed to update invoice:', err);

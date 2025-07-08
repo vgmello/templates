@@ -1,6 +1,9 @@
 import type { PageServerLoad, Actions } from './$types';
 import { error, fail } from '@sveltejs/kit';
-import { invoiceApi } from '$lib/invoices';
+import { GetInvoiceQuery } from '$lib/invoices/actions/GetInvoiceQuery';
+import { CancelInvoiceCommand } from '$lib/invoices/actions/CancelInvoiceCommand';
+import { MarkInvoiceAsPaidCommand } from '$lib/invoices/actions/MarkInvoiceAsPaidCommand';
+import { ValidationError } from '$lib/invoices/validators/InvoiceValidator';
 import { ApiError } from '$lib/infrastructure';
 
 export const load: PageServerLoad = async ({ params }) => {
@@ -13,7 +16,8 @@ export const load: PageServerLoad = async ({ params }) => {
 	}
 
 	try {
-		const invoice = await invoiceApi.getInvoice(id);
+		const query = new GetInvoiceQuery(id);
+		const invoice = await query.execute();
 
 		return {
 			invoice
@@ -45,7 +49,8 @@ export const actions: Actions = {
 		}
 
 		try {
-			await invoiceApi.cancelInvoice(id);
+			const command = new CancelInvoiceCommand(id);
+			await command.execute();
 			return { success: true };
 		} catch (err) {
 			console.error('Failed to cancel invoice:', err);
@@ -78,21 +83,21 @@ export const actions: Actions = {
 		const amountPaid = parseFloat(data.get('amountPaid') as string);
 		const paymentDate = data.get('paymentDate') as string;
 
-		// Server-side validation
-		if (!amountPaid || amountPaid <= 0) {
-			return fail(400, {
-				success: false,
-				errorMessage: 'Amount paid must be greater than 0'
-			});
-		}
-
 		try {
-			await invoiceApi.markInvoiceAsPaid(id, {
-				amountPaid,
+			const command = new MarkInvoiceAsPaidCommand(id, {
+				amountPaid: amountPaid || 0,
 				paymentDate: paymentDate || undefined
 			});
+			
+			await command.execute();
 			return { success: true };
 		} catch (err) {
+			if (err instanceof ValidationError) {
+				return fail(400, {
+					success: false,
+					errorMessage: Object.values(err.errors)[0] || 'Validation failed'
+				});
+			}
 			console.error('Failed to mark invoice as paid:', err);
 
 			if (err instanceof ApiError && err.status === 404) {
@@ -105,55 +110,6 @@ export const actions: Actions = {
 			return fail(500, {
 				success: false,
 				errorMessage: 'Failed to mark invoice as paid. Please try again later.'
-			});
-		}
-	},
-
-	simulatePayment: async ({ params, request }) => {
-		const { id } = params;
-
-		if (!id) {
-			return fail(400, {
-				success: false,
-				errorMessage: 'Invoice ID is required'
-			});
-		}
-
-		const data = await request.formData();
-		const amount = parseFloat(data.get('amount') as string);
-		const currency = data.get('currency') as string;
-		const paymentMethod = data.get('paymentMethod') as string;
-		const paymentReference = data.get('paymentReference') as string;
-
-		// Server-side validation
-		if (!amount || amount <= 0) {
-			return fail(400, {
-				success: false,
-				errorMessage: 'Amount must be greater than 0'
-			});
-		}
-
-		try {
-			await invoiceApi.simulatePayment(id, {
-				amount,
-				currency: currency || undefined,
-				paymentMethod: paymentMethod || undefined,
-				paymentReference: paymentReference || undefined
-			});
-			return { success: true };
-		} catch (err) {
-			console.error('Failed to simulate payment:', err);
-
-			if (err instanceof ApiError && err.status === 404) {
-				return fail(404, {
-					success: false,
-					errorMessage: 'Invoice not found'
-				});
-			}
-
-			return fail(500, {
-				success: false,
-				errorMessage: 'Failed to simulate payment. Please try again later.'
 			});
 		}
 	}

@@ -1,13 +1,13 @@
 import type { PageServerLoad, Actions } from './$types';
 import { error, fail } from '@sveltejs/kit';
-import { invoiceApi } from '$lib/invoices';
+import { GetInvoicesQuery } from '$lib/invoices/actions/GetInvoicesQuery';
+import { CancelInvoiceCommand } from '$lib/invoices/actions/CancelInvoiceCommand';
 import { ApiError } from '$lib/infrastructure';
-import type { InvoiceStatus } from '$lib/invoices';
 
 export const load: PageServerLoad = async ({ url }) => {
 	try {
 		// Extract query parameters
-		const status = url.searchParams.get('status') as InvoiceStatus | undefined;
+		const status = url.searchParams.get('status') || undefined;
 		const cashierId = url.searchParams.get('cashierId') || undefined;
 		const fromDate = url.searchParams.get('fromDate') || undefined;
 		const toDate = url.searchParams.get('toDate') || undefined;
@@ -18,8 +18,8 @@ export const load: PageServerLoad = async ({ url }) => {
 			? parseInt(url.searchParams.get('take')!)
 			: undefined;
 
-		// Fetch invoices using typed API
-		const invoices = await invoiceApi.getInvoices({
+		// Fetch invoices using query
+		const query = new GetInvoicesQuery({
 			...(status && { status }),
 			...(cashierId && { cashierId }),
 			...(fromDate && { fromDate }),
@@ -27,6 +27,8 @@ export const load: PageServerLoad = async ({ url }) => {
 			...(skip !== undefined && { skip }),
 			...(take !== undefined && { take })
 		});
+		
+		const invoices = await query.execute();
 
 		// Temporary simple summary without domain service
 		const summary = {
@@ -59,7 +61,8 @@ export const actions: Actions = {
 		}
 
 		try {
-			await invoiceApi.cancelInvoice(id);
+			const command = new CancelInvoiceCommand(id);
+			await command.execute();
 			return { success: true };
 		} catch (err) {
 			console.error('Failed to cancel invoice:', err);

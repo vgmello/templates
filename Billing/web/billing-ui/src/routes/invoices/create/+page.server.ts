@@ -1,12 +1,14 @@
 import type { PageServerLoad, Actions } from './$types';
 import { error, redirect, fail, isRedirect } from '@sveltejs/kit';
-import { cashierApi } from '$lib/cashiers';
-import { invoiceApi } from '$lib/invoices';
+import { GetCashiersQuery } from '$lib/cashiers';
+import { CreateInvoiceCommand } from '$lib/invoices/actions/CreateInvoiceCommand';
+import { ValidationError } from '$lib/invoices/validators/InvoiceValidator';
 import { ApiError } from '$lib/infrastructure';
 
 export const load: PageServerLoad = async () => {
 	try {
-		const cashiers = await cashierApi.getCashiers();
+		const query = new GetCashiersQuery();
+		const cashiers = await query.execute();
 
 		return {
 			cashiers
@@ -29,37 +31,16 @@ export const actions: Actions = {
 		const dueDate = data.get('dueDate') as string;
 		const cashierId = data.get('cashierId') as string;
 
-		// Server-side validation
-		const errors: Record<string, string> = {};
-
-		if (!name?.trim()) {
-			errors.name = 'Name is required';
-		}
-
-		if (!amount || isNaN(amount) || amount <= 0) {
-			errors.amount = 'Amount must be a positive number';
-		}
-
-		if (!currency) {
-			errors.currency = 'Currency is required';
-		}
-
-		if (Object.keys(errors).length > 0) {
-			return fail(400, {
-				success: false,
-				errors,
-				values: { name, amount, currency, dueDate, cashierId }
-			});
-		}
-
 		try {
-			const createdInvoice = await invoiceApi.createInvoice({
-				name: name.trim(),
-				amount,
-				currency,
+			const command = new CreateInvoiceCommand({
+				name: name || '',
+				amount: amount || 0,
+				currency: currency || '',
 				dueDate: dueDate || undefined,
 				cashierId: cashierId || undefined
 			});
+
+			const createdInvoice = await command.execute();
 
 			throw redirect(303, `/invoices/${createdInvoice.invoiceId}`);
 		} catch (err: unknown) {
@@ -67,8 +48,12 @@ export const actions: Actions = {
 				throw err;
 			}
 
-			if (err instanceof ApiError) {
-				console.error('Error creating invoice:', typeof err);
+			if (err instanceof ValidationError) {
+				return fail(400, {
+					success: false,
+					errors: err.errors,
+					values: { name, amount, currency, dueDate, cashierId }
+				});
 			}
 
 			console.error('Failed to create invoice:', err);

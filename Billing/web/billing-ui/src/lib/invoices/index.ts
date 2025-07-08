@@ -3,10 +3,23 @@ export { Invoice, type InvoiceData } from './models/Invoice';
 export { InvoiceService, type InvoiceSummary } from './InvoiceService';
 export {
 	invoiceApi,
-	type GetInvoicesQuery,
+	type GetInvoicesQuery as GetInvoicesQueryParams,
 	type Invoice as InvoiceDTO,
 	type CreateInvoiceRequest,
 	type MarkInvoiceAsPaidRequest,
 	type SimulatePaymentRequest
 } from './InvoiceApi';
+
+// Validation
+export { InvoiceValidator, ValidationError } from './validators/InvoiceValidator';
+
+// Commands and Queries
+export { CreateInvoiceCommand } from './actions/CreateInvoiceCommand';
+export { UpdateInvoiceCommand } from './actions/UpdateInvoiceCommand';
+export { CancelInvoiceCommand } from './actions/CancelInvoiceCommand';
+export { MarkInvoiceAsPaidCommand } from './actions/MarkInvoiceAsPaidCommand';
+export { GetInvoiceQuery } from './actions/GetInvoiceQuery';
+export { GetInvoicesQuery } from './actions/GetInvoicesQuery';
+
+// Components
 export { default as InvoiceStatusBadge } from './components/invoice-status-badge.svelte';
