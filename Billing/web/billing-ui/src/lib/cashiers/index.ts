@@ -8,9 +8,13 @@ export {
 	type CreateCashierRequest,
 	type UpdateCashierRequest,
 	type GetCashiersQuery
-} from './CashierApi';
+} from './CashiersApi';
 
 // Components
 export { default as CashierForm } from './components/CashierForm.svelte';
 export { default as CashierCard } from './components/CashierCard.svelte';
 export { default as CashierStatusBadge } from './components/CashierStatusBadge.svelte';
+
+// Commands
+export * from './actions/CreateCashierCommand';
+export * from './actions/GetCashierQuery';

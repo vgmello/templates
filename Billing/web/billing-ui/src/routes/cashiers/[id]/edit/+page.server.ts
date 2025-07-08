@@ -3,10 +3,10 @@ import { error, redirect, fail, isRedirect } from '@sveltejs/kit';
 import { CashierService, ValidationError } from '$lib/cashiers';
 import { Cashier } from '$lib/cashiers/models/Cashier';
 import { ApiError } from '$lib/infrastructure';
+import { GetCashiersQuery } from '$lib/cashiers/actions/GetCashierQuery';
 
 export const load: PageServerLoad = async ({ params }) => {
 	const { id } = params;
-	const cashierService = new CashierService();
 
 	if (!id) {
 		throw error(400, {
@@ -15,9 +15,10 @@ export const load: PageServerLoad = async ({ params }) => {
 	}
 
 	try {
-		const cashierDTO = await cashierService.getCashier(id);
+		const query = new GetCashiersQuery(id);
 
-		// Convert DTO to domain model for reactive UI
+		const cashierDTO = await query.execute();
+
 		const cashier = new Cashier({
 			id: cashierDTO.cashierId,
 			name: cashierDTO.name,

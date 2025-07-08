@@ -1,12 +1,11 @@
 import type { Actions } from './$types';
 import { redirect, fail, isRedirect } from '@sveltejs/kit';
-import { CashierService, ValidationError } from '$lib/cashiers';
+import { CreateCashierCommand, ValidationError } from '$lib/cashiers';
 import { ApiError } from '$lib/infrastructure';
 
 export const actions: Actions = {
 	default: async ({ request }) => {
 		const data = await request.formData();
-		const cashierService = new CashierService();
 
 		const name = data.get('name') as string;
 		const email = data.get('email') as string;
@@ -15,10 +14,12 @@ export const actions: Actions = {
 		const isActive = data.get('isActive') as string;
 
 		try {
-			await cashierService.createCashier({
+			const createCashierCommand = new CreateCashierCommand({
 				name: name || '',
 				email: email || ''
 			});
+
+			await createCashierCommand.execute();
 
 			throw redirect(303, '/cashiers');
 		} catch (err) {
