@@ -12,7 +12,6 @@
   </Folder>
   <Folder Name="/Billing/Solution Items/">
     <Project Path="Billing\docs\Billing.Docs.csproj" Type="Classic C#" />
-    <Project Path="Billing\web\billing-ui\Billing.UI.csproj" Type="Classic C#" />
     <File Path="Billing\README.md" />
     <File Path="Billing\compose.yml" />
   </Folder>
@@ -43,8 +42,6 @@
     <File Path="compose.yaml" />
   </Folder>
   <Folder Name="/Solution Items/.http/">
-    <File Path=".http\Accounting.Api.http" />
     <File Path=".http\Billing.Api.http" />
-    <File Path=".http\Housekeeping.Api.http" />
   </Folder>
 </Solution>
