@@ -4,13 +4,7 @@
 	import { Button } from '$lib/ui/button';
 	import { Card, CardContent } from '$lib/ui/card';
 	import { Input } from '$lib/ui/input';
-	import {
-		Plus,
-		Search,
-		Filter,
-		Settings,
-		UserPlus
-	} from '@lucide/svelte';
+	import { Plus, Search, Settings, UserPlus } from '@lucide/svelte';
 	import { CashierCard, type GetCashiersResult } from '$lib/cashiers';
 	import type { ActionData } from './$types';
 
@@ -23,20 +17,36 @@
 
 	let { data, form }: Props = $props();
 	let error = $state<string | null>(form?.errors?.[0] || null);
-	let searchTerm = $state('');
 	let deletingId = $state<string | null>(null);
+	let searchTerm = $state('');
+	let debouncedSearchTerm = $state('');
+	let isSearching = $state(false);
 
-	// Reactive filtered cashiers using simple search
+	// Debounce search input
+	$effect(() => {
+		isSearching = true;
+		const timeoutId = setTimeout(() => {
+			debouncedSearchTerm = searchTerm;
+			isSearching = false;
+		}, 300);
+
+		return () => clearTimeout(timeoutId);
+	});
+
+	// Filter cashiers based on debounced search term
 	let filteredCashiers = $derived(
 		data.cashiers.filter((cashier) => {
-			// Simple text search on available fields
+			if (!debouncedSearchTerm.trim()) {
+				return true;
+			}
+			
+			const searchLower = debouncedSearchTerm.toLowerCase();
 			const displayName = cashier.name || cashier.email || 'Unknown';
-			const matchesSearch = searchTerm === '' || 
-				displayName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-				cashier.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-				cashier.cashierId.toLowerCase().includes(searchTerm.toLowerCase());
-
-			return matchesSearch;
+			return (
+				displayName.toLowerCase().includes(searchLower) ||
+				cashier.email.toLowerCase().includes(searchLower) ||
+				cashier.cashierId.toLowerCase().includes(searchLower)
+			);
 		})
 	);
 
@@ -66,7 +76,7 @@
 		<div class="space-y-1">
 			<h1 class="text-3xl font-bold tracking-tight text-foreground">Cashiers</h1>
 			<p class="text-muted-foreground">
-				Manage cashiers and their payment configurations. 
+				Manage cashiers and their payment configurations.
 				{filteredCashiers.length} cashier{filteredCashiers.length === 1 ? '' : 's'} found.
 			</p>
 		</div>
@@ -87,9 +97,15 @@
 				bind:value={searchTerm}
 				placeholder="Search cashiers by name, email, or ID..."
 				class="h-10 pl-10"
+				aria-label="Search cashiers"
 			/>
+			{#if isSearching}
+				<div class="absolute right-3 top-1/2 -translate-y-1/2">
+					<div class="h-4 w-4 animate-spin rounded-full border-2 border-primary border-r-transparent"></div>
+				</div>
+			{/if}
 		</div>
-		
+
 		<div class="flex items-center gap-2">
 			<span class="text-sm text-muted-foreground">
 				{totalCashiers} cashier{totalCashiers === 1 ? '' : 's'}
@@ -175,7 +191,9 @@
 						onEdit={editCashier}
 						onDelete={(id) => {
 							// The delete is handled by the form enhance above
-							const form = document.querySelector(`form input[value="${id}"]`)?.closest('form');
+							const form = document
+								.querySelector(`form input[value="${id}"]`)
+								?.closest('form');
 							if (form) {
 								form.requestSubmit();
 							}

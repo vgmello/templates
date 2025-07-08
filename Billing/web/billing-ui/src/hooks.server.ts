@@ -75,10 +75,9 @@ const handleTracing: Handle = async ({ event, resolve }) => {
 	});
 };
 
-// Disabled auth for cashier management UI demo
-// We're using REST API authentication instead of database sessions
+// Authentication handler - disabled for now as auth is not implemented yet
 const handleAuth: Handle = async ({ event, resolve }) => {
-	// Skip auth validation for now - focus on cashier management
+	// Skip authentication for now - all routes are accessible
 	event.locals.user = null;
 	event.locals.session = null;
 	return resolve(event);

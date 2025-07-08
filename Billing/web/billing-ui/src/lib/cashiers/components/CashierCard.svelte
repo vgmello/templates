@@ -13,7 +13,7 @@
 	};
 
 	let { cashier, onEdit, onDelete, deleting = false }: Props = $props();
-	
+
 	// Simple derived display name
 	let displayName = $derived(cashier.name || cashier.email || 'Unknown Cashier');
 </script>
@@ -24,14 +24,16 @@
 			<div class="flex-1 space-y-3">
 				<!-- Header -->
 				<div class="flex items-start gap-3">
-					<div class="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
+					<div
+						class="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10"
+					>
 						<User class="h-5 w-5 text-primary" />
 					</div>
 					<div class="flex-1">
-						<h3 class="font-semibold text-lg">{displayName}</h3>
+						<h3 class="text-lg font-semibold">{displayName}</h3>
 						<div class="flex items-center gap-2">
 							<Badge variant="default">Active</Badge>
-							<span class="text-xs text-muted-foreground flex items-center gap-1">
+							<span class="flex items-center gap-1 text-xs text-muted-foreground">
 								<Hash class="h-3 w-3" />
 								{cashier.cashierId}
 							</span>
@@ -58,7 +60,7 @@
 			</div>
 
 			<!-- Actions -->
-			<div class="flex flex-col gap-2 ml-4">
+			<div class="ml-4 flex flex-col gap-2">
 				<Button
 					variant="outline"
 					size="sm"
@@ -80,7 +82,7 @@
 		</div>
 
 		{#if deleting}
-			<div class="absolute inset-0 bg-background/80 flex items-center justify-center">
+			<div class="absolute inset-0 flex items-center justify-center bg-background/80">
 				<div class="text-sm text-muted-foreground">Deleting...</div>
 			</div>
 		{/if}

@@ -8,10 +8,6 @@
 	let { size = 'default' }: Props = $props();
 </script>
 
-<Badge 
-	variant="default" 
-	class={size === 'sm' ? 'text-xs' : ''}
-	title="This cashier is active"
->
+<Badge variant="default" class={size === 'sm' ? 'text-xs' : ''} title="This cashier is active">
 	Active
 </Badge>

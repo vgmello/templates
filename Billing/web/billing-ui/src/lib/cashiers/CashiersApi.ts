@@ -37,10 +37,12 @@ export interface GetCashiersQuery {
 export const cashierApi = {
 	async getCashiers(query?: GetCashiersQuery): Promise<GetCashiersResult[]> {
 		// Filter out undefined values to match ApiClient expectations
-		const filteredQuery = query ? Object.fromEntries(
-			Object.entries(query).filter(([_, value]) => value !== undefined)
-		) as Record<string, string | number | boolean> : undefined;
-		
+		const filteredQuery = query
+			? (Object.fromEntries(
+					Object.entries(query).filter(([, value]) => value !== undefined)
+				) as Record<string, string | number | boolean>)
+			: undefined;
+
 		return apiClient.get<GetCashiersResult[]>('/cashiers', filteredQuery);
 	},
 

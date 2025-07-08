@@ -29,8 +29,10 @@
 
 	let { data }: Props = $props();
 	let { invoices, summary } = data;
-	let searchTerm = $state('');
 	let statusFilter = $state<string>('');
+	let searchTerm = $state('');
+	let debouncedSearchTerm = $state('');
+	let isSearching = $state(false);
 
 	// Status filter options
 	const statusOptions = [
@@ -55,12 +57,23 @@
 		currency: summary.currencySummaries[0]?.currency || 'USD'
 	});
 
-	// Reactive filtered invoices
+	// Debounce search input
+	$effect(() => {
+		isSearching = true;
+		const timeoutId = setTimeout(() => {
+			debouncedSearchTerm = searchTerm;
+			isSearching = false;
+		}, 300);
+
+		return () => clearTimeout(timeoutId);
+	});
+
+	// Filter invoices based on debounced search term and status
 	let filteredInvoices = $derived(
 		invoices.filter((invoice) => {
-			const matchesSearch =
-				invoice.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-				invoice.invoiceId.toLowerCase().includes(searchTerm.toLowerCase());
+			const matchesSearch = !debouncedSearchTerm.trim() ||
+				invoice.name.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
+				invoice.invoiceId.toLowerCase().includes(debouncedSearchTerm.toLowerCase());
 			const matchesStatus = !statusFilter || invoice.status === statusFilter;
 			return matchesSearch && matchesStatus;
 		})
@@ -198,7 +211,13 @@
 				bind:value={searchTerm}
 				placeholder="Search by invoice name or ID..."
 				class="h-10 pl-10"
+				aria-label="Search invoices"
 			/>
+			{#if isSearching}
+				<div class="absolute right-3 top-1/2 -translate-y-1/2">
+					<div class="h-4 w-4 animate-spin rounded-full border-2 border-primary border-r-transparent"></div>
+				</div>
+			{/if}
 		</div>
 		<div class="flex items-center gap-2">
 			<Select
@@ -218,15 +237,15 @@
 				</div>
 				<div class="max-w-md space-y-2 text-center">
 					<h3 class="text-lg font-semibold">
-						{searchTerm || statusFilter ? 'No matching invoices' : 'No invoices found'}
+						{debouncedSearchTerm || statusFilter ? 'No matching invoices' : 'No invoices found'}
 					</h3>
 					<p class="text-muted-foreground">
-						{searchTerm || statusFilter
+						{debouncedSearchTerm || statusFilter
 							? `No invoices found matching your search criteria. Try adjusting your filters.`
 							: 'Get started by creating your first invoice to track payments and manage billing.'}
 					</p>
 				</div>
-				{#if !searchTerm && !statusFilter}
+				{#if !debouncedSearchTerm && !statusFilter}
 					<Button onclick={createInvoice} class="gap-2">
 						<Plus size={16} />
 						Create Your First Invoice

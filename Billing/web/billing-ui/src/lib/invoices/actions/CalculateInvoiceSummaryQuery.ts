@@ -36,9 +36,7 @@ export class CalculateInvoiceSummaryQuery {
 		const currencySummaries: CurrencySummary[] = [];
 
 		for (const [currency, invoices] of Object.entries(groupedByCurrency)) {
-			currencySummaries.push(
-				this.calculateCurrencySummary(invoices, currency as Currency)
-			);
+			currencySummaries.push(this.calculateCurrencySummary(invoices, currency as Currency));
 		}
 
 		return {
@@ -114,7 +112,9 @@ export class CalculateInvoiceSummaryQuery {
 					break;
 				default:
 					// Fallback to draft for invalid statuses
-					console.warn(`Invalid invoice status: ${effectiveStatus}, defaulting to 'draft'`);
+					console.warn(
+						`Invalid invoice status: ${effectiveStatus}, defaulting to 'draft'`
+					);
 					counts.draft++;
 					amounts.draft = amounts.draft.add(amount);
 					break;

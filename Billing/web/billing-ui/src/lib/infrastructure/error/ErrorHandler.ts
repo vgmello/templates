@@ -2,6 +2,49 @@ import { ApiError } from '../api/ApiClient';
 import { notificationService } from './NotificationService';
 import { recordEvent } from '../telemetry/TelemetryService';
 
+// HTML sanitization utility for error messages
+class HtmlSanitizer {
+	private static readonly DANGEROUS_PATTERNS = [
+		/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi,
+		/<iframe\b[^<]*(?:(?!<\/iframe>)<[^<]*)*<\/iframe>/gi,
+		/<object\b[^<]*(?:(?!<\/object>)<[^<]*)*<\/object>/gi,
+		/<embed\b[^<]*(?:(?!<\/embed>)<[^<]*)*<\/embed>/gi,
+		/<form\b[^<]*(?:(?!<\/form>)<[^<]*)*<\/form>/gi,
+		/javascript:/gi,
+		/vbscript:/gi,
+		/data:text\/html/gi,
+		/on\w+\s*=/gi
+	];
+
+	static sanitize(text: string): string {
+		if (!text || typeof text !== 'string') {
+			return '';
+		}
+
+		// Remove dangerous patterns
+		let sanitized = text;
+		for (const pattern of this.DANGEROUS_PATTERNS) {
+			sanitized = sanitized.replace(pattern, '');
+		}
+
+		// Encode HTML entities
+		sanitized = sanitized
+			.replace(/&/g, '&amp;')
+			.replace(/</g, '&lt;')
+			.replace(/>/g, '&gt;')
+			.replace(/"/g, '&quot;')
+			.replace(/'/g, '&#x27;')
+			.replace(/\//g, '&#x2F;');
+
+		// Limit length to prevent DoS
+		if (sanitized.length > 500) {
+			sanitized = sanitized.substring(0, 500) + '...';
+		}
+
+		return sanitized.trim();
+	}
+}
+
 export interface ErrorContext {
 	operation?: string;
 	componentName?: string;
@@ -56,7 +99,7 @@ export class ErrorHandler {
 			return error;
 		}
 		if (typeof error === 'string') {
-			return new Error(error);
+			return new Error(HtmlSanitizer.sanitize(error));
 		}
 		return new Error('Unknown error occurred');
 	}
@@ -115,7 +158,7 @@ export class ErrorHandler {
 			case 503:
 				return 'Service is currently under maintenance. Please try again later.';
 			default:
-				return error.message || 'An error occurred while processing your request.';
+				return HtmlSanitizer.sanitize(error.message) || 'An error occurred while processing your request.';
 		}
 	}
 
@@ -169,7 +212,7 @@ export class ErrorHandler {
 
 	private getNotificationTitle(error: Error, context?: ErrorContext): string {
 		if (context?.operation) {
-			return `${context.operation} failed`;
+			return `${HtmlSanitizer.sanitize(context.operation)} failed`;
 		}
 		if (error instanceof ApiError) {
 			return 'Request failed';

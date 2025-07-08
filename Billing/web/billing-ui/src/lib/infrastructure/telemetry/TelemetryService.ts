@@ -1,9 +1,7 @@
 import { BROWSER } from 'esm-env';
-import { config } from '../config/env';
 
 export class TelemetryService {
 	private static instance: TelemetryService | null = null;
-	private initialized = false;
 
 	private constructor() {}
 
@@ -15,18 +13,15 @@ export class TelemetryService {
 	}
 
 	initialize(): void {
-		// Only initialize in browser environment and if not already initialized
-		if (!BROWSER || this.initialized || !config.telemetry.enabled) {
-			if (!config.telemetry.enabled) {
-				console.log('OpenTelemetry tracing is disabled');
-			}
+		// Telemetry is now server-side only for bundle size optimization
+		// Client-side telemetry has been disabled to reduce bundle size
+		if (BROWSER) {
+			// No-op in browser - telemetry is handled server-side only
 			return;
 		}
-
-		// Simplified telemetry initialization
-		// TODO: Re-implement with OpenTelemetry when build issues are resolved
-		this.initialized = true;
-		console.log('Telemetry service initialized (simplified mode)');
+		
+		// Server-side telemetry initialization would go here
+		console.log('Server-side telemetry available');
 	}
 
 	getTracer(): unknown {

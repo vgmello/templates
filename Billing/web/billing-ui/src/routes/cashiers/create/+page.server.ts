@@ -9,9 +9,6 @@ export const actions: Actions = {
 
 		const name = data.get('name') as string;
 		const email = data.get('email') as string;
-		const phone = data.get('phone') as string;
-		const supportedCurrencies = data.get('supportedCurrencies') as string;
-		const isActive = data.get('isActive') as string;
 
 		try {
 			const createCashierCommand = new CreateCashierCommand({

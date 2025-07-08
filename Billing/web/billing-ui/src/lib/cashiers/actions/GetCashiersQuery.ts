@@ -1,4 +1,8 @@
-import { cashierApi, type GetCashiersQuery as GetCashiersQueryParams, type GetCashiersResult } from '../CashiersApi';
+import {
+	cashierApi,
+	type GetCashiersQuery as GetCashiersQueryParams,
+	type GetCashiersResult
+} from '../CashiersApi';
 
 export class GetCashiersQuery {
 	constructor(private readonly query?: GetCashiersQueryParams) {}

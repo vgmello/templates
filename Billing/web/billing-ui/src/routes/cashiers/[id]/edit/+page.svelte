@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { enhance } from '$app/forms';
-	import { UpdateCashierForm, type CashierDTO } from '$lib/cashiers';
+	import { UpdateCashierForm } from '$lib/cashiers';
 	import { Button } from '$lib/ui/button';
 	import { Input } from '$lib/ui/input';
 	import { Card, CardHeader, CardTitle, CardContent } from '$lib/ui/card';
@@ -16,8 +16,8 @@
 	let { data, form }: Props = $props();
 	let loading = $state(false);
 
-	let formState = $state(new UpdateCashierForm());
-	
+	let formState = new UpdateCashierForm();
+
 	// Load cashier data into form
 	$effect(() => {
 		if (data.cashier) {
@@ -28,7 +28,7 @@
 	function handleCancel() {
 		goto('/cashiers');
 	}
-	
+
 	let displayName = $derived(data.cashier?.name || data.cashier?.email || 'Unknown Cashier');
 </script>
 
@@ -65,7 +65,9 @@
 				}}
 			>
 				{#if form?.errors?.form}
-					<div class="rounded-md border border-destructive/20 bg-destructive/10 p-4 text-destructive">
+					<div
+						class="rounded-md border border-destructive/20 bg-destructive/10 p-4 text-destructive"
+					>
 						{form.errors.form}
 					</div>
 				{/if}
@@ -79,7 +81,9 @@
 							name="name"
 							bind:value={formState.name}
 							placeholder="Enter cashier name"
-							class={formState.nameError || form?.errors?.name ? 'border-destructive' : ''}
+							class={formState.nameError || form?.errors?.name
+								? 'border-destructive'
+								: ''}
 							disabled={loading}
 							required
 						/>
@@ -99,7 +103,9 @@
 							type="email"
 							bind:value={formState.email}
 							placeholder="Enter email address"
-							class={formState.emailError || form?.errors?.email ? 'border-destructive' : ''}
+							class={formState.emailError || form?.errors?.email
+								? 'border-destructive'
+								: ''}
 							disabled={loading}
 							required
 						/>
@@ -117,7 +123,12 @@
 						<Save size={16} />
 						{loading ? 'Updating...' : 'Update Cashier'}
 					</Button>
-					<Button type="button" variant="outline" onclick={handleCancel} disabled={loading}>
+					<Button
+						type="button"
+						variant="outline"
+						onclick={handleCancel}
+						disabled={loading}
+					>
 						Cancel
 					</Button>
 				</div>

@@ -1,4 +1,8 @@
-import { invoiceApi, type GetInvoicesQuery as GetInvoicesQueryParams, type Invoice as InvoiceDTO } from '../InvoiceApi';
+import {
+	invoiceApi,
+	type GetInvoicesQuery as GetInvoicesQueryParams,
+	type Invoice as InvoiceDTO
+} from '../InvoiceApi';
 
 export class GetInvoicesQuery {
 	constructor(private readonly query?: GetInvoicesQueryParams) {}

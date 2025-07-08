@@ -31,6 +31,10 @@ export class CreateInvoiceForm {
 		if (!this.dueDate.trim()) return 'Due date is required';
 		const date = new Date(this.dueDate);
 		if (isNaN(date.getTime())) return 'Please enter a valid date';
+		// Check if date is in the past
+		const today = new Date();
+		today.setHours(0, 0, 0, 0);
+		if (date < today) return 'Due date cannot be in the past';
 		return null;
 	});
 
@@ -41,19 +45,25 @@ export class CreateInvoiceForm {
 
 	isValid = $derived(
 		this.nameError === null &&
-		this.amountError === null &&
-		this.currencyError === null &&
-		this.dueDateError === null &&
-		this.cashierError === null
+			this.amountError === null &&
+			this.currencyError === null &&
+			this.dueDateError === null &&
+			this.cashierError === null
 	);
 
 	toRequest(): CreateInvoiceRequest {
+		// Validate that dueDate is a valid date before converting
+		const date = new Date(this.dueDate);
+		if (isNaN(date.getTime())) {
+			throw new Error('Invalid due date');
+		}
+
 		return {
 			name: this.name.trim(),
 			amount: parseFloat(this.amount),
-			currency: this.currency.trim(),
-			dueDate: new Date(this.dueDate),
-			cashierId: this.cashierId.trim()
+			currency: this.currency.trim() || undefined,
+			dueDate: this.dueDate.trim() || undefined, // Keep as string as expected by API
+			cashierId: this.cashierId.trim() || undefined
 		};
 	}
 

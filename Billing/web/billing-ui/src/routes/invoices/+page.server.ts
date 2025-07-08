@@ -28,7 +28,7 @@ export const load: PageServerLoad = async ({ url }) => {
 			...(skip !== undefined && { skip }),
 			...(take !== undefined && { take })
 		});
-		
+
 		const invoices = await query.execute();
 
 		// Calculate summary using the query

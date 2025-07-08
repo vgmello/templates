@@ -4,7 +4,6 @@
 	import { Button } from '$lib/ui/button';
 	import { Card, CardHeader, CardTitle, CardContent } from '$lib/ui/card';
 	import { Input } from '$lib/ui/input';
-	import { Select } from '$lib/ui/select';
 	import { ArrowLeft, Save, FileText, DollarSign, Calendar, User } from '@lucide/svelte';
 	import { UpdateInvoiceForm } from '$lib/invoices';
 	import type { PageData, ActionData } from './$types';
@@ -19,7 +18,7 @@
 	let loading = $state(false);
 
 	// Initialize form with server data
-	let formState = $state(new UpdateInvoiceForm());
+	let formState = new UpdateInvoiceForm();
 
 	// Load initial data into form
 	$effect(() => {
@@ -86,8 +85,8 @@
 		</Card>
 	{/if}
 
-	<form 
-		method="POST" 
+	<form
+		method="POST"
 		class="grid grid-cols-1 gap-8 lg:grid-cols-3"
 		use:enhance={() => {
 			loading = true;
@@ -97,219 +96,216 @@
 			};
 		}}
 	>
-			<!-- Main Form -->
-			<div class="lg:col-span-2">
-				<Card>
-					<CardHeader>
-						<CardTitle>Edit Invoice Details</CardTitle>
-						<p class="text-sm text-muted-foreground">
-							Update the information for this invoice
-						</p>
-					</CardHeader>
-					<CardContent class="space-y-6">
-						<!-- Invoice Name -->
+		<!-- Main Form -->
+		<div class="lg:col-span-2">
+			<Card>
+				<CardHeader>
+					<CardTitle>Edit Invoice Details</CardTitle>
+					<p class="text-sm text-muted-foreground">
+						Update the information for this invoice
+					</p>
+				</CardHeader>
+				<CardContent class="space-y-6">
+					<!-- Invoice Name -->
+					<div class="space-y-2">
+						<label for="name" class="flex items-center gap-2 text-sm font-medium">
+							<FileText size={14} />
+							Invoice Name *
+						</label>
+						<Input
+							id="name"
+							name="name"
+							bind:value={formState.name}
+							placeholder="Enter invoice description"
+							class={formResult?.errors?.name || formState.nameError
+								? 'border-destructive'
+								: ''}
+							disabled={loading}
+							required
+						/>
+						{#if formState.nameError && formState.name.length > 0}
+							<p class="text-sm text-destructive">{formState.nameError}</p>
+						{:else if formResult?.errors?.name}
+							<p class="text-sm text-destructive">{formResult.errors.name}</p>
+						{/if}
+					</div>
+
+					<!-- Amount and Currency -->
+					<div class="grid grid-cols-1 gap-4 md:grid-cols-2">
 						<div class="space-y-2">
-							<label for="name" class="flex items-center gap-2 text-sm font-medium">
-								<FileText size={14} />
-								Invoice Name *
+							<label for="amount" class="flex items-center gap-2 text-sm font-medium">
+								<DollarSign size={14} />
+								Amount *
 							</label>
 							<Input
-								id="name"
-								name="name"
-								bind:value={formState.name}
-								placeholder="Enter invoice description"
-								class={(formResult?.errors?.name || formState.nameError) ? 'border-destructive' : ''}
+								id="amount"
+								name="amount"
+								type="number"
+								step="0.01"
+								min="0"
+								bind:value={formState.amount}
+								placeholder="0.00"
+								class={formResult?.errors?.amount || formState.amountError
+									? 'border-destructive'
+									: ''}
 								disabled={loading}
 								required
 							/>
-							{#if formState.nameError && formState.name.length > 0}
-								<p class="text-sm text-destructive">{formState.nameError}</p>
-							{:else if formResult?.errors?.name}
-								<p class="text-sm text-destructive">{formResult.errors.name}</p>
+							{#if formState.amountError && formState.amount.length > 0}
+								<p class="text-sm text-destructive">{formState.amountError}</p>
+							{:else if formResult?.errors?.amount}
+								<p class="text-sm text-destructive">{formResult.errors.amount}</p>
 							{/if}
 						</div>
 
-						<!-- Amount and Currency -->
-						<div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-							<div class="space-y-2">
-								<label
-									for="amount"
-									class="flex items-center gap-2 text-sm font-medium"
-								>
-									<DollarSign size={14} />
-									Amount *
-								</label>
-								<Input
-									id="amount"
-									name="amount"
-									type="number"
-									step="0.01"
-									min="0"
-									bind:value={formState.amount}
-									placeholder="0.00"
-									class={(formResult?.errors?.amount || formState.amountError) ? 'border-destructive' : ''}
-									disabled={loading}
-									required
-								/>
-								{#if formState.amountError && formState.amount.length > 0}
-									<p class="text-sm text-destructive">{formState.amountError}</p>
-								{:else if formResult?.errors?.amount}
-									<p class="text-sm text-destructive">{formResult.errors.amount}</p>
-								{/if}
-							</div>
-
-							<div class="space-y-2">
-								<label for="currency" class="text-sm font-medium">Currency *</label>
-								<select 
-									id="currency"
-									name="currency"
-									bind:value={formState.currency}
-									class={`w-full rounded-md border border-input bg-background px-3 py-2 text-sm ${(formResult?.errors?.currency || formState.currencyError) ? 'border-destructive' : ''}`}
-									disabled={loading}
-									required
-								>
-									{#each currencyOptions as option}
-										<option value={option.value}>{option.label}</option>
-									{/each}
-								</select>
-								{#if formState.currencyError && formState.currency.length > 0}
-									<p class="text-sm text-destructive">{formState.currencyError}</p>
-								{:else if formResult?.errors?.currency}
-									<p class="text-sm text-destructive">{formResult.errors.currency}</p>
-								{/if}
-							</div>
-						</div>
-
-						<!-- Due Date -->
 						<div class="space-y-2">
-							<label
-								for="dueDate"
-								class="flex items-center gap-2 text-sm font-medium"
-							>
-								<Calendar size={14} />
-								Due Date (Optional)
-							</label>
-							<Input
-								id="dueDate"
-								name="dueDate"
-								type="date"
-								bind:value={formState.dueDate}
-								class={(formResult?.errors?.dueDate || formState.dueDateError) ? 'border-destructive' : ''}
+							<label for="currency" class="text-sm font-medium">Currency *</label>
+							<select
+								id="currency"
+								name="currency"
+								bind:value={formState.currency}
+								class={`w-full rounded-md border border-input bg-background px-3 py-2 text-sm ${formResult?.errors?.currency || formState.currencyError ? 'border-destructive' : ''}`}
 								disabled={loading}
-							/>
-							{#if formState.dueDateError && formState.dueDate.length > 0}
-								<p class="text-sm text-destructive">{formState.dueDateError}</p>
-							{:else if formResult?.errors?.dueDate}
-								<p class="text-sm text-destructive">{formResult.errors.dueDate}</p>
-							{/if}
-						</div>
-
-						<!-- Cashier Selection -->
-						<div class="space-y-2">
-							<label
-								for="cashier"
-								class="flex items-center gap-2 text-sm font-medium"
+								required
 							>
-								<User size={14} />
-								Assigned Cashier (Optional)
-							</label>
-							<select 
-								id="cashier"
-								name="cashierId"
-								bind:value={formState.cashierId}
-								class="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-								disabled={loading}
-							>
-								{#each cashierOptions as option}
-									<option value={option.value ?? ''}>{option.label}</option>
+								{#each currencyOptions as option (option.value)}
+									<option value={option.value}>{option.label}</option>
 								{/each}
 							</select>
+							{#if formState.currencyError && formState.currency.length > 0}
+								<p class="text-sm text-destructive">{formState.currencyError}</p>
+							{:else if formResult?.errors?.currency}
+								<p class="text-sm text-destructive">{formResult.errors.currency}</p>
+							{/if}
 						</div>
-					</CardContent>
-				</Card>
-			</div>
+					</div>
 
-			<!-- Preview and Actions -->
-			<div class="space-y-6">
-				<!-- Preview Card -->
-				<Card>
-					<CardHeader>
-						<CardTitle class="text-lg">Invoice Preview</CardTitle>
-					</CardHeader>
-					<CardContent class="space-y-4">
-						<div class="space-y-3">
-							<div>
-								<label class="text-xs text-muted-foreground">Name</label>
-								<p class="font-medium">{formState.name || 'Untitled Invoice'}</p>
-							</div>
+					<!-- Due Date -->
+					<div class="space-y-2">
+						<label for="dueDate" class="flex items-center gap-2 text-sm font-medium">
+							<Calendar size={14} />
+							Due Date (Optional)
+						</label>
+						<Input
+							id="dueDate"
+							name="dueDate"
+							type="date"
+							bind:value={formState.dueDate}
+							class={formResult?.errors?.dueDate || formState.dueDateError
+								? 'border-destructive'
+								: ''}
+							disabled={loading}
+						/>
+						{#if formState.dueDateError && formState.dueDate.length > 0}
+							<p class="text-sm text-destructive">{formState.dueDateError}</p>
+						{:else if formResult?.errors?.dueDate}
+							<p class="text-sm text-destructive">{formResult.errors.dueDate}</p>
+						{/if}
+					</div>
 
+					<!-- Cashier Selection -->
+					<div class="space-y-2">
+						<label for="cashier" class="flex items-center gap-2 text-sm font-medium">
+							<User size={14} />
+							Assigned Cashier (Optional)
+						</label>
+						<select
+							id="cashier"
+							name="cashierId"
+							bind:value={formState.cashierId}
+							class="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+							disabled={loading}
+						>
+							{#each cashierOptions as option (option.value ?? 'none')}
+								<option value={option.value ?? ''}>{option.label}</option>
+							{/each}
+						</select>
+					</div>
+				</CardContent>
+			</Card>
+		</div>
+
+		<!-- Preview and Actions -->
+		<div class="space-y-6">
+			<!-- Preview Card -->
+			<Card>
+				<CardHeader>
+					<CardTitle class="text-lg">Invoice Preview</CardTitle>
+				</CardHeader>
+				<CardContent class="space-y-4">
+					<div class="space-y-3">
+						<div>
+							<label class="text-xs text-muted-foreground">Name</label>
+							<p class="font-medium">{formState.name || 'Untitled Invoice'}</p>
+						</div>
+
+						<div>
+							<label class="text-xs text-muted-foreground">Amount</label>
+							<p class="text-lg font-bold">
+								{new Intl.NumberFormat('en-US', {
+									style: 'currency',
+									currency: formState.currency || 'USD'
+								}).format(Number(formState.amount) || 0)}
+							</p>
+						</div>
+
+						{#if formState.dueDate}
 							<div>
-								<label class="text-xs text-muted-foreground">Amount</label>
-								<p class="text-lg font-bold">
-									{new Intl.NumberFormat('en-US', {
-										style: 'currency',
-										currency: formState.currency || 'USD'
-									}).format(Number(formState.amount) || 0)}
+								<label class="text-xs text-muted-foreground">Due Date</label>
+								<p>
+									{new Date(formState.dueDate).toLocaleDateString('en-US', {
+										weekday: 'long',
+										year: 'numeric',
+										month: 'long',
+										day: 'numeric'
+									})}
 								</p>
 							</div>
+						{/if}
 
-							{#if formState.dueDate}
-								<div>
-									<label class="text-xs text-muted-foreground">Due Date</label>
-									<p>
-										{new Date(formState.dueDate).toLocaleDateString('en-US', {
-											weekday: 'long',
-											year: 'numeric',
-											month: 'long',
-											day: 'numeric'
-										})}
-									</p>
-								</div>
-							{/if}
+						{#if formState.cashierId}
+							<div>
+								<label class="text-xs text-muted-foreground">Assigned Cashier</label
+								>
+								<p>
+									{data.cashiers.find((c) => c.cashierId === formState.cashierId)
+										?.name}
+								</p>
+							</div>
+						{/if}
+					</div>
+				</CardContent>
+			</Card>
 
-							{#if formState.cashierId}
-								<div>
-									<label class="text-xs text-muted-foreground"
-										>Assigned Cashier</label
-									>
-									<p>
-										{data.cashiers.find((c) => c.cashierId === formState.cashierId)?.name}
-									</p>
-								</div>
-							{/if}
-						</div>
-					</CardContent>
-				</Card>
+			<!-- Actions -->
+			<Card>
+				<CardContent class="space-y-3 p-4">
+					<Button
+						type="submit"
+						disabled={loading || !formState.isValid}
+						class="w-full gap-2"
+					>
+						{#if loading}
+							<div
+								class="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"
+							></div>
+						{:else}
+							<Save size={16} />
+						{/if}
+						{loading ? 'Saving...' : 'Save Changes'}
+					</Button>
 
-				<!-- Actions -->
-				<Card>
-					<CardContent class="space-y-3 p-4">
-						<Button
-							type="submit"
-							disabled={loading || !formState.isValid}
-							class="w-full gap-2"
-						>
-							{#if loading}
-								<div
-									class="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"
-								></div>
-							{:else}
-								<Save size={16} />
-							{/if}
-							{loading ? 'Saving...' : 'Save Changes'}
-						</Button>
-
-						<Button
-							type="button"
-							variant="outline"
-							onclick={cancelEdit}
-							disabled={loading}
-							class="w-full"
-						>
-							Cancel
-						</Button>
-					</CardContent>
-				</Card>
+					<Button
+						type="button"
+						variant="outline"
+						onclick={cancelEdit}
+						disabled={loading}
+						class="w-full"
+					>
+						Cancel
+					</Button>
+				</CardContent>
+			</Card>
 		</div>
 	</form>
 </div>

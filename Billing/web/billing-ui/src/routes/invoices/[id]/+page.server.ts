@@ -87,7 +87,7 @@ export const actions: Actions = {
 				amountPaid: amountPaid || 0,
 				paymentDate: paymentDate || undefined
 			});
-			
+
 			await command.execute();
 			return { success: true };
 		} catch (err) {

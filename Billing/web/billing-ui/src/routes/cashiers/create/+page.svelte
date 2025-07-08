@@ -14,7 +14,7 @@
 
 	let { form }: Props = $props();
 
-	let formState = $state(new CreateCashierForm());
+	let formState = new CreateCashierForm();
 	let loading = $state(false);
 
 	function handleCancel() {
@@ -55,7 +55,9 @@
 				}}
 			>
 				{#if form?.errors?.form}
-					<div class="rounded-md border border-destructive/20 bg-destructive/10 p-4 text-destructive">
+					<div
+						class="rounded-md border border-destructive/20 bg-destructive/10 p-4 text-destructive"
+					>
 						{form.errors.form}
 					</div>
 				{/if}
@@ -69,7 +71,9 @@
 							name="name"
 							bind:value={formState.name}
 							placeholder="Enter cashier name"
-							class={formState.nameError || form?.errors?.name ? 'border-destructive' : ''}
+							class={formState.nameError || form?.errors?.name
+								? 'border-destructive'
+								: ''}
 							disabled={loading}
 							required
 						/>
@@ -89,7 +93,9 @@
 							type="email"
 							bind:value={formState.email}
 							placeholder="Enter email address"
-							class={formState.emailError || form?.errors?.email ? 'border-destructive' : ''}
+							class={formState.emailError || form?.errors?.email
+								? 'border-destructive'
+								: ''}
 							disabled={loading}
 							required
 						/>
@@ -107,7 +113,12 @@
 						<Save size={16} />
 						{loading ? 'Creating...' : 'Create Cashier'}
 					</Button>
-					<Button type="button" variant="outline" onclick={handleCancel} disabled={loading}>
+					<Button
+						type="button"
+						variant="outline"
+						onclick={handleCancel}
+						disabled={loading}
+					>
 						Cancel
 					</Button>
 				</div>

@@ -178,7 +178,7 @@ export class Cashier {
 	id = $state<string>('');
 	name = $state<string>('');
 	email = $state<string>('');
-	
+
 	// Derived computed properties
 	displayName = $derived(this.name || this.email || 'Unknown Cashier');
 	isValid = $derived(this.name.length > 0 && this.email.length > 0);
@@ -286,7 +286,7 @@ CMD ["node", "build"]
 Following the backend's **minimal ceremony** approach, the UI architecture mirrors real-world operations while avoiding unnecessary abstractions:
 
 1. **No Domain Objects**: The UI doesn't need domain models with behavior - all business logic belongs in the backend
-2. **API Types for Display**: Use API response types directly for displaying data 
+2. **API Types for Display**: Use API response types directly for displaying data
 3. **Form State for Input**: Simple reactive classes for collecting user input
 4. **Commands/Queries as Coordinators**: Thin wrappers that coordinate API calls, not business logic
 5. **Real-World Operations**: Each operation reflects actual billing department work
@@ -294,55 +294,59 @@ Following the backend's **minimal ceremony** approach, the UI architecture mirro
 ### Architecture Components
 
 #### 1. API Types (Data Display)
+
 ```typescript
 // Use backend API types directly - no transformation needed
 export interface GetCashiersResult {
-  cashierId: string;
-  name: string;
-  email: string;
-  createdDateUtc?: string;
+	cashierId: string;
+	name: string;
+	email: string;
+	createdDateUtc?: string;
 }
 ```
 
 #### 2. Form State (User Input)
+
 ```typescript
 // Simple reactive classes for form handling
 export class CreateCashierForm {
-  name = $state('');
-  email = $state('');
-  
-  isValid = $derived(this.name.trim() !== '' && this.email.trim() !== '');
-  
-  toRequest(): CreateCashierRequest {
-    return { name: this.name.trim(), email: this.email.trim() };
-  }
+	name = $state('');
+	email = $state('');
+
+	isValid = $derived(this.name.trim() !== '' && this.email.trim() !== '');
+
+	toRequest(): CreateCashierRequest {
+		return { name: this.name.trim(), email: this.email.trim() };
+	}
 }
 ```
 
 #### 3. Commands (API Coordination)
+
 ```typescript
 // Thin wrappers that coordinate API calls only
 export class CreateCashierCommand {
-  constructor(private readonly request: CreateCashierRequest) {}
-  
-  async execute(): Promise<CashierDTO> {
-    if (!this.request.name?.trim() || !this.request.email?.trim()) {
-      throw new Error('Name and email are required');
-    }
-    return await cashierApi.createCashier(this.request);
-  }
+	constructor(private readonly request: CreateCashierRequest) {}
+
+	async execute(): Promise<CashierDTO> {
+		if (!this.request.name?.trim() || !this.request.email?.trim()) {
+			throw new Error('Name and email are required');
+		}
+		return await cashierApi.createCashier(this.request);
+	}
 }
 ```
 
 #### 4. Queries (Data Retrieval)
+
 ```typescript
 // Simple coordinators for data fetching
 export class GetCashiersQuery {
-  constructor(private readonly query?: GetCashiersQueryParams) {}
-  
-  async execute(): Promise<GetCashiersResult[]> {
-    return await cashierApi.getCashiers(this.query);
-  }
+	constructor(private readonly query?: GetCashiersQueryParams) {}
+
+	async execute(): Promise<GetCashiersResult[]> {
+		return await cashierApi.getCashiers(this.query);
+	}
 }
 ```
 
@@ -383,6 +387,7 @@ This results in a UI that's purely concerned with presentation and user interact
 **Export**: `@opentelemetry/exporter-trace-otlp-http`
 
 ### Implementation
+
 - Automatic HTTP request tracing
 - Custom spans for domain operations
 - Server-side and client-side instrumentation

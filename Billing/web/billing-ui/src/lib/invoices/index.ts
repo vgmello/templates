@@ -19,7 +19,11 @@ export { CancelInvoiceCommand } from './actions/CancelInvoiceCommand';
 export { MarkInvoiceAsPaidCommand } from './actions/MarkInvoiceAsPaidCommand';
 export { GetInvoiceQuery } from './actions/GetInvoiceQuery';
 export { GetInvoicesQuery } from './actions/GetInvoicesQuery';
-export { CalculateInvoiceSummaryQuery, type InvoiceSummary, type CurrencySummary } from './actions/CalculateInvoiceSummaryQuery';
+export {
+	CalculateInvoiceSummaryQuery,
+	type InvoiceSummary,
+	type CurrencySummary
+} from './actions/CalculateInvoiceSummaryQuery';
 
 // Components
 export { default as InvoiceStatusBadge } from './components/invoice-status-badge.svelte';

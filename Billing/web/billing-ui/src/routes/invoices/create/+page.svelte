@@ -4,7 +4,6 @@
 	import { Button } from '$lib/ui/button';
 	import { Card, CardHeader, CardTitle, CardContent } from '$lib/ui/card';
 	import { Input } from '$lib/ui/input';
-	import { CurrencyInput } from '$lib/ui/currency-input';
 	import { Select } from '$lib/ui/select';
 	import { ArrowLeft, Save, FileText, DollarSign, Calendar, User } from '@lucide/svelte';
 	import type { GetCashiersResult } from '$lib/cashiers';
@@ -23,8 +22,8 @@
 	let { cashiers } = data;
 	let loading = $state(false);
 
-	let formState = $state(new CreateInvoiceForm());
-	
+	let formState = new CreateInvoiceForm();
+
 	// Initialize form with any returned values on error
 	if (form?.values) {
 		formState.name = form.values.name ?? '';
@@ -122,14 +121,22 @@
 							name="name"
 							bind:value={formState.name}
 							placeholder="Enter invoice description"
-							class={formState.nameError || form?.errors?.name ? 'border-destructive' : ''}
+							class={formState.nameError || form?.errors?.name
+								? 'border-destructive'
+								: ''}
+							aria-describedby={formState.nameError || form?.errors?.name ? 'name-error' : undefined}
+							aria-invalid={formState.nameError || form?.errors?.name ? 'true' : 'false'}
 							disabled={loading}
 							required
 						/>
 						{#if formState.nameError && formState.name.length > 0}
-							<p class="text-sm text-destructive">{formState.nameError}</p>
+							<p id="name-error" class="text-sm text-destructive" role="alert" aria-live="polite">
+								{formState.nameError}
+							</p>
 						{:else if form?.errors?.name}
-							<p class="text-sm text-destructive">{form.errors.name}</p>
+							<p id="name-error" class="text-sm text-destructive" role="alert" aria-live="polite">
+								{form.errors.name}
+							</p>
 						{/if}
 					</div>
 
@@ -145,14 +152,22 @@
 								name="amount"
 								bind:value={formState.amount}
 								placeholder="Enter amount (e.g., 100.50)"
-								class={formState.amountError || form?.errors?.amount ? 'border-destructive' : ''}
+								class={formState.amountError || form?.errors?.amount
+									? 'border-destructive'
+									: ''}
+								aria-describedby={formState.amountError || form?.errors?.amount ? 'amount-error' : undefined}
+								aria-invalid={formState.amountError || form?.errors?.amount ? 'true' : 'false'}
 								disabled={loading}
 								required
 							/>
 							{#if formState.amountError && formState.amount.length > 0}
-								<p class="text-sm text-destructive">{formState.amountError}</p>
+								<p id="amount-error" class="text-sm text-destructive" role="alert" aria-live="polite">
+									{formState.amountError}
+								</p>
 							{:else if form?.errors?.amount}
-								<p class="text-sm text-destructive">{form.errors.amount}</p>
+								<p id="amount-error" class="text-sm text-destructive" role="alert" aria-live="polite">
+									{form.errors.amount}
+								</p>
 							{/if}
 						</div>
 
@@ -165,8 +180,15 @@
 								placeholder="Select currency"
 								error={form?.errors?.currency}
 								disabled={loading}
+								aria-describedby={form?.errors?.currency ? 'currency-error' : undefined}
+								aria-invalid={form?.errors?.currency ? 'true' : 'false'}
 							/>
 							<input type="hidden" name="currency" value={formState.currency} />
+							{#if form?.errors?.currency}
+								<p id="currency-error" class="text-sm text-destructive" role="alert" aria-live="polite">
+									{form.errors.currency}
+								</p>
+							{/if}
 						</div>
 					</div>
 
@@ -182,14 +204,22 @@
 							type="date"
 							bind:value={formState.dueDate}
 							min={formatDateForInput()}
-							class={formState.dueDateError || form?.errors?.dueDate ? 'border-destructive' : ''}
+							class={formState.dueDateError || form?.errors?.dueDate
+								? 'border-destructive'
+								: ''}
+							aria-describedby={formState.dueDateError || form?.errors?.dueDate ? 'dueDate-error' : undefined}
+							aria-invalid={formState.dueDateError || form?.errors?.dueDate ? 'true' : 'false'}
 							disabled={loading}
 							required
 						/>
 						{#if formState.dueDateError && formState.dueDate.length > 0}
-							<p class="text-sm text-destructive">{formState.dueDateError}</p>
+							<p id="dueDate-error" class="text-sm text-destructive" role="alert" aria-live="polite">
+								{formState.dueDateError}
+							</p>
 						{:else if form?.errors?.dueDate}
-							<p class="text-sm text-destructive">{form.errors.dueDate}</p>
+							<p id="dueDate-error" class="text-sm text-destructive" role="alert" aria-live="polite">
+								{form.errors.dueDate}
+							</p>
 						{/if}
 					</div>
 
@@ -205,11 +235,19 @@
 							options={cashierOptions}
 							placeholder="Select cashier"
 							disabled={loading}
-							class={formState.cashierError ? 'border-destructive' : ''}
+							class={formState.cashierError || form?.errors?.cashierId ? 'border-destructive' : ''}
+							aria-describedby={formState.cashierError || form?.errors?.cashierId ? 'cashier-error' : undefined}
+							aria-invalid={formState.cashierError || form?.errors?.cashierId ? 'true' : 'false'}
 						/>
 						<input type="hidden" name="cashierId" value={formState.cashierId} />
 						{#if formState.cashierError}
-							<p class="text-sm text-destructive">{formState.cashierError}</p>
+							<p id="cashier-error" class="text-sm text-destructive" role="alert" aria-live="polite">
+								{formState.cashierError}
+							</p>
+						{:else if form?.errors?.cashierId}
+							<p id="cashier-error" class="text-sm text-destructive" role="alert" aria-live="polite">
+								{form.errors.cashierId}
+							</p>
 						{/if}
 						<p class="text-xs text-muted-foreground">
 							Assign a cashier to handle payments for this invoice
@@ -260,7 +298,10 @@
 						{#if formState.cashierId}
 							<div>
 								<span class="text-xs text-muted-foreground">Assigned Cashier</span>
-								<p>{cashiers.find((c) => c.cashierId === formState.cashierId)?.name}</p>
+								<p>
+									{cashiers.find((c) => c.cashierId === formState.cashierId)
+										?.name}
+								</p>
 							</div>
 						{/if}
 					</div>
@@ -270,7 +311,11 @@
 			<!-- Actions -->
 			<Card>
 				<CardContent class="space-y-3 p-4">
-					<Button type="submit" disabled={loading || !formState.isValid} class="w-full gap-2">
+					<Button
+						type="submit"
+						disabled={loading || !formState.isValid}
+						class="w-full gap-2"
+					>
 						{#if loading}
 							<div
 								class="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"

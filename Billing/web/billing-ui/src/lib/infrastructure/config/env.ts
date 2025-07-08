@@ -24,18 +24,48 @@ function getBooleanEnvVar(key: string, defaultValue: boolean = false): boolean {
 }
 
 export function getConfig(): AppConfig {
+	const environment = getEnvVar('PUBLIC_ENVIRONMENT', 'development');
+	
+	// Get API base URL with environment-specific defaults
+	let apiBaseUrlDefault: string;
+	switch (environment) {
+		case 'production':
+			// Require explicit configuration in production
+			apiBaseUrlDefault = '';
+			break;
+		case 'staging':
+			apiBaseUrlDefault = '';
+			break;
+		case 'development':
+		default:
+			apiBaseUrlDefault = 'http://localhost:8101';
+			break;
+	}
+	
+	const apiBaseUrl = getEnvVar('PUBLIC_API_BASE_URL', apiBaseUrlDefault);
+	
+	// Validate API base URL in production
+	if (environment === 'production' && (!apiBaseUrl || apiBaseUrl.includes('localhost'))) {
+		throw new Error('PUBLIC_API_BASE_URL must be explicitly set for production environment and cannot contain localhost');
+	}
+	
+	// Validate API base URL format
+	if (apiBaseUrl && !apiBaseUrl.match(/^https?:\/\/.+/)) {
+		throw new Error(`Invalid API base URL format: ${apiBaseUrl}. Must start with http:// or https://`);
+	}
+	
 	return {
-		apiBaseUrl: getEnvVar('PUBLIC_API_BASE_URL', 'http://localhost:8101'),
+		apiBaseUrl,
 		telemetry: {
-			enabled: getBooleanEnvVar('PUBLIC_OTEL_ENABLED', true),
+			enabled: getBooleanEnvVar('PUBLIC_OTEL_ENABLED', environment === 'development'),
 			serviceName: getEnvVar('PUBLIC_OTEL_SERVICE_NAME', 'billing-ui'),
 			serviceVersion: getEnvVar('PUBLIC_OTEL_SERVICE_VERSION', '1.0.0'),
 			otlpEndpoint: getEnvVar('PUBLIC_OTEL_EXPORTER_OTLP_ENDPOINT', '/v1/traces'),
-			environment: getEnvVar('PUBLIC_ENVIRONMENT', 'development'),
+			environment,
 			otlpHeaders: getEnvVar('PUBLIC_OTEL_EXPORTER_OTLP_HEADERS', ''),
 			otlpResourceAttributes: getEnvVar('PUBLIC_OTEL_RESOURCE_ATTRIBUTES', '')
 		},
-		environment: getEnvVar('PUBLIC_ENVIRONMENT', 'development')
+		environment
 	};
 }
 
