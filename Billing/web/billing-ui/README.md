@@ -19,7 +19,6 @@ The Billing UI is a full-stack SvelteKit application that provides:
 - **Styling**: Tailwind CSS + shadcn-svelte components
 - **Icons**: Lucide Svelte
 - **Testing**: Vitest (unit) + Playwright (E2E)
-- **Database**: PostgreSQL with Drizzle ORM (for auth/session management)
 
 ## Getting Started
 
@@ -256,39 +255,6 @@ EXPOSE 3000
 CMD ["node", "build"]
 ```
 
-### Integration with .NET Aspire
-
-When running via .NET Aspire, the UI is automatically configured with:
-
-- Service discovery for API endpoints
-- Health checks
-- Distributed tracing
-- Centralized logging
-
-## Troubleshooting
-
-### Common Issues
-
-1. **API Connection Failed**
-    - Verify Billing API is running on port 8101
-    - Check `PUBLIC_API_URL` configuration
-    - Ensure CORS is configured if on different ports
-
-2. **Type Errors**
-    - Run `pnpm check` to identify issues
-    - Ensure API types match expected interfaces
-    - Regenerate types if API changed
-
-3. **Build Failures**
-    - Clear `node_modules` and `.svelte-kit`
-    - Run `pnpm install` fresh
-    - Check Node.js version (18+ required)
-
-4. **Test Failures**
-    - Ensure API is running for E2E tests
-    - Check test database is clean
-    - Review Playwright trace on failure
-
 ## OTEL
 
 ### Core Packages
@@ -320,6 +286,13 @@ When running via .NET Aspire, the UI is automatically configured with:
 3. **Progressive Enhancement**: Ensure forms work without JavaScript
 4. **Accessibility**: Test with keyboard navigation and screen readers
 5. **Performance**: Use SvelteKit's preloading and code splitting
+
+### Backend execution
+
+```bash
+# From the repo root folder
+docker compose -f Billing/compose.yml --profile api up -d
+```
 
 ## Contributing
 
