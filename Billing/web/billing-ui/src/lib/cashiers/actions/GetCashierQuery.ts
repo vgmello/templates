@@ -1,6 +1,6 @@
 import { cashierApi, type Cashier as CashierDTO } from '../CashiersApi';
 
-export class GetCashiersQuery {
+export class GetCashierQuery {
 	constructor(private readonly id: string) {}
 
 	async execute(): Promise<CashierDTO> {

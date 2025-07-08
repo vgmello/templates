@@ -1,6 +1,7 @@
 import type { Actions } from './$types';
 import { redirect, fail, isRedirect } from '@sveltejs/kit';
-import { CreateCashierCommand, ValidationError } from '$lib/cashiers';
+import { CreateCashierCommand } from '$lib/cashiers/actions/CreateCashierCommand';
+import { ValidationError } from '$lib/cashiers/validators/CashierValidator';
 import { ApiError } from '$lib/infrastructure';
 
 export const actions: Actions = {

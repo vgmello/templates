@@ -1,12 +1,12 @@
 import type { PageServerLoad, Actions } from './$types';
 import { error, fail } from '@sveltejs/kit';
-import { CashierService } from '$lib/cashiers';
+import { GetCashiersQuery } from '$lib/cashiers/actions/GetCashiersQuery';
+import { DeleteCashierCommand } from '$lib/cashiers/actions/DeleteCashierCommand';
 import { Cashier } from '$lib/cashiers/models/Cashier';
 import { ApiError } from '$lib/infrastructure';
 
 export const load: PageServerLoad = async ({ url, depends }) => {
 	depends('cashiers:list');
-	const cashierService = new CashierService();
 	
 	try {
 		// Extract query parameters for potential filtering
@@ -16,13 +16,15 @@ export const load: PageServerLoad = async ({ url, depends }) => {
 		const sortBy = url.searchParams.get('sortBy');
 		const sortDescending = url.searchParams.get('sortDescending') === 'true';
 
-		const cashierDTOs = await cashierService.getCashiers({
+		const query = new GetCashiersQuery({
 			...(page && { page: parseInt(page) }),
 			...(pageSize && { pageSize: parseInt(pageSize) }),
 			...(search && { search }),
 			...(sortBy && { sortBy }),
 			...(sortDescending !== undefined && { sortDescending })
 		});
+
+		const cashierDTOs = await query.execute();
 
 		// Convert DTOs to domain models for reactive UI
 		const cashiers = cashierDTOs.map(dto => new Cashier({
@@ -50,7 +52,6 @@ export const load: PageServerLoad = async ({ url, depends }) => {
 export const actions: Actions = {
 	delete: async ({ request }) => {
 		const data = await request.formData();
-		const cashierService = new CashierService();
 		const id = data.get('id') as string;
 
 		if (!id) {
@@ -61,7 +62,8 @@ export const actions: Actions = {
 		}
 
 		try {
-			await cashierService.deleteCashier(id);
+			const command = new DeleteCashierCommand(id);
+			await command.execute();
 			return { success: true };
 		} catch (err) {
 			console.error('Failed to delete cashier:', err);
