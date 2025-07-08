@@ -2,7 +2,7 @@
 export { config, getConfig, type AppConfig } from './config/env';
 
 // API Client
-export { ApiClient, ApiError, apiClient, serverApiClient, type ApiRequestOptions } from './api/ApiClient';
+export { ApiClient, ApiError, apiClient, type ApiRequestOptions } from './api/ApiClient';
 
 // Telemetry
 export { 
