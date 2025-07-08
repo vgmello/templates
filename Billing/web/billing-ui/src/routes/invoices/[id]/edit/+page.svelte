@@ -1,33 +1,30 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
-	import { page } from '$app/stores';
+	import { enhance } from '$app/forms';
 	import { Button } from '$lib/ui/button';
 	import { Card, CardHeader, CardTitle, CardContent } from '$lib/ui/card';
 	import { Input } from '$lib/ui/input';
 	import { Select } from '$lib/ui/select';
 	import { ArrowLeft, Save, FileText, DollarSign, Calendar, User } from '@lucide/svelte';
-	import { invoiceApi, type Invoice, type CreateInvoiceRequest } from '$lib/invoices';
-	import { cashierApi, type GetCashiersResult } from '$lib/cashiers';
-	import { formatDateForInput } from '$lib/infrastructure/utils/Date.js';
+	import type { PageData, ActionData } from './$types';
 
-	let invoiceId = $derived($page.params.id);
-	let invoice = $state<Invoice | null>(null);
-	let cashiers = $state<GetCashiersResult[]>([]);
+	type Props = {
+		data: PageData;
+		form: ActionData;
+	};
+
+	let { data, form: formResult }: Props = $props();
+
 	let loading = $state(false);
-	let loadingCashiers = $state(false);
-	let saving = $state(false);
-	let error = $state<string | null>(null);
 
-	let form = $state<CreateInvoiceRequest>({
-		name: '',
-		amount: 0,
-		currency: 'USD',
-		dueDate: '',
-		cashierId: undefined
+	// Initialize form with server data
+	let formData = $state({
+		name: data.invoice.name || '',
+		amount: data.invoice.amount || 0,
+		currency: data.invoice.currency || 'USD',
+		dueDate: data.invoice.dueDate ? data.invoice.dueDate.split('T')[0] : '',
+		cashierId: data.invoice.cashierId || undefined
 	});
-
-	let formErrors = $state<{ [key: string]: string }>({});
 
 	// Currency options
 	const currencyOptions = [
@@ -39,76 +36,26 @@
 		{ value: 'AUD', label: 'AUD - Australian Dollar' }
 	];
 
-	// Cashier options
+	// Cashier options from server data
 	const cashierOptions = $derived([
 		{ value: undefined, label: 'No cashier assigned' },
-		...cashiers.map((cashier) => ({
+		...data.cashiers.map((cashier) => ({
 			value: cashier.cashierId,
 			label: cashier.name
 		}))
 	]);
 
-	async function loadInvoice() {
-		if (!invoiceId) return;
-
-		loading = true;
-		error = null;
-
-		try {
-			invoice = await invoiceApi.getInvoice(invoiceId);
-			if (invoice) {
-				// Populate form with existing data
-				form = {
-					name: invoice.name,
-					amount: invoice.amount,
-					currency: invoice.currency || 'USD',
-					dueDate: invoice.dueDate ? invoice.dueDate.split('T')[0] : '',
-					cashierId: invoice.cashierId || undefined
-				};
-			}
-		} catch (err) {
-			error = err instanceof Error ? err.message : 'Failed to load invoice';
-			console.error('Error loading invoice:', err);
-		} finally {
-			loading = false;
-		}
-	}
-
-	async function loadCashiers() {
-		loadingCashiers = true;
-		try {
-			cashiers = await cashierApi.getCashiers();
-		} catch (err) {
-			console.error('Failed to load cashiers:', err);
-		} finally {
-			loadingCashiers = false;
-		}
-	}
-
-	async function saveInvoice() {
-		// Note: This is a placeholder since the current API doesn't have an update endpoint
-		// In a real implementation, you would have an update endpoint
-		alert(
-			'Edit functionality is not yet implemented in the API. This would update the invoice with the new data.'
-		);
-	}
-
 	function goBack() {
-		goto(`/invoices/${invoiceId}`);
+		goto(`/invoices/${data.invoice.invoiceId}`);
 	}
 
 	function cancelEdit() {
-		goto(`/invoices/${invoiceId}`);
+		goto(`/invoices/${data.invoice.invoiceId}`);
 	}
-
-	onMount(() => {
-		loadInvoice();
-		loadCashiers();
-	});
 </script>
 
 <svelte:head>
-	<title>Edit {invoice?.name || 'Invoice'} - Billing System</title>
+	<title>Edit {data.invoice.name || 'Invoice'} - Billing System</title>
 </svelte:head>
 
 <div class="container mx-auto space-y-8 p-6">
@@ -127,43 +74,29 @@
 		</div>
 	</div>
 
-	{#if loading}
-		<div class="flex flex-col items-center justify-center space-y-4 py-24">
-			<div
-				class="h-12 w-12 animate-spin rounded-full border-2 border-primary border-t-transparent"
-			></div>
-			<div class="space-y-1 text-center">
-				<p class="font-medium">Loading invoice</p>
-				<p class="text-sm text-muted-foreground">
-					Please wait while we fetch the invoice details...
-				</p>
-			</div>
-		</div>
-	{:else if error}
+	<!-- Form Error Display -->
+	{#if formResult?.errors?.form}
 		<Card class="border-destructive/50 bg-destructive/5">
 			<CardContent class="p-4">
 				<div class="flex items-center gap-2 text-destructive">
-					<div class="font-medium">Error loading invoice</div>
+					<div class="font-medium">Error</div>
 				</div>
-				<p class="mt-1 text-sm text-destructive/80">{error}</p>
+				<p class="mt-1 text-sm text-destructive/80">{formResult.errors.form}</p>
 			</CardContent>
 		</Card>
-	{:else if invoice}
-		<!-- Notice about API limitation -->
-		<Card class="border-yellow-200 bg-yellow-50">
-			<CardContent class="p-4">
-				<div class="flex items-center gap-2 text-yellow-800">
-					<div class="font-medium">Note</div>
-				</div>
-				<p class="mt-1 text-sm text-yellow-700">
-					The edit functionality is currently limited as the backend API doesn't have an
-					update endpoint. This is a demonstration of the UI that would be used for
-					editing invoices.
-				</p>
-			</CardContent>
-		</Card>
+	{/if}
 
-		<div class="grid grid-cols-1 gap-8 lg:grid-cols-3">
+	<form 
+		method="POST" 
+		class="grid grid-cols-1 gap-8 lg:grid-cols-3"
+		use:enhance={() => {
+			loading = true;
+			return async ({ update }) => {
+				loading = false;
+				await update();
+			};
+		}}
+	>
 			<!-- Main Form -->
 			<div class="lg:col-span-2">
 				<Card>
@@ -182,12 +115,15 @@
 							</label>
 							<Input
 								id="name"
-								bind:value={form.name}
+								name="name"
+								value={formResult?.values?.name ?? formData.name}
 								placeholder="Enter invoice description"
-								class={formErrors.name ? 'border-destructive' : ''}
+								class={formResult?.errors?.name ? 'border-destructive' : ''}
+								disabled={loading}
+								required
 							/>
-							{#if formErrors.name}
-								<p class="text-sm text-destructive">{formErrors.name}</p>
+							{#if formResult?.errors?.name}
+								<p class="text-sm text-destructive">{formResult.errors.name}</p>
 							{/if}
 						</div>
 
@@ -203,27 +139,38 @@
 								</label>
 								<Input
 									id="amount"
+									name="amount"
 									type="number"
 									step="0.01"
 									min="0"
-									bind:value={form.amount}
+									value={formResult?.values?.amount ?? formData.amount}
 									placeholder="0.00"
-									class={formErrors.amount ? 'border-destructive' : ''}
+									class={formResult?.errors?.amount ? 'border-destructive' : ''}
+									disabled={loading}
+									required
 								/>
-								{#if formErrors.amount}
-									<p class="text-sm text-destructive">{formErrors.amount}</p>
+								{#if formResult?.errors?.amount}
+									<p class="text-sm text-destructive">{formResult.errors.amount}</p>
 								{/if}
 							</div>
 
 							<div class="space-y-2">
 								<label for="currency" class="text-sm font-medium">Currency *</label>
-								<Select
+								<select 
 									id="currency"
-									bind:value={form.currency}
-									options={currencyOptions}
-									placeholder="Select currency"
-									error={formErrors.currency}
-								/>
+									name="currency"
+									value={formResult?.values?.currency ?? formData.currency}
+									class={`w-full rounded-md border border-input bg-background px-3 py-2 text-sm ${formResult?.errors?.currency ? 'border-destructive' : ''}`}
+									disabled={loading}
+									required
+								>
+									{#each currencyOptions as option}
+										<option value={option.value}>{option.label}</option>
+									{/each}
+								</select>
+								{#if formResult?.errors?.currency}
+									<p class="text-sm text-destructive">{formResult.errors.currency}</p>
+								{/if}
 							</div>
 						</div>
 
@@ -238,13 +185,14 @@
 							</label>
 							<Input
 								id="dueDate"
+								name="dueDate"
 								type="date"
-								bind:value={form.dueDate}
-								min={formatDateForInput()}
-								class={formErrors.dueDate ? 'border-destructive' : ''}
+								value={formResult?.values?.dueDate ?? formData.dueDate}
+								class={formResult?.errors?.dueDate ? 'border-destructive' : ''}
+								disabled={loading}
 							/>
-							{#if formErrors.dueDate}
-								<p class="text-sm text-destructive">{formErrors.dueDate}</p>
+							{#if formResult?.errors?.dueDate}
+								<p class="text-sm text-destructive">{formResult.errors.dueDate}</p>
 							{/if}
 						</div>
 
@@ -257,16 +205,17 @@
 								<User size={14} />
 								Assigned Cashier (Optional)
 							</label>
-							{#if loadingCashiers}
-								<div class="text-sm text-muted-foreground">Loading cashiers...</div>
-							{:else}
-								<Select
-									id="cashier"
-									bind:value={form.cashierId}
-									options={cashierOptions}
-									placeholder="Select cashier"
-								/>
-							{/if}
+							<select 
+								id="cashier"
+								name="cashierId"
+								value={formResult?.values?.cashierId ?? formData.cashierId ?? ''}
+								class="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+								disabled={loading}
+							>
+								{#each cashierOptions as option}
+									<option value={option.value ?? ''}>{option.label}</option>
+								{/each}
+							</select>
 						</div>
 					</CardContent>
 				</Card>
@@ -283,7 +232,7 @@
 						<div class="space-y-3">
 							<div>
 								<label class="text-xs text-muted-foreground">Name</label>
-								<p class="font-medium">{form.name || 'Untitled Invoice'}</p>
+								<p class="font-medium">{(formResult?.values?.name ?? formData.name) || 'Untitled Invoice'}</p>
 							</div>
 
 							<div>
@@ -291,16 +240,16 @@
 								<p class="text-lg font-bold">
 									{new Intl.NumberFormat('en-US', {
 										style: 'currency',
-										currency: form.currency || 'USD'
-									}).format(form.amount)}
+										currency: (formResult?.values?.currency ?? formData.currency) || 'USD'
+									}).format(Number((formResult?.values?.amount ?? formData.amount)) || 0)}
 								</p>
 							</div>
 
-							{#if form.dueDate}
+							{#if (formResult?.values?.dueDate ?? formData.dueDate)}
 								<div>
 									<label class="text-xs text-muted-foreground">Due Date</label>
 									<p>
-										{new Date(form.dueDate).toLocaleDateString('en-US', {
+										{new Date(formResult?.values?.dueDate ?? formData.dueDate).toLocaleDateString('en-US', {
 											weekday: 'long',
 											year: 'numeric',
 											month: 'long',
@@ -310,13 +259,13 @@
 								</div>
 							{/if}
 
-							{#if form.cashierId}
+							{#if (formResult?.values?.cashierId ?? formData.cashierId)}
 								<div>
 									<label class="text-xs text-muted-foreground"
 										>Assigned Cashier</label
 									>
 									<p>
-										{cashiers.find((c) => c.cashierId === form.cashierId)?.name}
+										{data.cashiers.find((c) => c.cashierId === (formResult?.values?.cashierId ?? formData.cashierId))?.name}
 									</p>
 								</div>
 							{/if}
@@ -328,31 +277,31 @@
 				<Card>
 					<CardContent class="space-y-3 p-4">
 						<Button
-							onclick={saveInvoice}
-							disabled={saving || !form.name || form.amount <= 0}
+							type="submit"
+							disabled={loading}
 							class="w-full gap-2"
 						>
-							{#if saving}
+							{#if loading}
 								<div
 									class="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"
 								></div>
 							{:else}
 								<Save size={16} />
 							{/if}
-							Save Changes
+							{loading ? 'Saving...' : 'Save Changes'}
 						</Button>
 
 						<Button
+							type="button"
 							variant="outline"
 							onclick={cancelEdit}
-							disabled={saving}
+							disabled={loading}
 							class="w-full"
 						>
 							Cancel
 						</Button>
 					</CardContent>
 				</Card>
-			</div>
 		</div>
-	{/if}
+	</form>
 </div>
