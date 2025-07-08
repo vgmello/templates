@@ -1,6 +1,5 @@
 // Invoices feature public API
 export { Invoice, type InvoiceData } from './models/Invoice';
-export { InvoiceService } from './InvoiceService';
 export {
 	invoiceApi,
 	type GetInvoicesQuery as GetInvoicesQueryParams,
