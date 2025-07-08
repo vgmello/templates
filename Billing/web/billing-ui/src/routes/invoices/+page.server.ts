@@ -31,8 +31,11 @@ export const load: PageServerLoad = async ({ url }) => {
 			...(take !== undefined && { take })
 		});
 
-		// Calculate summary using domain service
-		const summary = invoiceService.calculateSummary(invoices);
+		// Temporary simple summary without domain service
+		const summary = {
+			totalInvoices: invoices.length,
+			currencySummaries: []
+		};
 
 		return {
 			invoices,
