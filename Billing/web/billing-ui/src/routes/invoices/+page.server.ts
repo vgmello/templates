@@ -2,6 +2,7 @@ import type { PageServerLoad, Actions } from './$types';
 import { error, fail } from '@sveltejs/kit';
 import { GetInvoicesQuery } from '$lib/invoices/actions/GetInvoicesQuery';
 import { CancelInvoiceCommand } from '$lib/invoices/actions/CancelInvoiceCommand';
+import { CalculateInvoiceSummaryQuery } from '$lib/invoices/actions/CalculateInvoiceSummaryQuery';
 import { ApiError } from '$lib/infrastructure';
 
 export const load: PageServerLoad = async ({ url }) => {
@@ -30,11 +31,9 @@ export const load: PageServerLoad = async ({ url }) => {
 		
 		const invoices = await query.execute();
 
-		// Temporary simple summary without domain service
-		const summary = {
-			totalInvoices: invoices.length,
-			currencySummaries: []
-		};
+		// Calculate summary using the query
+		const summaryQuery = new CalculateInvoiceSummaryQuery(invoices);
+		const summary = summaryQuery.execute();
 
 		return {
 			invoices,
