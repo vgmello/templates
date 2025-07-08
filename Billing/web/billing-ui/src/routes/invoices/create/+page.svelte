@@ -122,11 +122,13 @@
 							name="name"
 							bind:value={formState.name}
 							placeholder="Enter invoice description"
-							class={form?.errors?.name ? 'border-destructive' : ''}
+							class={formState.nameError || form?.errors?.name ? 'border-destructive' : ''}
 							disabled={loading}
 							required
 						/>
-						{#if form?.errors?.name}
+						{#if formState.nameError && formState.name.length > 0}
+							<p class="text-sm text-destructive">{formState.nameError}</p>
+						{:else if form?.errors?.name}
 							<p class="text-sm text-destructive">{form.errors.name}</p>
 						{/if}
 					</div>
@@ -138,16 +140,20 @@
 								<DollarSign size={14} />
 								Amount *
 							</label>
-							<CurrencyInput
+							<Input
 								id="amount"
+								name="amount"
 								bind:value={formState.amount}
-								currency={formState.currency || 'USD'}
-								placeholder="Enter amount"
-								required
-								error={form?.errors?.amount}
+								placeholder="Enter amount (e.g., 100.50)"
+								class={formState.amountError || form?.errors?.amount ? 'border-destructive' : ''}
 								disabled={loading}
+								required
 							/>
-							<input type="hidden" name="amount" value={formState.amount} />
+							{#if formState.amountError && formState.amount.length > 0}
+								<p class="text-sm text-destructive">{formState.amountError}</p>
+							{:else if form?.errors?.amount}
+								<p class="text-sm text-destructive">{form.errors.amount}</p>
+							{/if}
 						</div>
 
 						<div class="space-y-2">
@@ -168,7 +174,7 @@
 					<div class="space-y-2">
 						<label for="dueDate" class="flex items-center gap-2 text-sm font-medium">
 							<Calendar size={14} />
-							Due Date (Optional)
+							Due Date *
 						</label>
 						<Input
 							id="dueDate"
@@ -176,10 +182,13 @@
 							type="date"
 							bind:value={formState.dueDate}
 							min={formatDateForInput()}
-							class={form?.errors?.dueDate ? 'border-destructive' : ''}
+							class={formState.dueDateError || form?.errors?.dueDate ? 'border-destructive' : ''}
 							disabled={loading}
+							required
 						/>
-						{#if form?.errors?.dueDate}
+						{#if formState.dueDateError && formState.dueDate.length > 0}
+							<p class="text-sm text-destructive">{formState.dueDateError}</p>
+						{:else if form?.errors?.dueDate}
 							<p class="text-sm text-destructive">{form.errors.dueDate}</p>
 						{/if}
 					</div>
@@ -188,7 +197,7 @@
 					<div class="space-y-2">
 						<label for="cashier" class="flex items-center gap-2 text-sm font-medium">
 							<User size={14} />
-							Assigned Cashier (Optional)
+							Assigned Cashier *
 						</label>
 						<Select
 							id="cashier"
@@ -196,8 +205,12 @@
 							options={cashierOptions}
 							placeholder="Select cashier"
 							disabled={loading}
+							class={formState.cashierError ? 'border-destructive' : ''}
 						/>
 						<input type="hidden" name="cashierId" value={formState.cashierId} />
+						{#if formState.cashierError}
+							<p class="text-sm text-destructive">{formState.cashierError}</p>
+						{/if}
 						<p class="text-xs text-muted-foreground">
 							Assign a cashier to handle payments for this invoice
 						</p>

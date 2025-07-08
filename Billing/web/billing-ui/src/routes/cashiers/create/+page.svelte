@@ -69,11 +69,13 @@
 							name="name"
 							bind:value={formState.name}
 							placeholder="Enter cashier name"
-							class={form?.errors?.name ? 'border-destructive' : ''}
+							class={formState.nameError || form?.errors?.name ? 'border-destructive' : ''}
 							disabled={loading}
 							required
 						/>
-						{#if form?.errors?.name}
+						{#if formState.nameError && formState.name.length > 0}
+							<p class="text-sm text-destructive">{formState.nameError}</p>
+						{:else if form?.errors?.name}
 							<p class="text-sm text-destructive">{form?.errors?.name}</p>
 						{/if}
 					</div>
@@ -87,11 +89,13 @@
 							type="email"
 							bind:value={formState.email}
 							placeholder="Enter email address"
-							class={form?.errors?.email ? 'border-destructive' : ''}
+							class={formState.emailError || form?.errors?.email ? 'border-destructive' : ''}
 							disabled={loading}
 							required
 						/>
-						{#if form?.errors?.email}
+						{#if formState.emailError && formState.email.length > 0}
+							<p class="text-sm text-destructive">{formState.emailError}</p>
+						{:else if form?.errors?.email}
 							<p class="text-sm text-destructive">{form?.errors?.email}</p>
 						{/if}
 					</div>
