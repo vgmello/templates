@@ -4,19 +4,6 @@
 
 	const notifications = $derived(notificationService.getNotifications());
 
-	function getIcon(type: Notification['type']) {
-		switch (type) {
-			case 'success':
-				return `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />`;
-			case 'error':
-				return `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />`;
-			case 'warning':
-				return `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L4.268 19.5c-.77.833.192 2.5 1.732 2.5z" />`;
-			case 'info':
-				return `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />`;
-		}
-	}
-
 	function getColors(type: Notification['type']) {
 		switch (type) {
 			case 'success':
@@ -67,20 +54,53 @@
 	}
 </script>
 
-<div class="fixed top-4 right-4 z-50 space-y-4 max-w-sm w-full">
+<div class="fixed right-4 top-4 z-50 w-full max-w-sm space-y-4">
 	{#each notifications as notification (notification.id)}
 		{@const colors = getColors(notification.type)}
 		<div
-			class="notification-item {colors.bg} {colors.border} border rounded-lg shadow-lg p-4"
+			class="notification-item {colors.bg} {colors.border} rounded-lg border p-4 shadow-lg"
 			transition:fly={{ x: 300, duration: 300 }}
 		>
 			<div class="flex items-start">
 				<div class="flex-shrink-0">
-					<svg class="w-5 h-5 {colors.icon}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-						{@html getIcon(notification.type)}
+					<svg
+						class="h-5 w-5 {colors.icon}"
+						fill="none"
+						stroke="currentColor"
+						viewBox="0 0 24 24"
+					>
+						{#if notification.type === 'success'}
+							<path
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								stroke-width="2"
+								d="M5 13l4 4L19 7"
+							/>
+						{:else if notification.type === 'error'}
+							<path
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								stroke-width="2"
+								d="M6 18L18 6M6 6l12 12"
+							/>
+						{:else if notification.type === 'warning'}
+							<path
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								stroke-width="2"
+								d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L4.268 19.5c-.77.833.192 2.5 1.732 2.5z"
+							/>
+						{:else if notification.type === 'info'}
+							<path
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								stroke-width="2"
+								d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+							/>
+						{/if}
 					</svg>
 				</div>
-				
+
 				<div class="ml-3 flex-1">
 					<div class="flex items-center justify-between">
 						<h4 class="text-sm font-medium {colors.title}">
@@ -92,26 +112,36 @@
 							</span>
 							<button
 								onclick={() => notificationService.remove(notification.id)}
-								class="inline-flex {colors.close} hover:bg-white hover:bg-opacity-20 rounded-md p-1.5 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-transparent focus:ring-white"
+								class="inline-flex {colors.close} rounded-md p-1.5 hover:bg-white hover:bg-opacity-20 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-transparent"
 							>
-								<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+								<svg
+									class="h-4 w-4"
+									fill="none"
+									stroke="currentColor"
+									viewBox="0 0 24 24"
+								>
+									<path
+										stroke-linecap="round"
+										stroke-linejoin="round"
+										stroke-width="2"
+										d="M6 18L18 6M6 6l12 12"
+									/>
 								</svg>
 							</button>
 						</div>
 					</div>
-					
+
 					{#if notification.message}
 						<p class="mt-1 text-sm {colors.message}">
 							{notification.message}
 						</p>
 					{/if}
-					
+
 					{#if notification.action}
 						<div class="mt-3">
 							<button
 								onclick={notification.action.handler}
-								class="text-sm {colors.action} font-medium hover:underline focus:outline-none focus:underline"
+								class="text-sm {colors.action} font-medium hover:underline focus:underline focus:outline-none"
 							>
 								{notification.action.label}
 							</button>

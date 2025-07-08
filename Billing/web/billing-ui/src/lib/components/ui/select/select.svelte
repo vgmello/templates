@@ -23,7 +23,7 @@
 		id,
 		value = $bindable(),
 		options,
-		placeholder = "Select an option...",
+		placeholder = 'Select an option...',
 		disabled = false,
 		error,
 		class: className,
@@ -33,11 +33,11 @@
 	let isOpen = $state(false);
 	let selectElement: HTMLElement;
 
-	const selectedOption = $derived(options.find(option => option.value === value));
+	const selectedOption = $derived(options.find((option) => option.value === value));
 
 	function handleSelect(option: Option) {
 		if (option.disabled) return;
-		
+
 		value = option.value;
 		isOpen = false;
 		onchange?.(option.value);
@@ -91,8 +91,8 @@
 		{id}
 		type="button"
 		class={cn(
-			"flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
-			error && "border-destructive",
+			'flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50',
+			error && 'border-destructive',
 			className
 		)}
 		aria-haspopup="listbox"
@@ -101,14 +101,11 @@
 		onclick={() => !disabled && (isOpen = !isOpen)}
 		onkeydown={handleKeydown}
 	>
-		<span class={cn("block truncate", !selectedOption && "text-muted-foreground")}>
+		<span class={cn('block truncate', !selectedOption && 'text-muted-foreground')}>
 			{selectedOption?.label || placeholder}
 		</span>
-		<ChevronDown 
-			class={cn(
-				"h-4 w-4 transition-transform duration-200",
-				isOpen && "rotate-180"
-			)} 
+		<ChevronDown
+			class={cn('h-4 w-4 transition-transform duration-200', isOpen && 'rotate-180')}
 		/>
 	</button>
 
@@ -118,13 +115,13 @@
 			role="listbox"
 		>
 			<div class="max-h-60 overflow-auto p-1">
-				{#each options as option}
+				{#each options as option (option.value)}
 					<button
 						type="button"
 						class={cn(
-							"relative flex w-full cursor-pointer select-none items-center rounded-sm py-2 pl-8 pr-2 text-sm outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground",
-							option.disabled && "cursor-not-allowed opacity-50",
-							value === option.value && "bg-accent text-accent-foreground"
+							'relative flex w-full cursor-pointer select-none items-center rounded-sm py-2 pl-8 pr-2 text-sm outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground',
+							option.disabled && 'cursor-not-allowed opacity-50',
+							value === option.value && 'bg-accent text-accent-foreground'
 						)}
 						disabled={option.disabled}
 						onclick={() => handleSelect(option)}
@@ -132,7 +129,9 @@
 						aria-selected={value === option.value}
 					>
 						{#if value === option.value}
-							<span class="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">
+							<span
+								class="absolute left-2 flex h-3.5 w-3.5 items-center justify-center"
+							>
 								<Check class="h-4 w-4" />
 							</span>
 						{/if}

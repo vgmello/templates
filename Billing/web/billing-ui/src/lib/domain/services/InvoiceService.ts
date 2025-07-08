@@ -20,14 +20,17 @@ export class InvoiceService {
 	}
 
 	private groupInvoicesByCurrency(invoices: InvoiceData[]): Record<string, InvoiceData[]> {
-		return invoices.reduce((acc, invoice) => {
-			const currency = invoice.currency;
-			if (!acc[currency]) {
-				acc[currency] = [];
-			}
-			acc[currency].push(invoice);
-			return acc;
-		}, {} as Record<string, InvoiceData[]>);
+		return invoices.reduce(
+			(acc, invoice) => {
+				const currency = invoice.currency;
+				if (!acc[currency]) {
+					acc[currency] = [];
+				}
+				acc[currency].push(invoice);
+				return acc;
+			},
+			{} as Record<string, InvoiceData[]>
+		);
 	}
 
 	private calculateCurrencySummary(invoices: InvoiceData[], currency: Currency): CurrencySummary {
@@ -98,7 +101,7 @@ export class InvoiceService {
 		const month = String(now.getMonth() + 1).padStart(2, '0');
 		const day = String(now.getDate()).padStart(2, '0');
 		const timestamp = now.getTime().toString().slice(-6);
-		
+
 		return `INV-${year}${month}${day}-${timestamp}`;
 	}
 

@@ -27,13 +27,13 @@ export class CashierService {
 	}
 
 	getCashiersForCurrency(cashiers: CashierData[], currency: Currency): CashierData[] {
-		return cashiers.filter(cashier => 
-			cashier.isActive && cashier.supportedCurrencies.includes(currency)
+		return cashiers.filter(
+			(cashier) => cashier.isActive && cashier.supportedCurrencies.includes(currency)
 		);
 	}
 
 	getActiveCashiers(cashiers: CashierData[]): CashierData[] {
-		return cashiers.filter(cashier => cashier.isActive);
+		return cashiers.filter((cashier) => cashier.isActive);
 	}
 
 	formatCashierName(cashier: CashierData): string {
@@ -41,11 +41,11 @@ export class CashierService {
 	}
 
 	getCashierByEmail(cashiers: CashierData[], email: string): CashierData | null {
-		return cashiers.find(cashier => cashier.email === email) || null;
+		return cashiers.find((cashier) => cashier.email === email) || null;
 	}
 
 	getCashierById(cashiers: CashierData[], id: string): CashierData | null {
-		return cashiers.find(cashier => cashier.id === id) || null;
+		return cashiers.find((cashier) => cashier.id === id) || null;
 	}
 
 	createDefaultCashier(): Partial<CashierData> {

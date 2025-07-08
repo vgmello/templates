@@ -1,6 +1,3 @@
-import Root from "./currency-display.svelte";
+import Root from './currency-display.svelte';
 
-export {
-	Root,
-	Root as CurrencyDisplay,
-};
+export { Root, Root as CurrencyDisplay };

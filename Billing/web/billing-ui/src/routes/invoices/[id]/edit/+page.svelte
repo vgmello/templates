@@ -7,7 +7,13 @@
 	import { Input } from '$lib/components/ui/input';
 	import { Select } from '$lib/components/ui/select';
 	import { ArrowLeft, Save, FileText, DollarSign, Calendar, User } from '@lucide/svelte';
-	import { invoiceApi, cashierApi, type Invoice, type CreateInvoiceRequest, type GetCashiersResult } from '$lib';
+	import {
+		invoiceApi,
+		cashierApi,
+		type Invoice,
+		type CreateInvoiceRequest,
+		type GetCashiersResult
+	} from '$lib';
 	import { formatDateForInput } from '$lib/utils/date.js';
 
 	let invoiceId = $derived($page.params.id);
@@ -26,7 +32,7 @@
 		cashierId: undefined
 	});
 
-	let formErrors = $state<{[key: string]: string}>({});
+	let formErrors = $state<{ [key: string]: string }>({});
 
 	// Currency options
 	const currencyOptions = [
@@ -41,46 +47,18 @@
 	// Cashier options
 	const cashierOptions = $derived([
 		{ value: undefined, label: 'No cashier assigned' },
-		...cashiers.map(cashier => ({
+		...cashiers.map((cashier) => ({
 			value: cashier.cashierId,
 			label: cashier.name
 		}))
 	]);
 
-	function validateForm(): boolean {
-		formErrors = {};
-		let isValid = true;
-
-		if (!form.name.trim()) {
-			formErrors.name = 'Invoice name is required';
-			isValid = false;
-		}
-
-		if (form.amount <= 0) {
-			formErrors.amount = 'Amount must be greater than 0';
-			isValid = false;
-		}
-
-		if (!form.currency?.trim()) {
-			formErrors.currency = 'Currency is required';
-			isValid = false;
-		}
-
-		// Due date is optional, but if provided, should be valid
-		if (form.dueDate && new Date(form.dueDate) < new Date()) {
-			formErrors.dueDate = 'Due date cannot be in the past';
-			isValid = false;
-		}
-
-		return isValid;
-	}
-
 	async function loadInvoice() {
 		if (!invoiceId) return;
-		
+
 		loading = true;
 		error = null;
-		
+
 		try {
 			invoice = await invoiceApi.getInvoice(invoiceId);
 			if (invoice) {
@@ -115,7 +93,9 @@
 	async function saveInvoice() {
 		// Note: This is a placeholder since the current API doesn't have an update endpoint
 		// In a real implementation, you would have an update endpoint
-		alert('Edit functionality is not yet implemented in the API. This would update the invoice with the new data.');
+		alert(
+			'Edit functionality is not yet implemented in the API. This would update the invoice with the new data.'
+		);
 	}
 
 	function goBack() {
@@ -136,7 +116,7 @@
 	<title>Edit {invoice?.name || 'Invoice'} - Billing System</title>
 </svelte:head>
 
-<div class="container mx-auto p-6 space-y-8">
+<div class="container mx-auto space-y-8 p-6">
 	<!-- Header with back navigation -->
 	<div class="flex items-center justify-between">
 		<div class="flex items-center gap-4">
@@ -153,11 +133,15 @@
 	</div>
 
 	{#if loading}
-		<div class="flex flex-col items-center justify-center py-24 space-y-4">
-			<div class="animate-spin rounded-full h-12 w-12 border-2 border-primary border-t-transparent"></div>
-			<div class="text-center space-y-1">
+		<div class="flex flex-col items-center justify-center space-y-4 py-24">
+			<div
+				class="h-12 w-12 animate-spin rounded-full border-2 border-primary border-t-transparent"
+			></div>
+			<div class="space-y-1 text-center">
 				<p class="font-medium">Loading invoice</p>
-				<p class="text-sm text-muted-foreground">Please wait while we fetch the invoice details...</p>
+				<p class="text-sm text-muted-foreground">
+					Please wait while we fetch the invoice details...
+				</p>
 			</div>
 		</div>
 	{:else if error}
@@ -166,7 +150,7 @@
 				<div class="flex items-center gap-2 text-destructive">
 					<div class="font-medium">Error loading invoice</div>
 				</div>
-				<p class="text-sm text-destructive/80 mt-1">{error}</p>
+				<p class="mt-1 text-sm text-destructive/80">{error}</p>
 			</CardContent>
 		</Card>
 	{:else if invoice}
@@ -176,14 +160,15 @@
 				<div class="flex items-center gap-2 text-yellow-800">
 					<div class="font-medium">Note</div>
 				</div>
-				<p class="text-sm text-yellow-700 mt-1">
-					The edit functionality is currently limited as the backend API doesn't have an update endpoint. 
-					This is a demonstration of the UI that would be used for editing invoices.
+				<p class="mt-1 text-sm text-yellow-700">
+					The edit functionality is currently limited as the backend API doesn't have an
+					update endpoint. This is a demonstration of the UI that would be used for
+					editing invoices.
 				</p>
 			</CardContent>
 		</Card>
 
-		<div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+		<div class="grid grid-cols-1 gap-8 lg:grid-cols-3">
 			<!-- Main Form -->
 			<div class="lg:col-span-2">
 				<Card>
@@ -196,7 +181,7 @@
 					<CardContent class="space-y-6">
 						<!-- Invoice Name -->
 						<div class="space-y-2">
-							<label for="name" class="text-sm font-medium flex items-center gap-2">
+							<label for="name" class="flex items-center gap-2 text-sm font-medium">
 								<FileText size={14} />
 								Invoice Name *
 							</label>
@@ -212,9 +197,12 @@
 						</div>
 
 						<!-- Amount and Currency -->
-						<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+						<div class="grid grid-cols-1 gap-4 md:grid-cols-2">
 							<div class="space-y-2">
-								<label for="amount" class="text-sm font-medium flex items-center gap-2">
+								<label
+									for="amount"
+									class="flex items-center gap-2 text-sm font-medium"
+								>
 									<DollarSign size={14} />
 									Amount *
 								</label>
@@ -246,7 +234,10 @@
 
 						<!-- Due Date -->
 						<div class="space-y-2">
-							<label for="dueDate" class="text-sm font-medium flex items-center gap-2">
+							<label
+								for="dueDate"
+								class="flex items-center gap-2 text-sm font-medium"
+							>
 								<Calendar size={14} />
 								Due Date (Optional)
 							</label>
@@ -264,7 +255,10 @@
 
 						<!-- Cashier Selection -->
 						<div class="space-y-2">
-							<label for="cashier" class="text-sm font-medium flex items-center gap-2">
+							<label
+								for="cashier"
+								class="flex items-center gap-2 text-sm font-medium"
+							>
 								<User size={14} />
 								Assigned Cashier (Optional)
 							</label>
@@ -296,7 +290,7 @@
 								<label class="text-xs text-muted-foreground">Name</label>
 								<p class="font-medium">{form.name || 'Untitled Invoice'}</p>
 							</div>
-							
+
 							<div>
 								<label class="text-xs text-muted-foreground">Amount</label>
 								<p class="text-lg font-bold">
@@ -310,19 +304,25 @@
 							{#if form.dueDate}
 								<div>
 									<label class="text-xs text-muted-foreground">Due Date</label>
-									<p>{new Date(form.dueDate).toLocaleDateString('en-US', {
-										weekday: 'long',
-										year: 'numeric',
-										month: 'long',
-										day: 'numeric'
-									})}</p>
+									<p>
+										{new Date(form.dueDate).toLocaleDateString('en-US', {
+											weekday: 'long',
+											year: 'numeric',
+											month: 'long',
+											day: 'numeric'
+										})}
+									</p>
 								</div>
 							{/if}
 
 							{#if form.cashierId}
 								<div>
-									<label class="text-xs text-muted-foreground">Assigned Cashier</label>
-									<p>{cashiers.find(c => c.cashierId === form.cashierId)?.name}</p>
+									<label class="text-xs text-muted-foreground"
+										>Assigned Cashier</label
+									>
+									<p>
+										{cashiers.find((c) => c.cashierId === form.cashierId)?.name}
+									</p>
 								</div>
 							{/if}
 						</div>
@@ -331,21 +331,28 @@
 
 				<!-- Actions -->
 				<Card>
-					<CardContent class="p-4 space-y-3">
-						<Button 
-							onclick={saveInvoice} 
+					<CardContent class="space-y-3 p-4">
+						<Button
+							onclick={saveInvoice}
 							disabled={saving || !form.name || form.amount <= 0}
 							class="w-full gap-2"
 						>
 							{#if saving}
-								<div class="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+								<div
+									class="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"
+								></div>
 							{:else}
 								<Save size={16} />
 							{/if}
 							Save Changes
 						</Button>
-						
-						<Button variant="outline" onclick={cancelEdit} disabled={saving} class="w-full">
+
+						<Button
+							variant="outline"
+							onclick={cancelEdit}
+							disabled={saving}
+							class="w-full"
+						>
 							Cancel
 						</Button>
 					</CardContent>

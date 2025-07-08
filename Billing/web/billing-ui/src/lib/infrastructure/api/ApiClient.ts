@@ -5,7 +5,7 @@ export class ApiError extends Error {
 	constructor(
 		message: string,
 		public readonly status: number,
-		public readonly data?: any,
+		public readonly data?: unknown,
 		public readonly endpoint?: string
 	) {
 		super(message);
@@ -28,7 +28,7 @@ export class ApiError extends Error {
 export interface ApiRequestOptions {
 	method?: 'GET' | 'POST' | 'PUT' | 'DELETE';
 	headers?: Record<string, string>;
-	body?: any;
+	body?: unknown;
 	params?: Record<string, string | number | boolean>;
 	timeout?: number;
 }
@@ -43,7 +43,7 @@ export class ApiClient {
 
 	private buildUrl(endpoint: string, params?: Record<string, string | number | boolean>): string {
 		const url = new URL(endpoint, this.baseUrl);
-		
+
 		if (params) {
 			Object.entries(params).forEach(([key, value]) => {
 				if (value !== undefined && value !== null) {
@@ -55,10 +55,7 @@ export class ApiClient {
 		return url.toString();
 	}
 
-	private async request<T>(
-		endpoint: string,
-		options: ApiRequestOptions = {}
-	): Promise<T> {
+	private async request<T>(endpoint: string, options: ApiRequestOptions = {}): Promise<T> {
 		const method = options.method || 'GET';
 		const url = this.buildUrl(endpoint, options.params);
 		const spanName = `${method} ${endpoint}`;
@@ -82,7 +79,8 @@ export class ApiClient {
 					'http.url': url,
 					'http.target': endpoint,
 					'peer.service': 'billing-api',
-					'user_agent.original': typeof navigator !== 'undefined' ? navigator.userAgent : 'server'
+					'user_agent.original':
+						typeof navigator !== 'undefined' ? navigator.userAgent : 'server'
 				});
 
 				const controller = new AbortController();
@@ -102,7 +100,7 @@ export class ApiClient {
 				});
 
 				if (!response.ok) {
-					let errorData: any;
+					let errorData: unknown;
 					try {
 						errorData = await response.json();
 					} catch {
@@ -130,19 +128,13 @@ export class ApiClient {
 				const data = await response.json();
 				span.setStatus({ code: 1 });
 				return data;
-
 			} catch (error) {
 				if (error instanceof ApiError) {
 					throw error;
 				}
 
 				// Handle network errors or timeout
-				const networkError = new ApiError(
-					'Network error or timeout',
-					0,
-					error,
-					endpoint
-				);
+				const networkError = new ApiError('Network error or timeout', 0, error, endpoint);
 
 				span.recordException(networkError);
 				span.setStatus({ code: 2, message: 'Network error' });
@@ -157,11 +149,11 @@ export class ApiClient {
 		return this.request<T>(endpoint, { method: 'GET', params });
 	}
 
-	async post<T>(endpoint: string, body?: any): Promise<T> {
+	async post<T>(endpoint: string, body?: unknown): Promise<T> {
 		return this.request<T>(endpoint, { method: 'POST', body });
 	}
 
-	async put<T>(endpoint: string, body?: any): Promise<T> {
+	async put<T>(endpoint: string, body?: unknown): Promise<T> {
 		return this.request<T>(endpoint, { method: 'PUT', body });
 	}
 
@@ -183,7 +175,7 @@ export class ApiClient {
 					throw error;
 				}
 				// Wait before retry: 1s, 2s, 4s
-				await new Promise(resolve => setTimeout(resolve, Math.pow(2, i) * 1000));
+				await new Promise((resolve) => setTimeout(resolve, Math.pow(2, i) * 1000));
 			}
 		}
 		throw new Error('Max retries exceeded');

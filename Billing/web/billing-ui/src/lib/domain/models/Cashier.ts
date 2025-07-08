@@ -10,12 +10,10 @@ export class Cashier {
 	createdAt = $state<Date>(new Date());
 	updatedAt = $state<Date>(new Date());
 
-	displayName = $derived(
-		this.name || this.email || 'Unknown Cashier'
-	);
+	displayName = $derived(this.name || this.email || 'Unknown Cashier');
 
-	canHandleCurrency = $derived(
-		(currency: Currency) => this.supportedCurrencies.includes(currency)
+	canHandleCurrency = $derived((currency: Currency) =>
+		this.supportedCurrencies.includes(currency)
 	);
 
 	constructor(data?: Partial<CashierData>) {
@@ -55,7 +53,7 @@ export class Cashier {
 	}
 
 	removeSupportedCurrency(currency: Currency): void {
-		this.supportedCurrencies = this.supportedCurrencies.filter(c => c !== currency);
+		this.supportedCurrencies = this.supportedCurrencies.filter((c) => c !== currency);
 		this.updatedAt = new Date();
 	}
 

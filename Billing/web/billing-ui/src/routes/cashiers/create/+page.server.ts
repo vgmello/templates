@@ -6,13 +6,13 @@ import { ApiError } from '$lib/infrastructure';
 export const actions: Actions = {
 	default: async ({ request }) => {
 		const data = await request.formData();
-		
+
 		const name = data.get('name') as string;
 		const email = data.get('email') as string;
-		
+
 		// Server-side validation
 		const errors: Record<string, string> = {};
-		
+
 		if (!name?.trim()) {
 			errors.name = 'Name is required';
 		} else if (name.trim().length < 2) {
@@ -20,11 +20,11 @@ export const actions: Actions = {
 		} else if (name.trim().length > 100) {
 			errors.name = 'Name must not exceed 100 characters';
 		}
-		
+
 		if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
 			errors.email = 'Please enter a valid email address';
 		}
-		
+
 		if (Object.keys(errors).length > 0) {
 			return fail(400, {
 				success: false,
@@ -38,15 +38,15 @@ export const actions: Actions = {
 				name: name.trim(),
 				email: email.trim() || ''
 			});
-			
+
 			throw redirect(303, '/cashiers');
 		} catch (err) {
 			if (err instanceof redirect) {
 				throw err;
 			}
-			
+
 			console.error('Failed to create cashier:', err);
-			
+
 			if (err instanceof ApiError && err.status === 400) {
 				return fail(400, {
 					success: false,
@@ -54,7 +54,7 @@ export const actions: Actions = {
 					values: { name, email }
 				});
 			}
-			
+
 			return fail(500, {
 				success: false,
 				errors: { form: 'Failed to create cashier. Please try again later.' },

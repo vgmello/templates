@@ -5,7 +5,7 @@ import { ApiError } from '$lib/infrastructure';
 
 export const load: PageServerLoad = async ({ params }) => {
 	const { id } = params;
-	
+
 	if (!id) {
 		throw error(400, {
 			message: 'Invoice ID is required'
@@ -14,19 +14,19 @@ export const load: PageServerLoad = async ({ params }) => {
 
 	try {
 		const invoice = await invoiceApi.getInvoice(id);
-		
+
 		return {
 			invoice
 		};
 	} catch (err) {
 		console.error('Failed to load invoice:', err);
-		
+
 		if (err instanceof ApiError && err.status === 404) {
 			throw error(404, {
 				message: 'Invoice not found'
 			});
 		}
-		
+
 		throw error(500, {
 			message: 'Failed to load invoice. Please try again later.'
 		});
@@ -49,14 +49,14 @@ export const actions: Actions = {
 			return { success: true };
 		} catch (err) {
 			console.error('Failed to cancel invoice:', err);
-			
+
 			if (err instanceof ApiError && err.status === 404) {
 				return fail(404, {
 					success: false,
 					errorMessage: 'Invoice not found'
 				});
 			}
-			
+
 			return fail(500, {
 				success: false,
 				errorMessage: 'Failed to cancel invoice. Please try again later.'
@@ -94,14 +94,14 @@ export const actions: Actions = {
 			return { success: true };
 		} catch (err) {
 			console.error('Failed to mark invoice as paid:', err);
-			
+
 			if (err instanceof ApiError && err.status === 404) {
 				return fail(404, {
 					success: false,
 					errorMessage: 'Invoice not found'
 				});
 			}
-			
+
 			return fail(500, {
 				success: false,
 				errorMessage: 'Failed to mark invoice as paid. Please try again later.'
@@ -143,14 +143,14 @@ export const actions: Actions = {
 			return { success: true };
 		} catch (err) {
 			console.error('Failed to simulate payment:', err);
-			
+
 			if (err instanceof ApiError && err.status === 404) {
 				return fail(404, {
 					success: false,
 					errorMessage: 'Invoice not found'
 				});
 			}
-			
+
 			return fail(500, {
 				success: false,
 				errorMessage: 'Failed to simulate payment. Please try again later.'

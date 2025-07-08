@@ -29,10 +29,10 @@ export class TelemetryService {
 		console.log('Telemetry service initialized (simplified mode)');
 	}
 
-	getTracer(name = 'billing-ui'): any {
+	getTracer(): unknown {
 		// Return a mock tracer object
 		return {
-			startActiveSpan: (spanName: string, fn: any) => {
+			startActiveSpan: (spanName: string, fn: (span: unknown) => unknown) => {
 				// For now, just execute the function directly
 				const mockSpan = {
 					setAttributes: () => {},
@@ -75,22 +75,25 @@ export const telemetryService = TelemetryService.getInstance();
 
 // Export convenience functions
 export const getTracer = (name?: string) => telemetryService.getTracer(name);
-export const createSpan = <T>(name: string, fn: () => T | Promise<T>) => telemetryService.createSpan(name, fn);
-export const recordEvent = (name: string, attributes?: Record<string, string | number | boolean>) => 
+export const createSpan = <T>(name: string, fn: () => T | Promise<T>) =>
+	telemetryService.createSpan(name, fn);
+export const recordEvent = (name: string, attributes?: Record<string, string | number | boolean>) =>
 	telemetryService.recordEvent(name, attributes);
 
 // Decorator for automatic span creation
 export function traced(spanName?: string) {
-	return function <T extends (...args: any[]) => any>(
-		target: any,
-		propertyKey: string,
+	return function <T extends (...args: unknown[]) => unknown>(
+		_target: unknown,
+		_propertyKey: string,
 		descriptor: TypedPropertyDescriptor<T>
 	) {
 		const originalMethod = descriptor.value!;
-		const finalSpanName = spanName || `${target.constructor.name}.${propertyKey}`;
+		const finalSpanName = spanName || 'traced-method';
 
-		descriptor.value = function (...args: any[]) {
-			return telemetryService.createSpan(finalSpanName, () => originalMethod.apply(this, args));
+		descriptor.value = function (...args: unknown[]) {
+			return telemetryService.createSpan(finalSpanName, () =>
+				originalMethod.apply(this, args)
+			);
 		} as T;
 
 		return descriptor;

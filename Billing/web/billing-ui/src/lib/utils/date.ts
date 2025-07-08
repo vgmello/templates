@@ -1,9 +1,12 @@
 /**
  * Format date for display in various formats
  */
-export function formatDate(dateString: string | Date, format: 'short' | 'medium' | 'long' | 'relative' = 'medium'): string {
+export function formatDate(
+	dateString: string | Date,
+	format: 'short' | 'medium' | 'long' | 'relative' = 'medium'
+): string {
 	const date = typeof dateString === 'string' ? new Date(dateString) : dateString;
-	
+
 	if (isNaN(date.getTime())) {
 		return 'Invalid date';
 	}
@@ -15,28 +18,28 @@ export function formatDate(dateString: string | Date, format: 'short' | 'medium'
 				day: 'numeric',
 				year: 'numeric'
 			});
-		
+
 		case 'medium':
 			return date.toLocaleDateString('en-US', {
 				weekday: 'short',
-				month: 'short', 
+				month: 'short',
 				day: 'numeric',
 				year: 'numeric'
 			});
-		
+
 		case 'long':
 			return date.toLocaleDateString('en-US', {
 				weekday: 'long',
 				month: 'long',
-				day: 'numeric', 
+				day: 'numeric',
 				year: 'numeric',
 				hour: '2-digit',
 				minute: '2-digit'
 			});
-		
+
 		case 'relative':
 			return formatRelativeDate(date);
-		
+
 		default:
 			return date.toLocaleDateString();
 	}
@@ -77,14 +80,14 @@ export function formatRelativeDate(date: Date): string {
  */
 export function isOverdue(dueDateString?: string): boolean {
 	if (!dueDateString) return false;
-	
+
 	const dueDate = new Date(dueDateString);
 	const now = new Date();
-	
+
 	// Set time to start of day for fair comparison
 	dueDate.setHours(23, 59, 59, 999);
 	now.setHours(0, 0, 0, 0);
-	
+
 	return dueDate < now;
 }
 
@@ -100,7 +103,7 @@ export function formatDateForInput(date: Date = new Date()): string {
  */
 export function parseDateFromInput(dateString: string): Date | null {
 	if (!dateString) return null;
-	
+
 	const date = new Date(dateString + 'T00:00:00');
 	return isNaN(date.getTime()) ? null : date;
 }

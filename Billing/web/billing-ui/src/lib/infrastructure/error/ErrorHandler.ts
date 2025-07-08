@@ -6,7 +6,17 @@ export interface ErrorContext {
 	operation?: string;
 	componentName?: string;
 	userId?: string;
-	metadata?: Record<string, any>;
+	metadata?: Record<string, unknown>;
+}
+
+interface ErrorInfo {
+	type: string;
+	message: string;
+	stack?: string;
+	isRetryable: boolean;
+	severity: 'error' | 'warning' | 'info';
+	userMessage: string;
+	suggestedAction: string | null;
 }
 
 export class ErrorHandler {
@@ -23,7 +33,7 @@ export class ErrorHandler {
 
 	handle(error: unknown, context?: ErrorContext): void {
 		const normalizedError = this.normalizeError(error);
-		const errorInfo = this.analyzeError(normalizedError, context);
+		const errorInfo = this.analyzeError(normalizedError);
 
 		// Log to telemetry
 		this.logToTelemetry(normalizedError, errorInfo, context);
@@ -51,7 +61,7 @@ export class ErrorHandler {
 		return new Error('Unknown error occurred');
 	}
 
-	private analyzeError(error: Error, context?: ErrorContext) {
+	private analyzeError(error: Error): ErrorInfo {
 		const info = {
 			type: error.constructor.name,
 			message: error.message,
@@ -66,7 +76,7 @@ export class ErrorHandler {
 			info.isRetryable = this.isRetryableApiError(error);
 			info.userMessage = this.getApiErrorMessage(error);
 			info.suggestedAction = this.getApiErrorAction(error);
-			
+
 			if (error.status >= 400 && error.status < 500) {
 				info.severity = 'warning';
 			}
@@ -125,7 +135,7 @@ export class ErrorHandler {
 		}
 	}
 
-	private logToTelemetry(error: Error, errorInfo: any, context?: ErrorContext): void {
+	private logToTelemetry(error: Error, errorInfo: ErrorInfo, context?: ErrorContext): void {
 		recordEvent('error.handled', {
 			'error.type': errorInfo.type,
 			'error.message': error.message,
@@ -138,12 +148,15 @@ export class ErrorHandler {
 		});
 	}
 
-	private showUserNotification(error: Error, errorInfo: any, context?: ErrorContext): void {
+	private showUserNotification(error: Error, errorInfo: ErrorInfo, context?: ErrorContext): void {
 		const title = this.getNotificationTitle(error, context);
-		const action = errorInfo.suggestedAction ? {
-			label: errorInfo.suggestedAction,
-			handler: () => this.handleSuggestedAction(error, errorInfo.suggestedAction, context)
-		} : undefined;
+		const action = errorInfo.suggestedAction
+			? {
+					label: errorInfo.suggestedAction,
+					handler: () =>
+						this.handleSuggestedAction(error, errorInfo.suggestedAction, context)
+				}
+			: undefined;
 
 		if (errorInfo.severity === 'error') {
 			notificationService.error(title, errorInfo.userMessage, { action });

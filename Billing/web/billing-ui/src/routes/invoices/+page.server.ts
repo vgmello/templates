@@ -14,8 +14,12 @@ export const load: PageServerLoad = async ({ url }) => {
 		const cashierId = url.searchParams.get('cashierId') || undefined;
 		const fromDate = url.searchParams.get('fromDate') || undefined;
 		const toDate = url.searchParams.get('toDate') || undefined;
-		const skip = url.searchParams.get('skip') ? parseInt(url.searchParams.get('skip')!) : undefined;
-		const take = url.searchParams.get('take') ? parseInt(url.searchParams.get('take')!) : undefined;
+		const skip = url.searchParams.get('skip')
+			? parseInt(url.searchParams.get('skip')!)
+			: undefined;
+		const take = url.searchParams.get('take')
+			? parseInt(url.searchParams.get('take')!)
+			: undefined;
 
 		// Fetch invoices using typed API
 		const invoices = await invoiceApi.getInvoices({
@@ -26,10 +30,10 @@ export const load: PageServerLoad = async ({ url }) => {
 			...(skip !== undefined && { skip }),
 			...(take !== undefined && { take })
 		});
-		
+
 		// Calculate summary using domain service
 		const summary = invoiceService.calculateSummary(invoices);
-		
+
 		return {
 			invoices,
 			summary
@@ -59,14 +63,14 @@ export const actions: Actions = {
 			return { success: true };
 		} catch (err) {
 			console.error('Failed to cancel invoice:', err);
-			
+
 			if (err instanceof ApiError && err.status === 404) {
 				return fail(404, {
 					success: false,
 					errors: ['Invoice not found']
 				});
 			}
-			
+
 			return fail(500, {
 				success: false,
 				errors: ['Failed to cancel invoice. Please try again later.']

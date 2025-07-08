@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { cn } from "$lib/utils.js";
-	import { formatCurrency } from "$lib/utils/currency.js";
+	import { cn } from '$lib/utils.js';
+	import { formatCurrency } from '$lib/utils/currency.js';
 
 	type Props = {
 		id?: string;
@@ -19,8 +19,8 @@
 	let {
 		id,
 		value = $bindable(0),
-		currency = "USD",
-		placeholder = "0.00",
+		currency = 'USD',
+		placeholder = '0.00',
 		disabled = false,
 		class: className,
 		min = 0,
@@ -39,12 +39,12 @@
 		if (isFocused) {
 			return inputValue;
 		}
-		
+
 		// Show formatted currency when not focused and has value
 		if (value > 0) {
 			return formatCurrency(value, currency).replace(/^\$/, ''); // Remove currency symbol since we show it separately
 		}
-		
+
 		return '';
 	});
 
@@ -68,7 +68,7 @@
 	function handleInput(event: Event) {
 		const target = event.target as HTMLInputElement;
 		inputValue = target.value;
-		
+
 		// Update value in real-time for reactive forms
 		const numericValue = parseFloat(target.value);
 		if (!isNaN(numericValue) && numericValue >= (min ?? 0)) {
@@ -90,10 +90,10 @@
 </script>
 
 <div class="relative">
-	<div class="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none">
+	<div class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
 		{currencySymbol}
 	</div>
-	
+
 	<input
 		{id}
 		type="number"
@@ -108,20 +108,22 @@
 		onblur={handleBlur}
 		oninput={handleInput}
 		class={cn(
-			"flex h-10 w-full rounded-md border border-input bg-background pl-8 pr-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
-			error && "border-destructive focus-visible:ring-destructive",
+			'flex h-10 w-full rounded-md border border-input bg-background py-2 pl-8 pr-3 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50',
+			error && 'border-destructive focus-visible:ring-destructive',
 			className
 		)}
 		{...restProps}
 	/>
-	
+
 	{#if !isFocused && value > 0}
-		<div class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground pointer-events-none">
+		<div
+			class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground"
+		>
 			{currency}
 		</div>
 	{/if}
 </div>
 
 {#if error}
-	<p class="text-sm text-destructive mt-1">{error}</p>
+	<p class="mt-1 text-sm text-destructive">{error}</p>
 {/if}

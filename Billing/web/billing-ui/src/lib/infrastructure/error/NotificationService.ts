@@ -54,7 +54,7 @@ export class NotificationService {
 	}
 
 	remove(id: string): void {
-		this.notifications = this.notifications.filter(n => n.id !== id);
+		this.notifications = this.notifications.filter((n) => n.id !== id);
 	}
 
 	clear(): void {

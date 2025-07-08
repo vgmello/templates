@@ -12,7 +12,7 @@ export interface Cashier {
 	tenantId: string;
 	name: string;
 	email: string;
-	cashierPayments: any[];
+	cashierPayments: unknown[];
 }
 
 export interface CreateCashierRequest {

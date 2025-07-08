@@ -8,26 +8,28 @@
 	}>();
 
 	// Determine badge variant and additional styling based on status
-	let badgeVariant = $derived((() => {
-		switch (status.toLowerCase()) {
-			case InvoiceStatuses.PAID:
-				return 'default' as const;
-			case InvoiceStatuses.PENDING:
-				return 'secondary' as const;
-			case InvoiceStatuses.DRAFT:
-				return 'outline' as const;
-			case InvoiceStatuses.CANCELLED:
-				return 'destructive' as const;
-			case InvoiceStatuses.OVERDUE:
-				return 'default' as const;
-			default:
-				return 'outline' as const;
-		}
-	})());
+	let badgeVariant = $derived(
+		(() => {
+			switch (status.toLowerCase()) {
+				case InvoiceStatuses.PAID:
+					return 'default' as const;
+				case InvoiceStatuses.PENDING:
+					return 'secondary' as const;
+				case InvoiceStatuses.DRAFT:
+					return 'outline' as const;
+				case InvoiceStatuses.CANCELLED:
+					return 'destructive' as const;
+				case InvoiceStatuses.OVERDUE:
+					return 'default' as const;
+				default:
+					return 'outline' as const;
+			}
+		})()
+	);
 
 	let badgeClass = $derived(() => {
 		let baseClass = '';
-		
+
 		switch (status.toLowerCase()) {
 			case InvoiceStatuses.PAID:
 				baseClass = 'bg-green-100 text-green-800 hover:bg-green-100';
@@ -47,7 +49,7 @@
 			default:
 				baseClass = 'bg-gray-100 text-gray-800 hover:bg-gray-100';
 		}
-		
+
 		return `${baseClass} ${className}`;
 	});
 

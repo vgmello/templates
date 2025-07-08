@@ -11,7 +11,7 @@
 		data: PageData;
 		form: ActionData;
 	};
-	
+
 	let { data, form }: Props = $props();
 	let loading = $state(false);
 
@@ -24,8 +24,8 @@
 	<title>Edit Cashier - Billing System</title>
 </svelte:head>
 
-<div class="container mx-auto p-6 max-w-2xl">
-	<div class="flex items-center gap-4 mb-6">
+<div class="container mx-auto max-w-2xl p-6">
+	<div class="mb-6 flex items-center gap-4">
 		<Button variant="outline" size="sm" onclick={handleCancel}>
 			<ArrowLeft size={16} />
 			Back
@@ -41,12 +41,12 @@
 			<CardTitle>Cashier Information</CardTitle>
 		</CardHeader>
 		<CardContent>
-			<form 
-				method="POST" 
+			<form
+				method="POST"
 				class="space-y-4"
 				use:enhance={() => {
 					loading = true;
-					
+
 					return async ({ update }) => {
 						loading = false;
 						await update();
@@ -54,7 +54,9 @@
 				}}
 			>
 				{#if form?.errors?.form}
-					<div class="p-4 border border-destructive/20 bg-destructive/10 text-destructive rounded-md">
+					<div
+						class="rounded-md border border-destructive/20 bg-destructive/10 p-4 text-destructive"
+					>
 						{form.errors.form}
 					</div>
 				{/if}
@@ -102,13 +104,20 @@
 				<div class="flex gap-2 pt-4">
 					<Button type="submit" disabled={loading} class="flex items-center gap-2">
 						{#if loading}
-							<div class="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+							<div
+								class="h-4 w-4 animate-spin rounded-full border-b-2 border-white"
+							></div>
 						{:else}
 							<Save size={16} />
 						{/if}
 						{loading ? 'Updating...' : 'Update Cashier'}
 					</Button>
-					<Button type="button" variant="outline" onclick={handleCancel} disabled={loading}>
+					<Button
+						type="button"
+						variant="outline"
+						onclick={handleCancel}
+						disabled={loading}
+					>
 						Cancel
 					</Button>
 				</div>

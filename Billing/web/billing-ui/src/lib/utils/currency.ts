@@ -7,7 +7,7 @@ export function formatCurrency(amount: number, currency: string = 'USD'): string
 			style: 'currency',
 			currency: currency.toUpperCase(),
 			minimumFractionDigits: 2,
-			maximumFractionDigits: 2,
+			maximumFractionDigits: 2
 		}).format(amount);
 	} catch {
 		// Fallback if currency is invalid
@@ -32,9 +32,9 @@ export function getCurrencySymbol(currency: string = 'USD'): string {
 			style: 'currency',
 			currency: currency.toUpperCase(),
 			minimumFractionDigits: 0,
-			maximumFractionDigits: 0,
+			maximumFractionDigits: 0
 		});
-		
+
 		// Format 0 and extract just the symbol
 		const formatted = formatter.format(0);
 		return formatted.replace(/\d/g, '').trim();

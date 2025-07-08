@@ -6,7 +6,7 @@ import { ApiError } from '$lib/infrastructure';
 export const load: PageServerLoad = async () => {
 	try {
 		const cashiers = await cashierApi.getCashiers();
-		
+
 		return {
 			cashiers
 		};
@@ -21,28 +21,28 @@ export const load: PageServerLoad = async () => {
 export const actions: Actions = {
 	default: async ({ request }) => {
 		const data = await request.formData();
-		
+
 		const name = data.get('name') as string;
 		const amount = parseFloat(data.get('amount') as string);
 		const currency = data.get('currency') as string;
 		const dueDate = data.get('dueDate') as string;
 		const cashierId = data.get('cashierId') as string;
-		
+
 		// Server-side validation
 		const errors: Record<string, string> = {};
-		
+
 		if (!name?.trim()) {
 			errors.name = 'Name is required';
 		}
-		
+
 		if (!amount || isNaN(amount) || amount <= 0) {
 			errors.amount = 'Amount must be a positive number';
 		}
-		
+
 		if (!currency) {
 			errors.currency = 'Currency is required';
 		}
-		
+
 		if (Object.keys(errors).length > 0) {
 			return fail(400, {
 				success: false,
@@ -59,15 +59,15 @@ export const actions: Actions = {
 				dueDate: dueDate || undefined,
 				cashierId: cashierId || undefined
 			});
-			
+
 			throw redirect(303, `/invoices/${createdInvoice.invoiceId}`);
 		} catch (err) {
 			if (err instanceof redirect) {
 				throw err;
 			}
-			
+
 			console.error('Failed to create invoice:', err);
-			
+
 			if (err instanceof ApiError && err.status === 400) {
 				return fail(400, {
 					success: false,
@@ -75,7 +75,7 @@ export const actions: Actions = {
 					values: { name, amount, currency, dueDate, cashierId }
 				});
 			}
-			
+
 			return fail(500, {
 				success: false,
 				errors: { form: 'Failed to create invoice. Please try again later.' },

@@ -19,7 +19,7 @@ function getEnvVar(key: string, defaultValue: string = ''): string {
 }
 
 function getBooleanEnvVar(key: string, defaultValue: boolean = false): boolean {
-	const value = getEnvVar(key).toLowerCase();
+	const value = getEnvVar(key, defaultValue.toString()).toLowerCase();
 	return value === 'true' || value === '1' || value === 'yes';
 }
 

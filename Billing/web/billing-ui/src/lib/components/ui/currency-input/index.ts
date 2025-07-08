@@ -1,6 +1,3 @@
-import Root from "./currency-input.svelte";
+import Root from './currency-input.svelte';
 
-export {
-	Root,
-	Root as CurrencyInput,
-};
+export { Root, Root as CurrencyInput };

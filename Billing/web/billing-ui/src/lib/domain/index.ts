@@ -8,5 +8,9 @@ export { InvoiceStatuses, InvoiceStatusValue, type InvoiceStatus } from './value
 export { SupportedCurrencies, CurrencyValue, type Currency } from './values/Currency';
 
 // Services
-export { InvoiceService, type InvoiceSummary, type CurrencySummary } from './services/InvoiceService';
+export {
+	InvoiceService,
+	type InvoiceSummary,
+	type CurrencySummary
+} from './services/InvoiceService';
 export { CashierService } from './services/CashierService';

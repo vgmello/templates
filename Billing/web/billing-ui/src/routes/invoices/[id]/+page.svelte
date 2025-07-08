@@ -1,12 +1,9 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import { page } from '$app/stores';
 	import { enhance } from '$app/forms';
 	import { Button } from '$lib/components/ui/button';
 	import { Card, CardHeader, CardTitle, CardContent } from '$lib/components/ui/card';
 	import { Input } from '$lib/components/ui/input';
-	import { CurrencyInput } from '$lib/components/ui/currency-input';
-	import { Select } from '$lib/components/ui/select';
 	import {
 		ArrowLeft,
 		Edit,
@@ -15,15 +12,12 @@
 		XCircle,
 		Calendar,
 		DollarSign,
-		Hash,
-		User,
 		Clock,
 		Copy
 	} from '@lucide/svelte';
 	import { type Invoice } from '$lib/api';
 	import InvoiceStatusBadge from '$lib/components/InvoiceStatusBadge.svelte';
 	import { CurrencyDisplay } from '$lib/components/ui/currency-display';
-	import { formatCurrency } from '$lib/utils/currency.js';
 	import { formatDate, formatDateForInput } from '$lib/utils/date.js';
 
 	type Props = {
@@ -35,10 +29,9 @@
 			errorMessage?: string;
 		};
 	};
-	
+
 	let { data, form }: Props = $props();
 	let invoice = $state<Invoice>(data.invoice);
-	let invoiceId = $derived($page.params.id);
 	let actionLoading = $state<string | null>(null);
 
 	// Form states for actions
@@ -147,7 +140,7 @@
 			<ArrowLeft size={16} />
 			Back to Invoices
 		</Button>
-		<div class="bg-border h-6 w-px"></div>
+		<div class="h-6 w-px bg-border"></div>
 		<Button variant="outline" size="sm" onclick={editInvoice} class="gap-2">
 			<Edit size={14} />
 			Edit
@@ -157,17 +150,17 @@
 	{#if form?.errorMessage}
 		<Card class="border-destructive/50 bg-destructive/5">
 			<CardContent class="flex flex-col items-center justify-center space-y-4 py-12">
-				<div class="bg-destructive/10 rounded-full p-3">
+				<div class="rounded-full bg-destructive/10 p-3">
 					<XCircle size={24} class="text-destructive" />
 				</div>
 				<div class="space-y-2 text-center">
-					<h3 class="text-destructive font-semibold">Error</h3>
-					<p class="text-muted-foreground max-w-md text-sm">{form.errorMessage}</p>
+					<h3 class="font-semibold text-destructive">Error</h3>
+					<p class="max-w-md text-sm text-muted-foreground">{form.errorMessage}</p>
 				</div>
 			</CardContent>
 		</Card>
 	{/if}
-	
+
 	{#if invoice}
 		<div class="grid grid-cols-1 gap-8 lg:grid-cols-3">
 			<!-- Invoice Information -->
@@ -181,9 +174,9 @@
 								<InvoiceStatusBadge status={invoice.status} />
 								<button
 									onclick={() => copyInvoiceId(invoice?.invoiceId ?? null)}
-									class="text-muted-foreground hover:text-foreground group flex items-center gap-1 font-mono text-sm transition-colors"
+									class="group flex items-center gap-1 font-mono text-sm text-muted-foreground transition-colors hover:text-foreground"
 								>
-									<span class="text-muted-foreground text-sm">
+									<span class="text-sm text-muted-foreground">
 										Invoice ID: {invoice.invoiceId}
 									</span>
 									<Copy size={12} />
@@ -203,7 +196,7 @@
 							<!-- Amount -->
 							<div class="space-y-2">
 								<label
-									class="text-muted-foreground flex items-center gap-2 text-sm font-medium"
+									class="flex items-center gap-2 text-sm font-medium text-muted-foreground"
 								>
 									<DollarSign size={14} />
 									Amount
@@ -218,7 +211,7 @@
 
 							<!-- Currency -->
 							<div class="space-y-2">
-								<label class="text-muted-foreground text-sm font-medium"
+								<label class="text-sm font-medium text-muted-foreground"
 									>Currency</label
 								>
 								<p class="text-lg">{invoice.currency || 'USD'}</p>
@@ -226,7 +219,7 @@
 
 							<!-- Status -->
 							<div class="space-y-2">
-								<label class="text-muted-foreground text-sm font-medium"
+								<label class="text-sm font-medium text-muted-foreground"
 									>Status</label
 								>
 								<InvoiceStatusBadge status={invoice.status} />
@@ -235,7 +228,7 @@
 							<!-- Due Date -->
 							<div class="space-y-2">
 								<label
-									class="text-muted-foreground flex items-center gap-2 text-sm font-medium"
+									class="flex items-center gap-2 text-sm font-medium text-muted-foreground"
 								>
 									<Calendar size={14} />
 									Due Date
@@ -250,7 +243,7 @@
 							<!-- Created -->
 							<div class="space-y-2">
 								<label
-									class="text-muted-foreground flex items-center gap-2 text-sm font-medium"
+									class="flex items-center gap-2 text-sm font-medium text-muted-foreground"
 								>
 									<Clock size={14} />
 									Created
@@ -261,7 +254,7 @@
 							<!-- Updated -->
 							<div class="space-y-2">
 								<label
-									class="text-muted-foreground flex items-center gap-2 text-sm font-medium"
+									class="flex items-center gap-2 text-sm font-medium text-muted-foreground"
 								>
 									<Clock size={14} />
 									Updated
@@ -278,7 +271,7 @@
 				<Card>
 					<CardHeader>
 						<CardTitle>Actions</CardTitle>
-						<p class="text-muted-foreground text-sm">Manage this invoice</p>
+						<p class="text-sm text-muted-foreground">Manage this invoice</p>
 					</CardHeader>
 					<CardContent class="space-y-4">
 						<!-- Mark as Paid -->
@@ -376,7 +369,7 @@
 											value={simulatePaymentForm.paymentMethod}
 											class="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
 										>
-											{#each paymentMethodOptions as option}
+											{#each paymentMethodOptions as option (option.value)}
 												<option value={option.value}>{option.label}</option>
 											{/each}
 										</select>
@@ -424,7 +417,7 @@
 									<XCircle size={16} class="text-red-600" />
 									Cancel Invoice
 								</h4>
-								<p class="text-muted-foreground text-sm">
+								<p class="text-sm text-muted-foreground">
 									This action cannot be undone. The invoice will be marked as
 									cancelled.
 								</p>
@@ -449,8 +442,8 @@
 						<!-- No actions available -->
 						{#if !canMarkAsPaid && !canSimulatePayment && !canCancel}
 							<div class="space-y-2 py-8 text-center">
-								<p class="text-muted-foreground text-sm">No actions available</p>
-								<p class="text-muted-foreground text-xs">
+								<p class="text-sm text-muted-foreground">No actions available</p>
+								<p class="text-xs text-muted-foreground">
 									This invoice is {invoice.status.toLowerCase()} and cannot be modified.
 								</p>
 							</div>

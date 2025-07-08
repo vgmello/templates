@@ -1,5 +1,5 @@
 import type { PageServerLoad, Actions } from './$types';
-import { error, redirect, fail } from '@sveltejs/kit';
+import { error, fail } from '@sveltejs/kit';
 import { cashierApi } from '$lib/api';
 import { ApiError } from '$lib/infrastructure';
 
@@ -19,7 +19,7 @@ export const load: PageServerLoad = async ({ url }) => {
 			...(sortBy && { sortBy }),
 			...(sortDescending !== undefined && { sortDescending })
 		});
-		
+
 		return {
 			cashiers
 		};
@@ -48,14 +48,14 @@ export const actions: Actions = {
 			return { success: true };
 		} catch (err) {
 			console.error('Failed to delete cashier:', err);
-			
+
 			if (err instanceof ApiError && err.status === 404) {
 				return fail(404, {
 					success: false,
 					errors: ['Cashier not found']
 				});
 			}
-			
+
 			return fail(500, {
 				success: false,
 				errors: ['Failed to delete cashier. Please try again later.']

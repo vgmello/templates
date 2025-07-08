@@ -3,7 +3,9 @@
 ## 1. Overall Project Structure Analysis
 
 ### Current Structure
+
 The billing-ui is a SvelteKit application with the following key components:
+
 - **Frontend**: Svelte 5 + TypeScript + Tailwind CSS
 - **API Layer**: Dual client approach (browser + server-side)
 - **BFF Services**: Lightweight aggregation layer
@@ -11,12 +13,14 @@ The billing-ui is a SvelteKit application with the following key components:
 - **UI Components**: shadcn-svelte based component library
 
 ### Strengths
+
 - Clear separation between client/server code
 - Type-safe API clients
 - Good telemetry foundation
 - Component-based UI architecture
 
 ### Areas for Improvement
+
 - Inconsistent domain modeling
 - Scattered business logic
 - Limited error handling patterns
@@ -25,26 +29,33 @@ The billing-ui is a SvelteKit application with the following key components:
 ## 2. Current Code Patterns & Architecture
 
 ### API Client Pattern
+
 The codebase uses two API clients:
+
 1. **Browser API Client** (`/lib/api/client.ts`): Used for client-side API calls
 2. **Server API Client** (`/lib/server/api-client.ts`): Used for SSR/server-side calls
 
 Both include telemetry but have duplicated logic.
 
 ### BFF Services
+
 Current BFF services (`cashier-bff-service.ts`, `invoice-bff-service.ts`) provide:
+
 - Data aggregation
 - Query parameter handling
 - Basic response transformation
 
 However, they lack:
+
 - Domain-specific business logic
 - Proper error boundaries
 - Caching strategies
 - Response validation
 
 ### Component Organization
+
 UI components are organized under `/lib/components/ui/` following shadcn patterns, but:
+
 - Missing domain-specific components
 - No clear component hierarchy
 - Limited reusability patterns
@@ -52,6 +63,7 @@ UI components are organized under `/lib/components/ui/` following shadcn pattern
 ## 3. Refactoring Recommendations for Professional, Domain-Oriented Design
 
 ### 3.1 Domain Layer Introduction
+
 Create a proper domain layer:
 
 ```typescript
@@ -144,24 +156,24 @@ Create a proper domain layer:
 ```typescript
 // src/lib/infrastructure/telemetry/telemetry.service.ts
 export class TelemetryService {
-  private static instance: TelemetryService;
-  private tracer: Tracer;
-  
-  static getInstance(): TelemetryService {
-    if (!this.instance) {
-      this.instance = new TelemetryService();
-    }
-    return this.instance;
-  }
-  
-  @Traced()
-  async traceOperation<T>(
-    name: string, 
-    operation: () => Promise<T>,
-    attributes?: Record<string, any>
-  ): Promise<T> {
-    // Unified tracing logic
-  }
+	private static instance: TelemetryService;
+	private tracer: Tracer;
+
+	static getInstance(): TelemetryService {
+		if (!this.instance) {
+			this.instance = new TelemetryService();
+		}
+		return this.instance;
+	}
+
+	@Traced()
+	async traceOperation<T>(
+		name: string,
+		operation: () => Promise<T>,
+		attributes?: Record<string, any>
+	): Promise<T> {
+		// Unified tracing logic
+	}
 }
 ```
 
@@ -192,22 +204,18 @@ export class ErrorHandler {
 ```typescript
 // src/lib/infrastructure/caching/cache.decorator.ts
 export function Cached(ttl: number = 300) {
-  return function (
-    target: any,
-    propertyName: string,
-    descriptor: PropertyDescriptor
-  ) {
-    const method = descriptor.value;
-    descriptor.value = async function (...args: any[]) {
-      const key = `${target.constructor.name}.${propertyName}:${JSON.stringify(args)}`;
-      const cached = await cache.get(key);
-      if (cached) return cached;
-      
-      const result = await method.apply(this, args);
-      await cache.set(key, result, ttl);
-      return result;
-    };
-  };
+	return function (target: any, propertyName: string, descriptor: PropertyDescriptor) {
+		const method = descriptor.value;
+		descriptor.value = async function (...args: any[]) {
+			const key = `${target.constructor.name}.${propertyName}:${JSON.stringify(args)}`;
+			const cached = await cache.get(key);
+			if (cached) return cached;
+
+			const result = await method.apply(this, args);
+			await cache.set(key, result, ttl);
+			return result;
+		};
+	};
 }
 ```
 
@@ -218,27 +226,27 @@ export function Cached(ttl: number = 300) {
 ```typescript
 // src/lib/application/bff/invoice.bff.ts
 export class InvoiceBFF {
-  constructor(
-    private createInvoiceUseCase: CreateInvoiceUseCase,
-    private listInvoicesUseCase: ListInvoicesUseCase,
-    private invoiceMapper: InvoiceMapper
-  ) {}
+	constructor(
+		private createInvoiceUseCase: CreateInvoiceUseCase,
+		private listInvoicesUseCase: ListInvoicesUseCase,
+		private invoiceMapper: InvoiceMapper
+	) {}
 
-  @Traced()
-  @Cached(60)
-  async getInvoiceDashboard(filters: InvoiceFilters): Promise<InvoiceDashboardDTO> {
-    const [invoices, summary, recentActivity] = await Promise.all([
-      this.listInvoicesUseCase.execute(filters),
-      this.getInvoiceSummary(filters),
-      this.getRecentActivity()
-    ]);
+	@Traced()
+	@Cached(60)
+	async getInvoiceDashboard(filters: InvoiceFilters): Promise<InvoiceDashboardDTO> {
+		const [invoices, summary, recentActivity] = await Promise.all([
+			this.listInvoicesUseCase.execute(filters),
+			this.getInvoiceSummary(filters),
+			this.getRecentActivity()
+		]);
 
-    return {
-      invoices: invoices.map(this.invoiceMapper.toDTO),
-      summary,
-      recentActivity
-    };
-  }
+		return {
+			invoices: invoices.map(this.invoiceMapper.toDTO),
+			summary,
+			recentActivity
+		};
+	}
 }
 ```
 
@@ -247,40 +255,42 @@ export class InvoiceBFF {
 ```typescript
 // src/lib/infrastructure/data-loader/invoice.loader.ts
 export class InvoiceDataLoader {
-  async load(query: InvoiceQuery): Promise<InvoiceData> {
-    const loader = new DataLoader<string, Invoice>(
-      async (ids) => this.batchLoadInvoices(ids)
-    );
-    
-    return {
-      invoice: await loader.load(query.id),
-      relatedInvoices: await this.loadRelated(query)
-    };
-  }
+	async load(query: InvoiceQuery): Promise<InvoiceData> {
+		const loader = new DataLoader<string, Invoice>(async (ids) => this.batchLoadInvoices(ids));
+
+		return {
+			invoice: await loader.load(query.id),
+			relatedInvoices: await this.loadRelated(query)
+		};
+	}
 }
 ```
 
 ## 6. Key Refactoring Priorities
 
 ### Phase 1: Foundation (Week 1-2)
+
 1. Implement domain models and value objects
 2. Create unified error handling
 3. Consolidate API clients
 4. Set up proper dependency injection
 
 ### Phase 2: Core Services (Week 3-4)
+
 1. Implement use cases with proper boundaries
 2. Create repository pattern implementation
 3. Add caching layer
 4. Enhance telemetry with domain events
 
 ### Phase 3: UI Enhancement (Week 5-6)
+
 1. Create domain-specific components
 2. Implement proper state management
 3. Add optimistic updates
 4. Enhance error boundaries
 
 ### Phase 4: Advanced Features (Week 7-8)
+
 1. Add real-time updates (WebSocket/SSE)
 2. Implement offline support
 3. Add advanced caching strategies

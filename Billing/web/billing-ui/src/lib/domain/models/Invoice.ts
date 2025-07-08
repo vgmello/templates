@@ -1,5 +1,5 @@
 import { Money } from '../values/Money';
-import { InvoiceStatuses, InvoiceStatusValue, type InvoiceStatus } from '../values/InvoiceStatus';
+import { InvoiceStatusValue, type InvoiceStatus } from '../values/InvoiceStatus';
 import type { Currency } from '../values/Currency';
 
 export class Invoice {
@@ -19,28 +19,17 @@ export class Invoice {
 	updatedAt = $state<Date>(new Date());
 
 	statusValue = $derived(new InvoiceStatusValue(this.status));
-	
-	isOverdue = $derived(
-		this.status === 'pending' && new Date() > this.dueDate
-	);
-	
-	canBeCancelled = $derived(
-		this.statusValue.canBeCancelled()
-	);
-	
-	canBePaid = $derived(
-		this.statusValue.canBePaid()
-	);
-	
-	canBeEdited = $derived(
-		this.statusValue.canBeEdited()
-	);
+
+	isOverdue = $derived(this.status === 'pending' && new Date() > this.dueDate);
+
+	canBeCancelled = $derived(this.statusValue.canBeCancelled());
+
+	canBePaid = $derived(this.statusValue.canBePaid());
+
+	canBeEdited = $derived(this.statusValue.canBeEdited());
 
 	totalAmount = $derived(
-		this.items.reduce(
-			(sum, item) => sum.add(item.total),
-			Money.zero(this.amount.currency)
-		)
+		this.items.reduce((sum, item) => sum.add(item.total), Money.zero(this.amount.currency))
 	);
 
 	constructor(data?: Partial<InvoiceData>) {
@@ -52,7 +41,8 @@ export class Invoice {
 	updateFrom(data: Partial<InvoiceData>): void {
 		if (data.id !== undefined) this.id = data.id;
 		if (data.number !== undefined) this.number = data.number;
-		if (data.amount !== undefined) this.amount = Money.fromCents(data.amount, data.currency || 'USD');
+		if (data.amount !== undefined)
+			this.amount = Money.fromCents(data.amount, data.currency || 'USD');
 		if (data.status !== undefined) this.status = data.status;
 		if (data.issueDate !== undefined) this.issueDate = new Date(data.issueDate);
 		if (data.dueDate !== undefined) this.dueDate = new Date(data.dueDate);
@@ -64,7 +54,7 @@ export class Invoice {
 		if (data.createdAt !== undefined) this.createdAt = new Date(data.createdAt);
 		if (data.updatedAt !== undefined) this.updatedAt = new Date(data.updatedAt);
 		if (data.items !== undefined) {
-			this.items = data.items.map(item => new InvoiceItem(item));
+			this.items = data.items.map((item) => new InvoiceItem(item));
 		}
 	}
 
@@ -96,7 +86,7 @@ export class Invoice {
 		if (!this.canBeEdited) {
 			throw new Error('Invoice cannot be edited in its current status');
 		}
-		this.items = this.items.filter(item => item.id !== itemId);
+		this.items = this.items.filter((item) => item.id !== itemId);
 		this.updatedAt = new Date();
 	}
 
@@ -125,10 +115,8 @@ export class InvoiceItem {
 	description = $state<string>('');
 	quantity = $state<number>(1);
 	unitPrice = $state<Money>(Money.zero('USD'));
-	
-	total = $derived(
-		this.unitPrice.multiply(this.quantity)
-	);
+
+	total = $derived(this.unitPrice.multiply(this.quantity));
 
 	constructor(data?: Partial<InvoiceItemData>) {
 		if (data) {

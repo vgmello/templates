@@ -10,10 +10,10 @@ const mockDb = {
 	select: () => ({ from: () => ({ innerJoin: () => ({ where: () => [] }) }) }),
 	delete: () => ({ where: () => Promise.resolve() }),
 	update: () => ({ set: () => ({ where: () => Promise.resolve() }) })
-} as any;
+} as unknown;
 
 // Don't connect to database during build time or development (use REST API instead)
-let db: any;
+let db: unknown;
 
 if (building || dev) {
 	// Use mock db for development and build
