@@ -1,32 +1,31 @@
-import type { PageServerLoad } from './$types';
-import { error } from '@sveltejs/kit';
-import { serverApiClient } from '$lib/infrastructure';
+import type { PageServerLoad, Actions } from './$types';
+import { error, fail } from '@sveltejs/kit';
+import { invoiceApi } from '$lib/api';
+import { ApiError } from '$lib/infrastructure';
 import { InvoiceService } from '$lib/domain';
-import type { InvoiceData } from '$lib/domain';
+import type { InvoiceStatus } from '$lib/api';
 
 const invoiceService = new InvoiceService();
 
 export const load: PageServerLoad = async ({ url }) => {
 	try {
 		// Extract query parameters
-		const status = url.searchParams.get('status') || undefined;
+		const status = url.searchParams.get('status') as InvoiceStatus | undefined;
 		const cashierId = url.searchParams.get('cashierId') || undefined;
 		const fromDate = url.searchParams.get('fromDate') || undefined;
 		const toDate = url.searchParams.get('toDate') || undefined;
 		const skip = url.searchParams.get('skip') ? parseInt(url.searchParams.get('skip')!) : undefined;
 		const take = url.searchParams.get('take') ? parseInt(url.searchParams.get('take')!) : undefined;
 
-		// Build query parameters
-		const params: Record<string, string | number> = {};
-		if (status) params.status = status;
-		if (cashierId) params.cashierId = cashierId;
-		if (fromDate) params.fromDate = fromDate;
-		if (toDate) params.toDate = toDate;
-		if (skip !== undefined) params.skip = skip;
-		if (take !== undefined) params.take = take;
-
-		// Fetch invoices directly from API
-		const invoices = await serverApiClient.get<InvoiceData[]>('/invoices', params);
+		// Fetch invoices using typed API
+		const invoices = await invoiceApi.getInvoices({
+			...(status && { status }),
+			...(cashierId && { cashierId }),
+			...(fromDate && { fromDate }),
+			...(toDate && { toDate }),
+			...(skip !== undefined && { skip }),
+			...(take !== undefined && { take })
+		});
 		
 		// Calculate summary using domain service
 		const summary = invoiceService.calculateSummary(invoices);
@@ -40,5 +39,38 @@ export const load: PageServerLoad = async ({ url }) => {
 		throw error(500, {
 			message: 'Failed to load invoices. Please try again later.'
 		});
+	}
+};
+
+export const actions: Actions = {
+	cancel: async ({ request }) => {
+		const data = await request.formData();
+		const id = data.get('id') as string;
+
+		if (!id) {
+			return fail(400, {
+				success: false,
+				errors: ['Invoice ID is required']
+			});
+		}
+
+		try {
+			await invoiceApi.cancelInvoice(id);
+			return { success: true };
+		} catch (err) {
+			console.error('Failed to cancel invoice:', err);
+			
+			if (err instanceof ApiError && err.status === 404) {
+				return fail(404, {
+					success: false,
+					errors: ['Invoice not found']
+				});
+			}
+			
+			return fail(500, {
+				success: false,
+				errors: ['Failed to cancel invoice. Please try again later.']
+			});
+		}
 	}
 };

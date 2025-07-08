@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
+	import { enhance } from '$app/forms';
 	import { Button } from '$lib/components/ui/button';
 	import { Card, CardHeader, CardTitle, CardContent } from '$lib/components/ui/card';
 	import { Input } from '$lib/components/ui/input';
@@ -23,15 +24,17 @@
 	import InvoiceStatusBadge from '$lib/components/InvoiceStatusBadge.svelte';
 	import { formatCurrency } from '$lib/utils/currency.js';
 	import { formatDate, isOverdue } from '$lib/utils/date.js';
+	import type { ActionData } from './$types';
 
 	type Props = {
 		data: {
 			invoices: Invoice[];
 			summary: InvoiceSummary;
 		};
+		form: ActionData;
 	};
 	
-	let { data }: Props = $props();
+	let { data, form }: Props = $props();
 	let { invoices, summary } = data;
 	let searchTerm = $state('');
 	let statusFilter = $state<string>('');
