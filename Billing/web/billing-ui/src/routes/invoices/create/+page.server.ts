@@ -1,5 +1,5 @@
 import type { PageServerLoad, Actions } from './$types';
-import { error, redirect, fail } from '@sveltejs/kit';
+import { error, redirect, fail, isRedirect } from '@sveltejs/kit';
 import { cashierApi } from '$lib/cashiers';
 import { invoiceApi } from '$lib/invoices';
 import { ApiError } from '$lib/infrastructure';
@@ -63,18 +63,12 @@ export const actions: Actions = {
 
 			throw redirect(303, `/invoices/${createdInvoice.invoiceId}`);
 		} catch (err: unknown) {
+			if (isRedirect(err)) {
+				throw err;
+			}
+
 			if (err instanceof ApiError) {
 				console.error('Error creating invoice:', typeof err);
-			}
-			// If it's a redirect, just re-throw it
-			if (
-				err &&
-				typeof err === 'object' &&
-				'status' in err &&
-				err.status >= 300 &&
-				err.status < 400
-			) {
-				throw err;
 			}
 
 			console.error('Failed to create invoice:', err);

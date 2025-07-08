@@ -1,5 +1,5 @@
 import type { Actions } from './$types';
-import { redirect, fail } from '@sveltejs/kit';
+import { redirect, fail, isRedirect } from '@sveltejs/kit';
 import { CashierService, ValidationError } from '$lib/cashiers';
 import { ApiError } from '$lib/infrastructure';
 
@@ -15,7 +15,6 @@ export const actions: Actions = {
 		const isActive = data.get('isActive') as string;
 
 		try {
-			// For now, just create with name and email until backend supports additional fields
 			await cashierService.createCashier({
 				name: name || '',
 				email: email || ''
@@ -23,19 +22,10 @@ export const actions: Actions = {
 
 			throw redirect(303, '/cashiers');
 		} catch (err) {
-			// If it's a redirect, just re-throw it
-			if (
-				err &&
-				typeof err === 'object' &&
-				'status' in err &&
-				typeof err.status === 'number' &&
-				err.status >= 300 &&
-				err.status < 400
-			) {
+			if (isRedirect(err)) {
 				throw err;
 			}
 
-			// Handle validation errors from service
 			if (err instanceof ValidationError) {
 				return fail(400, {
 					success: false,

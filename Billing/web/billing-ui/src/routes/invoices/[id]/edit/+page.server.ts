@@ -1,5 +1,5 @@
 import type { PageServerLoad, Actions } from './$types';
-import { error, redirect, fail } from '@sveltejs/kit';
+import { error, redirect, fail, isRedirect } from '@sveltejs/kit';
 import { invoiceApi } from '$lib/invoices';
 import { cashierApi } from '$lib/cashiers';
 import { ApiError } from '$lib/infrastructure';
@@ -97,7 +97,7 @@ export const actions: Actions = {
 
 			throw redirect(303, `/invoices/${id}`);
 		} catch (err) {
-			if (err instanceof redirect) {
+			if (isRedirect(err)) {
 				throw err;
 			}
 
