@@ -1,6 +1,7 @@
 import type { PageServerLoad, Actions } from './$types';
 import { error, redirect, fail } from '@sveltejs/kit';
 import { CashierService, ValidationError } from '$lib/cashiers';
+import { Cashier } from '$lib/cashiers/models/Cashier';
 import { ApiError } from '$lib/infrastructure';
 
 export const load: PageServerLoad = async ({ params }) => {
@@ -14,7 +15,19 @@ export const load: PageServerLoad = async ({ params }) => {
 	}
 
 	try {
-		const cashier = await cashierService.getCashier(id);
+		const cashierDTO = await cashierService.getCashier(id);
+
+		// Convert DTO to domain model for reactive UI
+		const cashier = new Cashier({
+			id: cashierDTO.cashierId,
+			name: cashierDTO.name,
+			email: cashierDTO.email,
+			phone: '', // API doesn't currently return phone
+			isActive: true, // API doesn't currently return status
+			supportedCurrencies: ['USD'], // Default for now
+			createdAt: new Date().toISOString(),
+			updatedAt: new Date().toISOString()
+		});
 
 		return {
 			cashier
@@ -51,8 +64,12 @@ export const actions: Actions = {
 
 		const name = data.get('name') as string;
 		const email = data.get('email') as string;
+		const phone = data.get('phone') as string;
+		const supportedCurrencies = data.get('supportedCurrencies') as string;
+		const isActive = data.get('isActive') as string;
 
 		try {
+			// For now, just update with name and email until backend supports additional fields
 			await cashierService.updateCashier(id, {
 				name: name || '',
 				email: email || ''

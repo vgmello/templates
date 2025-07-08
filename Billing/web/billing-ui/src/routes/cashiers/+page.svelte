@@ -7,20 +7,17 @@
 	import {
 		Plus,
 		Search,
-		Pencil,
-		Trash2,
-		User,
-		Mail,
-		Hash,
+		Filter,
 		Settings,
 		UserPlus
 	} from '@lucide/svelte';
-	import type { GetCashiersResult } from '$lib/cashiers';
+	import { CashierCard, type Cashier } from '$lib/cashiers';
+	import { CurrencyValue, type Currency } from '$lib/core/values/Currency';
 	import type { ActionData } from './$types';
 
 	type Props = {
 		data: {
-			cashiers: GetCashiersResult[];
+			cashiers: Cashier[];
 		};
 		form: ActionData;
 	};
@@ -29,14 +26,36 @@
 	let error = $state<string | null>(form?.errors?.[0] || null);
 	let searchTerm = $state('');
 	let deletingId = $state<string | null>(null);
+	let statusFilter = $state<'all' | 'active' | 'inactive'>('all');
+	let currencyFilter = $state<Currency | 'all'>('all');
 
-	// Reactive filtered cashiers
+	// Reactive filtered cashiers using domain model features
 	let filteredCashiers = $derived(
-		data.cashiers.filter(
-			(cashier) =>
-				cashier.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-				cashier.email.toLowerCase().includes(searchTerm.toLowerCase())
-		)
+		data.cashiers.filter((cashier) => {
+			// Text search using displayName from domain model
+			const matchesSearch = searchTerm === '' || 
+				cashier.displayName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+				cashier.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+				cashier.id.toLowerCase().includes(searchTerm.toLowerCase());
+
+			// Status filter
+			const matchesStatus = statusFilter === 'all' || 
+				(statusFilter === 'active' && cashier.isActive) ||
+				(statusFilter === 'inactive' && !cashier.isActive);
+
+			// Currency filter using domain model method
+			const matchesCurrency = currencyFilter === 'all' || 
+				cashier.canHandleCurrency(currencyFilter);
+
+			return matchesSearch && matchesStatus && matchesCurrency;
+		})
+	);
+
+	// Statistics using domain features
+	let activeCashiers = $derived(data.cashiers.filter(c => c.isActive));
+	let inactiveCashiers = $derived(data.cashiers.filter(c => !c.isActive));
+	let setupRequiredCashiers = $derived(
+		data.cashiers.filter(c => c.isActive && c.supportedCurrencies.length === 0)
 	);
 
 	function editCashier(id: string) {
@@ -62,9 +81,10 @@
 		<div class="space-y-1">
 			<h1 class="text-3xl font-bold tracking-tight text-foreground">Cashiers</h1>
 			<p class="text-muted-foreground">
-				Manage cashiers and their payment configurations. {filteredCashiers.length} total, {filteredCashiers.filter(
-					(c) => c.email
-				).length} configured.
+				Manage cashiers and their payment configurations. 
+				{filteredCashiers.length} total, 
+				{activeCashiers.length} active, 
+				{setupRequiredCashiers.length} need setup.
 			</p>
 		</div>
 		<Button onclick={createCashier} class="flex h-10 items-center gap-2 px-6">
@@ -82,17 +102,36 @@
 			/>
 			<Input
 				bind:value={searchTerm}
-				placeholder="Search cashiers by name or email..."
+				placeholder="Search cashiers by name, email, or ID..."
 				class="h-10 pl-10"
 			/>
 		</div>
-		<div class="flex items-center gap-2 text-sm text-muted-foreground">
-			<span
-				class="flex items-center gap-1 rounded-md bg-secondary px-2 py-1 text-secondary-foreground"
+		
+		<div class="flex items-center gap-2">
+			<!-- Status Filter -->
+			<select 
+				bind:value={statusFilter} 
+				class="rounded-md border border-input bg-background px-3 py-2 text-sm"
 			>
-				<User size={12} />
-				All Currencies
-			</span>
+				<option value="all">All Status</option>
+				<option value="active">Active</option>
+				<option value="inactive">Inactive</option>
+			</select>
+
+			<!-- Currency Filter -->
+			<select 
+				bind:value={currencyFilter} 
+				class="rounded-md border border-input bg-background px-3 py-2 text-sm"
+			>
+				<option value="all">All Currencies</option>
+				{#each CurrencyValue.all() as currency}
+					<option value={currency}>
+						{currency} - {new CurrencyValue(currency).getName()}
+					</option>
+				{/each}
+			</select>
+
+			<Filter size={16} class="text-muted-foreground" />
 		</div>
 	</div>
 
@@ -140,128 +179,48 @@
 	{:else}
 		<!-- Cashiers Grid -->
 		<div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-			{#each filteredCashiers as cashier (cashier.cashierId)}
-				<Card
-					class="group bg-card transition-all duration-200 hover:border-primary/20 hover:shadow-lg"
+			{#each filteredCashiers as cashier (cashier.id)}
+				<form
+					method="POST"
+					action="?/delete"
+					use:enhance={() => {
+						if (
+							!confirm(
+								`Are you sure you want to delete cashier "${cashier.displayName}"?`
+							)
+						) {
+							return ({ cancel }) => cancel();
+						}
+						deletingId = cashier.id;
+
+						return async ({ result, update }) => {
+							deletingId = null;
+							if (result.type === 'success') {
+								// Invalidate the current page's data to force a reload
+								await invalidate('/cashiers');
+								await invalidate('cashiers:list');
+								// Also force update the page
+								await update({ reset: false });
+							} else {
+								await update();
+							}
+						};
+					}}
 				>
-					<CardContent class="p-6">
-						<!-- Card Header with Avatar and Status -->
-						<div class="mb-4 flex items-start justify-between">
-							<div class="flex items-start gap-3">
-								<div
-									class="rounded-full bg-primary/10 p-2 transition-colors group-hover:bg-primary/20"
-								>
-									<User size={20} class="text-primary" />
-								</div>
-								<div class="min-w-0 flex-1 space-y-1">
-									<h3
-										class="truncate font-semibold text-foreground"
-										title={cashier.name}
-									>
-										{cashier.name}
-									</h3>
-									<div class="flex items-center gap-1">
-										{#if cashier.email}
-											<span
-												class="rounded-full bg-orange-100 px-2 py-0.5 text-xs font-medium text-orange-800"
-											>
-												Setup Required
-											</span>
-										{:else}
-											<span
-												class="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600"
-											>
-												No currencies configured
-											</span>
-										{/if}
-									</div>
-								</div>
-							</div>
-						</div>
-
-						<!-- Cashier Details -->
-						<div class="mb-6 space-y-3">
-							<!-- Email -->
-							<div class="flex items-center gap-2 text-sm">
-								<Mail size={14} class="flex-shrink-0 text-muted-foreground" />
-								<span class="truncate text-muted-foreground">
-									{cashier.email || 'No email provided'}
-								</span>
-							</div>
-
-							<!-- Cashier ID -->
-							<div class="flex items-center gap-2 text-sm">
-								<Hash size={14} class="flex-shrink-0 text-muted-foreground" />
-								<span
-									class="truncate font-mono text-xs text-muted-foreground"
-									title={cashier.cashierId}
-								>
-									{cashier.cashierId}
-								</span>
-							</div>
-						</div>
-
-						<!-- Created Date -->
-						<div class="mb-4 border-t pt-3 text-xs text-muted-foreground">
-							Created: {new Date().toLocaleDateString('en-US', {
-								month: 'short',
-								day: 'numeric',
-								year: 'numeric'
-							})}
-						</div>
-
-						<!-- Action Buttons -->
-						<div class="flex gap-2">
-							<Button
-								size="sm"
-								variant="outline"
-								onclick={() => editCashier(cashier.cashierId)}
-								class="flex-1 gap-2 transition-colors group-hover:border-primary/30"
-							>
-								<Pencil size={14} />
-								Edit
-							</Button>
-							<form
-								method="POST"
-								action="?/delete"
-								use:enhance={() => {
-									if (
-										!confirm(
-											`Are you sure you want to delete cashier "${cashier.name}"?`
-										)
-									) {
-										return ({ cancel }) => cancel();
-									}
-									deletingId = cashier.cashierId;
-
-									return async ({ result, update }) => {
-										deletingId = null;
-										if (result.type === 'success') {
-											// Invalidate the current page's data to force a reload
-											await invalidate('/cashiers');
-											await invalidate('cashiers:list');
-											// Also force update the page
-											await update({ reset: false });
-										} else {
-											await update();
-										}
-									};
-								}}
-							>
-								<input type="hidden" name="id" value={cashier.cashierId} />
-								<Button
-									size="sm"
-									variant="ghost"
-									type="submit"
-									disabled={deletingId === cashier.cashierId}
-									class="text-destructive hover:bg-destructive/10 hover:text-destructive"
-								>
-									<Trash2 size={14} />
-								</Button>
-							</form>
-						</div>
-					</CardContent>
-				</Card>
+					<input type="hidden" name="id" value={cashier.id} />
+					<CashierCard
+						{cashier}
+						onEdit={editCashier}
+						onDelete={(id) => {
+							// The delete is handled by the form enhance above
+							const form = document.querySelector(`form input[value="${id}"]`)?.closest('form');
+							if (form) {
+								form.requestSubmit();
+							}
+						}}
+						deleting={deletingId === cashier.id}
+					/>
+				</form>
 			{/each}
 		</div>
 
@@ -274,11 +233,15 @@
 				<div class="flex items-center gap-4 text-sm text-muted-foreground">
 					<span class="flex items-center gap-1">
 						<div class="h-2 w-2 rounded-full bg-green-500"></div>
-						{filteredCashiers.filter((c) => c.email).length} configured
+						{activeCashiers.length} active
+					</span>
+					<span class="flex items-center gap-1">
+						<div class="h-2 w-2 rounded-full bg-gray-500"></div>
+						{inactiveCashiers.length} inactive
 					</span>
 					<span class="flex items-center gap-1">
 						<div class="h-2 w-2 rounded-full bg-orange-500"></div>
-						{filteredCashiers.filter((c) => !c.email).length} setup required
+						{setupRequiredCashiers.length} need setup
 					</span>
 				</div>
 			</div>
