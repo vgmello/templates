@@ -279,86 +279,99 @@ EXPOSE 3000
 CMD ["node", "build"]
 ```
 
-## Architecture Review & Improvement Opportunities
+## Architecture Philosophy: Minimal Ceremony UI
 
-### Current Strengths
+### Design Principles
 
-1. **Domain Organization**: Well-structured feature-based organization
-2. **Type Safety**: Comprehensive TypeScript usage with domain models
-3. **Reactive State**: Effective use of Svelte 5's `$state` and `$derived`
-4. **Error Handling**: Sophisticated error handling with notifications
-5. **Telemetry**: OpenTelemetry integration for observability
+Following the backend's **minimal ceremony** approach, the UI architecture mirrors real-world operations while avoiding unnecessary abstractions:
 
-### Areas for Improvement
+1. **No Domain Objects**: The UI doesn't need domain models with behavior - all business logic belongs in the backend
+2. **API Types for Display**: Use API response types directly for displaying data 
+3. **Form State for Input**: Simple reactive classes for collecting user input
+4. **Commands/Queries as Coordinators**: Thin wrappers that coordinate API calls, not business logic
+5. **Real-World Operations**: Each operation reflects actual billing department work
 
-#### 1. Domain Layer Separation
-**Issue**: Domain models contain UI reactivity concerns
+### Architecture Components
+
+#### 1. API Types (Data Display)
 ```typescript
-// Current: Domain model with UI state
-export class Cashier {
-  id = $state<string>('');  // UI concern in domain
-  displayName = $derived(this.name || this.email);
-}
-
-// Recommended: Separate domain and view models
-export interface CashierDomain {
-  id: string;
+// Use backend API types directly - no transformation needed
+export interface GetCashiersResult {
+  cashierId: string;
   name: string;
   email: string;
-}
-
-export class CashierViewModel {
-  private domain = $state<CashierDomain>();
-  displayName = $derived(this.domain?.name || this.domain?.email);
+  createdDateUtc?: string;
 }
 ```
 
-#### 2. Type Safety Between Layers
-**Issue**: DTOs and domain models are conflated
-- API interfaces don't match domain models consistently
-- Missing proper type converters between layers
-- No runtime type validation
+#### 2. Form State (User Input)
+```typescript
+// Simple reactive classes for form handling
+export class CreateCashierForm {
+  name = $state('');
+  email = $state('');
+  
+  isValid = $derived(this.name.trim() !== '' && this.email.trim() !== '');
+  
+  toRequest(): CreateCashierRequest {
+    return { name: this.name.trim(), email: this.email.trim() };
+  }
+}
+```
 
-#### 3. State Management
-**Current**: Basic SvelteKit load functions
-**Opportunities**: 
-- Client-side caching with TTL
-- Optimistic updates for better UX
-- Centralized state stores for complex interactions
+#### 3. Commands (API Coordination)
+```typescript
+// Thin wrappers that coordinate API calls only
+export class CreateCashierCommand {
+  constructor(private readonly request: CreateCashierRequest) {}
+  
+  async execute(): Promise<CashierDTO> {
+    if (!this.request.name?.trim() || !this.request.email?.trim()) {
+      throw new Error('Name and email are required');
+    }
+    return await cashierApi.createCashier(this.request);
+  }
+}
+```
 
-#### 4. Error Handling Enhancement
-**Gaps**:
-- Generic errors don't convey domain context
-- No domain-specific error boundaries
-- Missing retry mechanisms with exponential backoff
+#### 4. Queries (Data Retrieval)
+```typescript
+// Simple coordinators for data fetching
+export class GetCashiersQuery {
+  constructor(private readonly query?: GetCashiersQueryParams) {}
+  
+  async execute(): Promise<GetCashiersResult[]> {
+    return await cashierApi.getCashiers(this.query);
+  }
+}
+```
 
-#### 5. Caching Strategy
-**Missing**:
-- HTTP caching headers
-- Client-side cache invalidation
-- Background refresh for stale data
+### Why This Approach?
 
-### Recommended Improvements
+1. **Simplicity**: No complex domain models, value objects, or business logic
+2. **Clarity**: Each file has a single, clear responsibility
+3. **Maintainability**: Changes to business logic happen in the backend only
+4. **Performance**: No unnecessary object creation or transformation
+5. **Real-World Alignment**: Operations mirror actual billing department workflows
 
-1. **Implement Clean Architecture**
-   - Separate domain, application, and infrastructure layers
-   - Remove UI concerns from domain models
-   - Add domain services for business logic
+### What We Removed
 
-2. **Enhance Error Handling**
-   - Create domain-specific error types
-   - Implement error boundaries per feature
-   - Add proper error recovery flows
+- ❌ Complex domain models with behavior (`Cashier.activate()`, `Invoice.validate()`)
+- ❌ UI-specific domain logic and validation
+- ❌ Value objects in UI layer
+- ❌ Business rule enforcement in frontend
+- ❌ Smart objects that can change themselves
 
-3. **Add Caching Layer**
-   - Implement client-side caching with SvelteKit stores
-   - Add HTTP caching headers
-   - Implement cache invalidation strategies
+### What We Kept
 
-4. **Improve Type Safety**
-   - Separate DTOs from domain models
-   - Add runtime type validation
-   - Create proper type converters
+- ✅ Command/Query pattern for organization
+- ✅ API types for data display
+- ✅ Reactive form state with Svelte 5
+- ✅ Simple validation in forms
+- ✅ OpenTelemetry integration
+- ✅ Error handling and notifications
+
+This results in a UI that's purely concerned with presentation and user interaction, while all business logic remains where it belongs - in the backend service.
 
 ## OpenTelemetry Integration
 

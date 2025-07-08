@@ -1,4 +1,3 @@
-import { InvoiceValidator, ValidationError } from '../validators/InvoiceValidator';
 import { invoiceApi, type CreateInvoiceRequest, type Invoice as InvoiceDTO } from '../InvoiceApi';
 
 export class UpdateInvoiceCommand {
@@ -8,34 +7,14 @@ export class UpdateInvoiceCommand {
 	) {}
 
 	async execute(): Promise<InvoiceDTO> {
-		if (!this.id) {
+		if (!this.id?.trim()) {
 			throw new Error('Invoice ID is required');
 		}
 
-		const validationErrors = InvoiceValidator.validateUpdateRequest(this.request);
-
-		if (Object.keys(validationErrors).length > 0) {
-			throw new ValidationError(validationErrors);
+		if (this.request.amount !== undefined && this.request.amount <= 0) {
+			throw new Error('Amount must be greater than zero');
 		}
 
-		const normalizedRequest: Partial<CreateInvoiceRequest> = {};
-		
-		if (this.request.name !== undefined) {
-			normalizedRequest.name = this.request.name.trim();
-		}
-		if (this.request.amount !== undefined) {
-			normalizedRequest.amount = this.request.amount;
-		}
-		if (this.request.currency !== undefined) {
-			normalizedRequest.currency = this.request.currency;
-		}
-		if (this.request.dueDate !== undefined) {
-			normalizedRequest.dueDate = this.request.dueDate;
-		}
-		if (this.request.cashierId !== undefined) {
-			normalizedRequest.cashierId = this.request.cashierId;
-		}
-
-		return await invoiceApi.updateInvoice(this.id, normalizedRequest);
+		return await invoiceApi.updateInvoice(this.id, this.request);
 	}
 }

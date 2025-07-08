@@ -1,4 +1,3 @@
-import { CashierValidator, ValidationError } from '../validators/CashierValidator';
 import { cashierApi, type UpdateCashierRequest, type Cashier as CashierDTO } from '../CashiersApi';
 
 export class UpdateCashierCommand {
@@ -8,22 +7,14 @@ export class UpdateCashierCommand {
 	) {}
 
 	async execute(): Promise<CashierDTO> {
-		if (!this.id) {
+		if (!this.id?.trim()) {
 			throw new Error('Cashier ID is required');
 		}
 
-		const validationErrors = CashierValidator.validateUpdateRequest(this.request);
-
-		if (Object.keys(validationErrors).length > 0) {
-			throw new ValidationError(validationErrors);
+		if (!this.request.name?.trim() || !this.request.email?.trim()) {
+			throw new Error('Name and email are required');
 		}
 
-		const normalizedRequest = {
-			...this.request,
-			name: this.request.name.trim(),
-			email: this.request.email.trim()
-		};
-
-		return await cashierApi.updateCashier(this.id, normalizedRequest);
+		return await cashierApi.updateCashier(this.id, this.request);
 	}
 }
