@@ -10,6 +10,7 @@ export {
 
 // Form State Classes
 export { CreateInvoiceForm } from './forms/CreateInvoiceForm';
+export { UpdateInvoiceForm } from './forms/UpdateInvoiceForm';
 
 // Commands and Queries
 export { CreateInvoiceCommand } from './actions/CreateInvoiceCommand';

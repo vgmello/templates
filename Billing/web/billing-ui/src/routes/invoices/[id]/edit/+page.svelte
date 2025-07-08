@@ -6,6 +6,7 @@
 	import { Input } from '$lib/ui/input';
 	import { Select } from '$lib/ui/select';
 	import { ArrowLeft, Save, FileText, DollarSign, Calendar, User } from '@lucide/svelte';
+	import { UpdateInvoiceForm } from '$lib/invoices';
 	import type { PageData, ActionData } from './$types';
 
 	type Props = {
@@ -18,12 +19,11 @@
 	let loading = $state(false);
 
 	// Initialize form with server data
-	let formData = $state({
-		name: data.invoice.name || '',
-		amount: data.invoice.amount || 0,
-		currency: data.invoice.currency || 'USD',
-		dueDate: data.invoice.dueDate ? data.invoice.dueDate.split('T')[0] : '',
-		cashierId: data.invoice.cashierId || undefined
+	let formState = $state(new UpdateInvoiceForm());
+
+	// Load initial data into form
+	$effect(() => {
+		formState.loadFrom(data.invoice);
 	});
 
 	// Currency options
@@ -116,13 +116,15 @@
 							<Input
 								id="name"
 								name="name"
-								value={formResult?.values?.name ?? formData.name}
+								bind:value={formState.name}
 								placeholder="Enter invoice description"
-								class={formResult?.errors?.name ? 'border-destructive' : ''}
+								class={(formResult?.errors?.name || formState.nameError) ? 'border-destructive' : ''}
 								disabled={loading}
 								required
 							/>
-							{#if formResult?.errors?.name}
+							{#if formState.nameError && formState.name.length > 0}
+								<p class="text-sm text-destructive">{formState.nameError}</p>
+							{:else if formResult?.errors?.name}
 								<p class="text-sm text-destructive">{formResult.errors.name}</p>
 							{/if}
 						</div>
@@ -143,13 +145,15 @@
 									type="number"
 									step="0.01"
 									min="0"
-									value={formResult?.values?.amount ?? formData.amount}
+									bind:value={formState.amount}
 									placeholder="0.00"
-									class={formResult?.errors?.amount ? 'border-destructive' : ''}
+									class={(formResult?.errors?.amount || formState.amountError) ? 'border-destructive' : ''}
 									disabled={loading}
 									required
 								/>
-								{#if formResult?.errors?.amount}
+								{#if formState.amountError && formState.amount.length > 0}
+									<p class="text-sm text-destructive">{formState.amountError}</p>
+								{:else if formResult?.errors?.amount}
 									<p class="text-sm text-destructive">{formResult.errors.amount}</p>
 								{/if}
 							</div>
@@ -159,8 +163,8 @@
 								<select 
 									id="currency"
 									name="currency"
-									value={formResult?.values?.currency ?? formData.currency}
-									class={`w-full rounded-md border border-input bg-background px-3 py-2 text-sm ${formResult?.errors?.currency ? 'border-destructive' : ''}`}
+									bind:value={formState.currency}
+									class={`w-full rounded-md border border-input bg-background px-3 py-2 text-sm ${(formResult?.errors?.currency || formState.currencyError) ? 'border-destructive' : ''}`}
 									disabled={loading}
 									required
 								>
@@ -168,7 +172,9 @@
 										<option value={option.value}>{option.label}</option>
 									{/each}
 								</select>
-								{#if formResult?.errors?.currency}
+								{#if formState.currencyError && formState.currency.length > 0}
+									<p class="text-sm text-destructive">{formState.currencyError}</p>
+								{:else if formResult?.errors?.currency}
 									<p class="text-sm text-destructive">{formResult.errors.currency}</p>
 								{/if}
 							</div>
@@ -187,11 +193,13 @@
 								id="dueDate"
 								name="dueDate"
 								type="date"
-								value={formResult?.values?.dueDate ?? formData.dueDate}
-								class={formResult?.errors?.dueDate ? 'border-destructive' : ''}
+								bind:value={formState.dueDate}
+								class={(formResult?.errors?.dueDate || formState.dueDateError) ? 'border-destructive' : ''}
 								disabled={loading}
 							/>
-							{#if formResult?.errors?.dueDate}
+							{#if formState.dueDateError && formState.dueDate.length > 0}
+								<p class="text-sm text-destructive">{formState.dueDateError}</p>
+							{:else if formResult?.errors?.dueDate}
 								<p class="text-sm text-destructive">{formResult.errors.dueDate}</p>
 							{/if}
 						</div>
@@ -208,7 +216,7 @@
 							<select 
 								id="cashier"
 								name="cashierId"
-								value={formResult?.values?.cashierId ?? formData.cashierId ?? ''}
+								bind:value={formState.cashierId}
 								class="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
 								disabled={loading}
 							>
@@ -232,7 +240,7 @@
 						<div class="space-y-3">
 							<div>
 								<label class="text-xs text-muted-foreground">Name</label>
-								<p class="font-medium">{(formResult?.values?.name ?? formData.name) || 'Untitled Invoice'}</p>
+								<p class="font-medium">{formState.name || 'Untitled Invoice'}</p>
 							</div>
 
 							<div>
@@ -240,16 +248,16 @@
 								<p class="text-lg font-bold">
 									{new Intl.NumberFormat('en-US', {
 										style: 'currency',
-										currency: (formResult?.values?.currency ?? formData.currency) || 'USD'
-									}).format(Number((formResult?.values?.amount ?? formData.amount)) || 0)}
+										currency: formState.currency || 'USD'
+									}).format(Number(formState.amount) || 0)}
 								</p>
 							</div>
 
-							{#if (formResult?.values?.dueDate ?? formData.dueDate)}
+							{#if formState.dueDate}
 								<div>
 									<label class="text-xs text-muted-foreground">Due Date</label>
 									<p>
-										{new Date(formResult?.values?.dueDate ?? formData.dueDate).toLocaleDateString('en-US', {
+										{new Date(formState.dueDate).toLocaleDateString('en-US', {
 											weekday: 'long',
 											year: 'numeric',
 											month: 'long',
@@ -259,13 +267,13 @@
 								</div>
 							{/if}
 
-							{#if (formResult?.values?.cashierId ?? formData.cashierId)}
+							{#if formState.cashierId}
 								<div>
 									<label class="text-xs text-muted-foreground"
 										>Assigned Cashier</label
 									>
 									<p>
-										{data.cashiers.find((c) => c.cashierId === (formResult?.values?.cashierId ?? formData.cashierId))?.name}
+										{data.cashiers.find((c) => c.cashierId === formState.cashierId)?.name}
 									</p>
 								</div>
 							{/if}
@@ -278,7 +286,7 @@
 					<CardContent class="space-y-3 p-4">
 						<Button
 							type="submit"
-							disabled={loading}
+							disabled={loading || !formState.isValid}
 							class="w-full gap-2"
 						>
 							{#if loading}
