@@ -1,7 +1,109 @@
 import type { CashierData } from './models/Cashier';
 import type { Currency } from '$lib/core/values/Currency';
+import { cashierApi, type CreateCashierRequest, type UpdateCashierRequest, type GetCashiersQuery, type GetCashiersResult, type Cashier as CashierDTO } from './CashierApi';
+
+export class ValidationError extends Error {
+	constructor(public errors: Record<string, string>) {
+		super('Validation failed');
+		this.name = 'ValidationError';
+	}
+}
 
 export class CashierService {
+	
+	// CRUD operations with integrated validation
+	async getCashiers(query?: GetCashiersQuery): Promise<GetCashiersResult[]> {
+		return await cashierApi.getCashiers(query);
+	}
+
+	async getCashier(id: string): Promise<CashierDTO> {
+		if (!id) {
+			throw new Error('Cashier ID is required');
+		}
+		return await cashierApi.getCashier(id);
+	}
+
+	async createCashier(request: CreateCashierRequest): Promise<CashierDTO> {
+		// Validate the request first
+		const validationErrors = this.validateCreateRequest(request);
+		if (Object.keys(validationErrors).length > 0) {
+			throw new ValidationError(validationErrors);
+		}
+
+		// Trim and normalize data
+		const normalizedRequest = {
+			name: request.name.trim(),
+			email: request.email.trim()
+		};
+
+		return await cashierApi.createCashier(normalizedRequest);
+	}
+
+	async updateCashier(id: string, request: UpdateCashierRequest): Promise<CashierDTO> {
+		if (!id) {
+			throw new Error('Cashier ID is required');
+		}
+
+		// Validate the request first
+		const validationErrors = this.validateUpdateRequest(request);
+		if (Object.keys(validationErrors).length > 0) {
+			throw new ValidationError(validationErrors);
+		}
+
+		// Trim and normalize data
+		const normalizedRequest = {
+			...request,
+			name: request.name.trim(),
+			email: request.email.trim()
+		};
+
+		return await cashierApi.updateCashier(id, normalizedRequest);
+	}
+
+	async deleteCashier(id: string): Promise<void> {
+		if (!id) {
+			throw new Error('Cashier ID is required');
+		}
+		return await cashierApi.deleteCashier(id);
+	}
+
+	// Validation methods
+	validateCreateRequest(data: CreateCashierRequest): Record<string, string> {
+		const errors: Record<string, string> = {};
+
+		if (!data.name?.trim()) {
+			errors.name = 'Name is required';
+		} else if (data.name.trim().length < 2) {
+			errors.name = 'Name must be at least 2 characters';
+		} else if (data.name.trim().length > 100) {
+			errors.name = 'Name must not exceed 100 characters';
+		}
+
+		if (data.email && !this.isValidEmail(data.email)) {
+			errors.email = 'Please enter a valid email address';
+		}
+
+		return errors;
+	}
+
+	validateUpdateRequest(data: UpdateCashierRequest): Record<string, string> {
+		const errors: Record<string, string> = {};
+
+		if (!data.name?.trim()) {
+			errors.name = 'Name is required';
+		} else if (data.name.trim().length < 2) {
+			errors.name = 'Name must be at least 2 characters';
+		} else if (data.name.trim().length > 100) {
+			errors.name = 'Name must not exceed 100 characters';
+		}
+
+		if (data.email && !this.isValidEmail(data.email)) {
+			errors.email = 'Please enter a valid email address';
+		}
+
+		return errors;
+	}
+
 	validateCashierData(data: Partial<CashierData>): string[] {
 		const errors: string[] = [];
 

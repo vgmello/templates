@@ -1,10 +1,12 @@
 import type { PageServerLoad, Actions } from './$types';
 import { error, fail } from '@sveltejs/kit';
-import { cashierApi } from '$lib/cashiers';
+import { CashierService } from '$lib/cashiers';
 import { ApiError } from '$lib/infrastructure';
 
 export const load: PageServerLoad = async ({ url, depends }) => {
 	depends('cashiers:list');
+	const cashierService = new CashierService();
+	
 	try {
 		// Extract query parameters for potential filtering
 		const page = url.searchParams.get('page');
@@ -13,7 +15,7 @@ export const load: PageServerLoad = async ({ url, depends }) => {
 		const sortBy = url.searchParams.get('sortBy');
 		const sortDescending = url.searchParams.get('sortDescending') === 'true';
 
-		const cashiers = await cashierApi.getCashiers({
+		const cashiers = await cashierService.getCashiers({
 			...(page && { page: parseInt(page) }),
 			...(pageSize && { pageSize: parseInt(pageSize) }),
 			...(search && { search }),
@@ -35,6 +37,7 @@ export const load: PageServerLoad = async ({ url, depends }) => {
 export const actions: Actions = {
 	delete: async ({ request }) => {
 		const data = await request.formData();
+		const cashierService = new CashierService();
 		const id = data.get('id') as string;
 
 		if (!id) {
@@ -45,7 +48,7 @@ export const actions: Actions = {
 		}
 
 		try {
-			await cashierApi.deleteCashier(id);
+			await cashierService.deleteCashier(id);
 			return { success: true };
 		} catch (err) {
 			console.error('Failed to delete cashier:', err);

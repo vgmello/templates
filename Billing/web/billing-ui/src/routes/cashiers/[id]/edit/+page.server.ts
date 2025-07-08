@@ -1,10 +1,11 @@
 import type { PageServerLoad, Actions } from './$types';
 import { error, redirect, fail } from '@sveltejs/kit';
-import { cashierApi } from '$lib/cashiers';
+import { CashierService, ValidationError } from '$lib/cashiers';
 import { ApiError } from '$lib/infrastructure';
 
 export const load: PageServerLoad = async ({ params }) => {
 	const { id } = params;
+	const cashierService = new CashierService();
 
 	if (!id) {
 		throw error(400, {
@@ -13,7 +14,7 @@ export const load: PageServerLoad = async ({ params }) => {
 	}
 
 	try {
-		const cashier = await cashierApi.getCashier(id);
+		const cashier = await cashierService.getCashier(id);
 
 		return {
 			cashier
@@ -36,6 +37,7 @@ export const load: PageServerLoad = async ({ params }) => {
 export const actions: Actions = {
 	default: async ({ params, request }) => {
 		const { id } = params;
+		const cashierService = new CashierService();
 
 		if (!id) {
 			return fail(400, {
@@ -50,39 +52,25 @@ export const actions: Actions = {
 		const name = data.get('name') as string;
 		const email = data.get('email') as string;
 
-		// Server-side validation
-		const errors: Record<string, string> = {};
-
-		if (!name?.trim()) {
-			errors.name = 'Name is required';
-		} else if (name.trim().length < 2) {
-			errors.name = 'Name must be at least 2 characters';
-		} else if (name.trim().length > 100) {
-			errors.name = 'Name must not exceed 100 characters';
-		}
-
-		if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-			errors.email = 'Please enter a valid email address';
-		}
-
-		if (Object.keys(errors).length > 0) {
-			return fail(400, {
-				success: false,
-				errors,
-				values: { name, email }
-			});
-		}
-
 		try {
-			await cashierApi.updateCashier(id, {
-				name: name.trim(),
-				email: email.trim() || ''
+			await cashierService.updateCashier(id, {
+				name: name || '',
+				email: email || ''
 			});
 
 			throw redirect(303, '/cashiers');
 		} catch (err) {
 			if (err instanceof redirect) {
 				throw err;
+			}
+
+			// Handle validation errors from service
+			if (err instanceof ValidationError) {
+				return fail(400, {
+					success: false,
+					errors: err.errors,
+					values: { name, email }
+				});
 			}
 
 			console.error('Failed to update cashier:', err);
