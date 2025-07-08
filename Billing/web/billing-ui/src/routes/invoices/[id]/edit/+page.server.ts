@@ -3,7 +3,6 @@ import { error, redirect, fail, isRedirect } from '@sveltejs/kit';
 import { GetInvoiceQuery } from '$lib/invoices/actions/GetInvoiceQuery';
 import { UpdateInvoiceCommand } from '$lib/invoices/actions/UpdateInvoiceCommand';
 import { GetCashiersQuery } from '$lib/cashiers';
-import { ValidationError } from '$lib/invoices/validators/InvoiceValidator';
 import { ApiError } from '$lib/infrastructure';
 
 export const load: PageServerLoad = async ({ params }) => {

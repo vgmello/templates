@@ -3,7 +3,6 @@ import { error, fail } from '@sveltejs/kit';
 import { GetInvoiceQuery } from '$lib/invoices/actions/GetInvoiceQuery';
 import { CancelInvoiceCommand } from '$lib/invoices/actions/CancelInvoiceCommand';
 import { MarkInvoiceAsPaidCommand } from '$lib/invoices/actions/MarkInvoiceAsPaidCommand';
-import { ValidationError } from '$lib/invoices/validators/InvoiceValidator';
 import { ApiError } from '$lib/infrastructure';
 
 export const load: PageServerLoad = async ({ params }) => {

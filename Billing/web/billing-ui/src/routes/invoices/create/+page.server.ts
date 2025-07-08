@@ -2,7 +2,6 @@ import type { PageServerLoad, Actions } from './$types';
 import { error, redirect, fail, isRedirect } from '@sveltejs/kit';
 import { GetCashiersQuery } from '$lib/cashiers';
 import { CreateInvoiceCommand } from '$lib/invoices/actions/CreateInvoiceCommand';
-import { ValidationError } from '$lib/invoices/validators/InvoiceValidator';
 import { ApiError } from '$lib/infrastructure';
 
 export const load: PageServerLoad = async () => {
@@ -46,14 +45,6 @@ export const actions: Actions = {
 		} catch (err: unknown) {
 			if (isRedirect(err)) {
 				throw err;
-			}
-
-			if (err instanceof ValidationError) {
-				return fail(400, {
-					success: false,
-					errors: err.errors,
-					values: { name, amount, currency, dueDate, cashierId }
-				});
 			}
 
 			console.error('Failed to create invoice:', err);

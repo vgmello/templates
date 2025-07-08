@@ -13,7 +13,6 @@ export { CreateCashierForm } from './forms/CreateCashierForm';
 export { UpdateCashierForm } from './forms/UpdateCashierForm';
 
 // Components
-export { default as CashierForm } from './components/CashierForm.svelte';
 export { default as CashierCard } from './components/CashierCard.svelte';
 export { default as CashierStatusBadge } from './components/CashierStatusBadge.svelte';
 
