@@ -1,52 +1,32 @@
 <script lang="ts">
-	import { goto } from '$app/navigation';
+	import { goto, invalidate } from '$app/navigation';
+	import { enhance } from '$app/forms';
 	import { Button } from '$lib/components/ui/button';
 	import { Card, CardHeader, CardTitle, CardContent } from '$lib/components/ui/card';
 	import { Input } from '$lib/components/ui/input';
 	import { Plus, Search, Pencil, Trash2, User, Mail, Hash, Settings, UserPlus } from '@lucide/svelte';
-	import { cashierApi, type GetCashiersResult } from '$lib';
+	import type { GetCashiersResult } from '$lib';
+	import type { ActionData } from './$types';
 
 	type Props = {
 		data: {
 			cashiers: GetCashiersResult[];
 		};
+		form: ActionData;
 	};
 	
-	let { data }: Props = $props();
-	let cashiers = $state<GetCashiersResult[]>(data.cashiers);
-	let error = $state<string | null>(null);
+	let { data, form }: Props = $props();
+	let error = $state<string | null>(form?.errors?.[0] || null);
 	let searchTerm = $state('');
+	let deletingId = $state<string | null>(null);
 
 	// Reactive filtered cashiers
 	let filteredCashiers = $derived(
-		cashiers.filter(cashier => 
+		data.cashiers.filter(cashier => 
 			cashier.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
 			cashier.email.toLowerCase().includes(searchTerm.toLowerCase())
 		)
 	);
-
-	async function refreshCashiers() {
-		try {
-			cashiers = await cashierApi.getCashiers();
-		} catch (err) {
-			error = err instanceof Error ? err.message : 'Failed to refresh cashiers';
-			console.error('Error refreshing cashiers:', err);
-		}
-	}
-
-	async function deleteCashier(id: string, name: string) {
-		if (!confirm(`Are you sure you want to delete cashier "${name}"?`)) {
-			return;
-		}
-
-		try {
-			await cashierApi.deleteCashier(id);
-			await refreshCashiers(); // Reload the list
-		} catch (err) {
-			error = err instanceof Error ? err.message : 'Failed to delete cashier';
-			console.error('Error deleting cashier:', err);
-		}
-	}
 
 	function editCashier(id: string) {
 		goto(`/cashiers/${id}/edit`);
@@ -205,14 +185,35 @@
 								<Pencil size={14} />
 								Edit
 							</Button>
-							<Button
-								size="sm"
-								variant="ghost"
-								onclick={() => deleteCashier(cashier.cashierId, cashier.name)}
-								class="text-destructive hover:text-destructive hover:bg-destructive/10"
+							<form 
+								method="POST" 
+								action="?/delete"
+								use:enhance={() => {
+									if (!confirm(`Are you sure you want to delete cashier "${cashier.name}"?`)) {
+										return ({ cancel }) => cancel();
+									}
+									deletingId = cashier.cashierId;
+									
+									return async ({ result, update }) => {
+										deletingId = null;
+										if (result.type === 'success') {
+											await invalidate('data');
+										}
+										await update();
+									};
+								}}
 							>
-								<Trash2 size={14} />
-							</Button>
+								<input type="hidden" name="id" value={cashier.cashierId} />
+								<Button
+									size="sm"
+									variant="ghost"
+									type="submit"
+									disabled={deletingId === cashier.cashierId}
+									class="text-destructive hover:text-destructive hover:bg-destructive/10"
+								>
+									<Trash2 size={14} />
+								</Button>
+							</form>
 						</div>
 					</CardContent>
 				</Card>

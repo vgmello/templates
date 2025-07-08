@@ -1,50 +1,10 @@
-import type { PageServerLoad, Actions } from './$types';
-import { error, redirect, fail } from '@sveltejs/kit';
+import type { Actions } from './$types';
+import { redirect, fail } from '@sveltejs/kit';
 import { cashierApi } from '$lib/api';
 import { ApiError } from '$lib/infrastructure';
 
-export const load: PageServerLoad = async ({ params }) => {
-	const { id } = params;
-	
-	if (!id) {
-		throw error(400, {
-			message: 'Cashier ID is required'
-		});
-	}
-
-	try {
-		const cashier = await cashierApi.getCashier(id);
-		
-		return {
-			cashier
-		};
-	} catch (err) {
-		console.error('Failed to load cashier:', err);
-		
-		if (err instanceof ApiError && err.status === 404) {
-			throw error(404, {
-				message: 'Cashier not found'
-			});
-		}
-		
-		throw error(500, {
-			message: 'Failed to load cashier. Please try again later.'
-		});
-	}
-};
-
 export const actions: Actions = {
-	default: async ({ params, request }) => {
-		const { id } = params;
-		
-		if (!id) {
-			return fail(400, {
-				success: false,
-				errors: { form: 'Cashier ID is required' },
-				values: {}
-			});
-		}
-
+	default: async ({ request }) => {
 		const data = await request.formData();
 		
 		const name = data.get('name') as string;
@@ -74,7 +34,7 @@ export const actions: Actions = {
 		}
 
 		try {
-			await cashierApi.updateCashier(id, {
+			await cashierApi.createCashier({
 				name: name.trim(),
 				email: email.trim() || ''
 			});
@@ -85,15 +45,7 @@ export const actions: Actions = {
 				throw err;
 			}
 			
-			console.error('Failed to update cashier:', err);
-			
-			if (err instanceof ApiError && err.status === 404) {
-				return fail(404, {
-					success: false,
-					errors: { form: 'Cashier not found' },
-					values: { name, email }
-				});
-			}
+			console.error('Failed to create cashier:', err);
 			
 			if (err instanceof ApiError && err.status === 400) {
 				return fail(400, {
@@ -105,7 +57,7 @@ export const actions: Actions = {
 			
 			return fail(500, {
 				success: false,
-				errors: { form: 'Failed to update cashier. Please try again later.' },
+				errors: { form: 'Failed to create cashier. Please try again later.' },
 				values: { name, email }
 			});
 		}

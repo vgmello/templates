@@ -1,82 +1,19 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
+	import { enhance } from '$app/forms';
 	import { Button } from '$lib/components/ui/button';
 	import { Card, CardHeader, CardTitle, CardContent } from '$lib/components/ui/card';
 	import { Input } from '$lib/components/ui/input';
 	import { ArrowLeft, Save } from '@lucide/svelte';
-	import { cashierApi, type CreateCashierRequest } from '$lib';
+	import type { ActionData } from './$types';
 
-	let form = $state<CreateCashierRequest>({
-		name: '',
-		email: ''
-	});
-
+	type Props = {
+		form: ActionData;
+	};
+	
+	let { form }: Props = $props();
+	
 	let loading = $state(false);
-	let error = $state<string | null>(null);
-	let fieldErrors = $state<Record<string, string>>({});
-
-	function validateForm() {
-		const errors: Record<string, string> = {};
-
-		if (!form.name.trim()) {
-			errors.name = 'Name is required';
-		} else if (form.name.trim().length < 2) {
-			errors.name = 'Name must be at least 2 characters';
-		} else if (form.name.trim().length > 100) {
-			errors.name = 'Name must not exceed 100 characters';
-		}
-
-		if (form.email && !isValidEmail(form.email)) {
-			errors.email = 'Please enter a valid email address';
-		}
-
-		fieldErrors = errors;
-		return Object.keys(errors).length === 0;
-	}
-
-	function isValidEmail(email: string): boolean {
-		const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-		return emailRegex.test(email);
-	}
-
-	async function handleSubmit(event: SubmitEvent) {
-		event.preventDefault();
-		
-		if (!validateForm()) {
-			return;
-		}
-
-		loading = true;
-		error = null;
-
-		try {
-			await cashierApi.createCashier({
-				name: form.name.trim(),
-				email: form.email.trim() || ''
-			});
-			
-			// Navigate back to cashiers list
-			goto('/cashiers');
-		} catch (err: any) {
-			if (err.status === 400 && err.data?.errors) {
-				// Handle validation errors from API
-				const apiErrors: Record<string, string> = {};
-				err.data.errors.forEach((errorMsg: string) => {
-					if (errorMsg.toLowerCase().includes('name')) {
-						apiErrors.name = errorMsg;
-					} else if (errorMsg.toLowerCase().includes('email')) {
-						apiErrors.email = errorMsg;
-					}
-				});
-				fieldErrors = { ...fieldErrors, ...apiErrors };
-			} else {
-				error = err instanceof Error ? err.message : 'Failed to create cashier';
-			}
-			console.error('Error creating cashier:', err);
-		} finally {
-			loading = false;
-		}
-	}
 
 	function handleCancel() {
 		goto('/cashiers');
@@ -104,10 +41,21 @@
 			<CardTitle>Cashier Information</CardTitle>
 		</CardHeader>
 		<CardContent>
-			<form onsubmit={handleSubmit} class="space-y-4">
-				{#if error}
+			<form 
+				method="POST" 
+				class="space-y-4"
+				use:enhance={() => {
+					loading = true;
+					
+					return async ({ update }) => {
+						loading = false;
+						await update();
+					};
+				}}
+			>
+				{#if form?.errors?.form}
 					<div class="p-4 border border-destructive/20 bg-destructive/10 text-destructive rounded-md">
-						{error}
+						{form.errors.form}
 					</div>
 				{/if}
 
@@ -117,13 +65,15 @@
 					</label>
 					<Input
 						id="name"
-						bind:value={form.name}
+						name="name"
+						value={form?.values?.name ?? ''}
 						placeholder="Enter cashier name"
-						class={fieldErrors.name ? 'border-destructive' : ''}
+						class={form?.errors?.name ? 'border-destructive' : ''}
 						disabled={loading}
+						required
 					/>
-					{#if fieldErrors.name}
-						<p class="text-sm text-destructive">{fieldErrors.name}</p>
+					{#if form?.errors?.name}
+						<p class="text-sm text-destructive">{form.errors.name}</p>
 					{/if}
 					<p class="text-xs text-muted-foreground">
 						Name must be between 2 and 100 characters
@@ -134,14 +84,15 @@
 					<label for="email" class="text-sm font-medium">Email</label>
 					<Input
 						id="email"
+						name="email"
 						type="email"
-						bind:value={form.email}
+						value={form?.values?.email ?? ''}
 						placeholder="Enter email address (optional)"
-						class={fieldErrors.email ? 'border-destructive' : ''}
+						class={form?.errors?.email ? 'border-destructive' : ''}
 						disabled={loading}
 					/>
-					{#if fieldErrors.email}
-						<p class="text-sm text-destructive">{fieldErrors.email}</p>
+					{#if form?.errors?.email}
+						<p class="text-sm text-destructive">{form.errors.email}</p>
 					{/if}
 					<p class="text-xs text-muted-foreground">
 						Email is optional but must be valid if provided
