@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { Badge } from '$lib/components/ui/badge';
-	import { InvoiceStatuses } from '$lib/domain/values/InvoiceStatus.js';
+	import { Badge } from '$lib/ui/badge';
+	import { InvoiceStatuses } from '$lib/core/values/InvoiceStatus.js';
 
 	let { status, class: className = '' } = $props<{
 		status: string;

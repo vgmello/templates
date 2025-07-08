@@ -74,7 +74,7 @@ export class TelemetryService {
 export const telemetryService = TelemetryService.getInstance();
 
 // Export convenience functions
-export const getTracer = (name?: string) => telemetryService.getTracer(name);
+export const getTracer = () => telemetryService.getTracer();
 export const createSpan = <T>(name: string, fn: () => T | Promise<T>) =>
 	telemetryService.createSpan(name, fn);
 export const recordEvent = (name: string, attributes?: Record<string, string | number | boolean>) =>
@@ -90,7 +90,7 @@ export function traced(spanName?: string) {
 		const originalMethod = descriptor.value!;
 		const finalSpanName = spanName || 'traced-method';
 
-		descriptor.value = function (...args: unknown[]) {
+		descriptor.value = function (this: unknown, ...args: unknown[]) {
 			return telemetryService.createSpan(finalSpanName, () =>
 				originalMethod.apply(this, args)
 			);

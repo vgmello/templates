@@ -2,10 +2,7 @@ import type { PageServerLoad, Actions } from './$types';
 import { error, fail } from '@sveltejs/kit';
 import { invoiceApi } from '$lib/api';
 import { ApiError } from '$lib/infrastructure';
-import { InvoiceService } from '$lib/domain';
 import type { InvoiceStatus } from '$lib/api';
-
-const invoiceService = new InvoiceService();
 
 export const load: PageServerLoad = async ({ url }) => {
 	try {

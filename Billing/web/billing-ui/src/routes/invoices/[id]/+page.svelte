@@ -1,9 +1,9 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { enhance } from '$app/forms';
-	import { Button } from '$lib/components/ui/button';
-	import { Card, CardHeader, CardTitle, CardContent } from '$lib/components/ui/card';
-	import { Input } from '$lib/components/ui/input';
+	import { Button } from '$lib/ui/button';
+	import { Card, CardHeader, CardTitle, CardContent } from '$lib/ui/card';
+	import { Input } from '$lib/ui/input';
 	import {
 		ArrowLeft,
 		Edit,
@@ -15,9 +15,9 @@
 		Clock,
 		Copy
 	} from '@lucide/svelte';
-	import { type Invoice } from '$lib/api';
-	import InvoiceStatusBadge from '$lib/components/InvoiceStatusBadge.svelte';
-	import { CurrencyDisplay } from '$lib/components/ui/currency-display';
+	import { type InvoiceDTO as Invoice } from '$lib/api';
+	import { InvoiceStatusBadge } from '$lib/invoices';
+	import { CurrencyDisplay } from '$lib/ui/currency-display';
 	import { formatDate, formatDateForInput } from '$lib/utils/date.js';
 
 	type Props = {

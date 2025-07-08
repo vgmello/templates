@@ -1,5 +1,5 @@
-import type { CashierData } from '../models/Cashier';
-import type { Currency } from '../values/Currency';
+import type { CashierData } from './models/cashier';
+import type { Currency } from '$lib/core/values/Currency';
 
 export class CashierService {
 	validateCashierData(data: Partial<CashierData>): string[] {

@@ -2,10 +2,10 @@
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
-	import { Button } from '$lib/components/ui/button';
-	import { Card, CardHeader, CardTitle, CardContent } from '$lib/components/ui/card';
-	import { Input } from '$lib/components/ui/input';
-	import { Select } from '$lib/components/ui/select';
+	import { Button } from '$lib/ui/button';
+	import { Card, CardHeader, CardTitle, CardContent } from '$lib/ui/card';
+	import { Input } from '$lib/ui/input';
+	import { Select } from '$lib/ui/select';
 	import { ArrowLeft, Save, FileText, DollarSign, Calendar, User } from '@lucide/svelte';
 	import {
 		invoiceApi,

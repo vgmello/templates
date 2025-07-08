@@ -1,32 +1,34 @@
-import type { InvoiceData } from '../models/Invoice';
-import type { Invoice } from '$lib/api';
-import { Money } from '../values/Money';
-import type { Currency } from '../values/Currency';
+import type { InvoiceData } from './models/invoice';
+import type { Invoice } from './invoice-api';
+import { Money } from '$lib/core/values/Money';
+import type { Currency } from '$lib/core/values/Currency';
 
 export class InvoiceService {
 	calculateSummary(invoices: Invoice[]): InvoiceSummary {
 		// Simplified implementation to test
 		return {
 			totalInvoices: invoices.length,
-			currencySummaries: [{
-				currency: 'USD',
-				counts: {
-					total: invoices.length,
-					draft: invoices.filter(i => i.status.toLowerCase() === 'draft').length,
-					pending: 0,
-					paid: 0,
-					cancelled: 0,
-					overdue: 0
-				},
-				amounts: {
-					total: Money.zero('USD'),
-					draft: Money.zero('USD'),
-					pending: Money.zero('USD'),
-					paid: Money.zero('USD'),
-					cancelled: Money.zero('USD'),
-					overdue: Money.zero('USD')
+			currencySummaries: [
+				{
+					currency: 'USD',
+					counts: {
+						total: invoices.length,
+						draft: invoices.filter((i) => i.status.toLowerCase() === 'draft').length,
+						pending: 0,
+						paid: 0,
+						cancelled: 0,
+						overdue: 0
+					},
+					amounts: {
+						total: Money.zero('USD'),
+						draft: Money.zero('USD'),
+						pending: Money.zero('USD'),
+						paid: Money.zero('USD'),
+						cancelled: Money.zero('USD'),
+						overdue: Money.zero('USD')
+					}
 				}
-			}],
+			],
 			lastUpdated: new Date()
 		};
 	}
@@ -67,7 +69,10 @@ export class InvoiceService {
 
 		for (const invoice of invoices) {
 			const amount = Money.fromCents(Math.round(invoice.amount * 100), currency);
-			const isOverdue = invoice.status.toLowerCase() === 'pending' && invoice.dueDate && new Date(invoice.dueDate) < now;
+			const isOverdue =
+				invoice.status.toLowerCase() === 'pending' &&
+				invoice.dueDate &&
+				new Date(invoice.dueDate) < now;
 			const effectiveStatus = isOverdue ? 'overdue' : invoice.status.toLowerCase();
 
 			// Safety check for valid status

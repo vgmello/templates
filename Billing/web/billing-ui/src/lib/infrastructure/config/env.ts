@@ -15,7 +15,7 @@ export interface AppConfig {
 }
 
 function getEnvVar(key: string, defaultValue: string = ''): string {
-	return env[key] || defaultValue;
+	return (env as Record<string, string | undefined>)[key] || defaultValue;
 }
 
 function getBooleanEnvVar(key: string, defaultValue: boolean = false): boolean {

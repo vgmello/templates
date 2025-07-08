@@ -1,4 +1,4 @@
-import type { Currency } from '../values/Currency';
+import type { Currency } from '$lib/core/values/Currency';
 
 export class Cashier {
 	id = $state<string>('');

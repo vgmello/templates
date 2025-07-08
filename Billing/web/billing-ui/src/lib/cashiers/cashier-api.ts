@@ -32,6 +32,7 @@ export interface GetCashiersQuery {
 	search?: string;
 	sortBy?: string;
 	sortOrder?: 'asc' | 'desc';
+	[key: string]: string | number | boolean | undefined;
 }
 
 export const cashierApi = {

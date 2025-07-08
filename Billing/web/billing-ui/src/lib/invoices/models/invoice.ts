@@ -1,6 +1,6 @@
-import { Money } from '../values/Money';
-import { InvoiceStatusValue, type InvoiceStatus } from '../values/InvoiceStatus';
-import type { Currency } from '../values/Currency';
+import { Money } from '$lib/core/values/Money';
+import { InvoiceStatusValue, type InvoiceStatus } from '$lib/core/values/InvoiceStatus';
+import type { Currency } from '$lib/core/values/Currency';
 
 export class Invoice {
 	id = $state<string>('');

@@ -2,7 +2,7 @@
 	import '../app.css';
 	import { onMount } from 'svelte';
 	import { page } from '$app/stores';
-	import { Button } from '$lib/components/ui/button';
+	import { Button } from '$lib/ui/button';
 	import { Users, Home, FileText } from '@lucide/svelte';
 	import { telemetryService, ErrorBoundary, NotificationDisplay } from '$lib/infrastructure';
 

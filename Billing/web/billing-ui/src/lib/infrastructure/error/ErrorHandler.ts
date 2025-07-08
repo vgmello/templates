@@ -154,7 +154,7 @@ export class ErrorHandler {
 			? {
 					label: errorInfo.suggestedAction,
 					handler: () =>
-						this.handleSuggestedAction(error, errorInfo.suggestedAction, context)
+						this.handleSuggestedAction(error, errorInfo.suggestedAction!, context)
 				}
 			: undefined;
 
@@ -180,8 +180,11 @@ export class ErrorHandler {
 	private handleSuggestedAction(error: Error, action: string, context?: ErrorContext): void {
 		switch (action) {
 			case 'Retry':
-				if (context?.metadata?.retryHandler) {
-					context.metadata.retryHandler();
+				if (
+					context?.metadata?.retryHandler &&
+					typeof context.metadata.retryHandler === 'function'
+				) {
+					(context.metadata.retryHandler as () => void)();
 				} else {
 					// Default retry behavior - reload the page
 					window.location.reload();
@@ -194,8 +197,11 @@ export class ErrorHandler {
 			case 'Wait and retry':
 				// Wait 5 seconds then retry
 				setTimeout(() => {
-					if (context?.metadata?.retryHandler) {
-						context.metadata.retryHandler();
+					if (
+						context?.metadata?.retryHandler &&
+						typeof context.metadata.retryHandler === 'function'
+					) {
+						(context.metadata.retryHandler as () => void)();
 					}
 				}, 5000);
 				break;

@@ -1,5 +1,5 @@
 import type { Actions } from './$types';
-import { redirect, fail, error } from '@sveltejs/kit';
+import { redirect, fail } from '@sveltejs/kit';
 import { cashierApi } from '$lib/api';
 import { ApiError } from '$lib/infrastructure';
 

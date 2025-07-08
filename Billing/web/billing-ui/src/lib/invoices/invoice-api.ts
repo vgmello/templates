@@ -40,6 +40,7 @@ export interface GetInvoicesQuery {
 	toDate?: string;
 	skip?: number;
 	take?: number;
+	[key: string]: string | number | boolean | undefined;
 }
 
 export const invoiceApi = {

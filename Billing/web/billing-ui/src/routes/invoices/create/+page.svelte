@@ -1,11 +1,11 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { enhance } from '$app/forms';
-	import { Button } from '$lib/components/ui/button';
-	import { Card, CardHeader, CardTitle, CardContent } from '$lib/components/ui/card';
-	import { Input } from '$lib/components/ui/input';
-	import { CurrencyInput } from '$lib/components/ui/currency-input';
-	import { Select } from '$lib/components/ui/select';
+	import { Button } from '$lib/ui/button';
+	import { Card, CardHeader, CardTitle, CardContent } from '$lib/ui/card';
+	import { Input } from '$lib/ui/input';
+	import { CurrencyInput } from '$lib/ui/currency-input';
+	import { Select } from '$lib/ui/select';
 	import { ArrowLeft, Save, FileText, DollarSign, Calendar, User } from '@lucide/svelte';
 	import type { GetCashiersResult } from '$lib';
 	import { formatDateForInput } from '$lib/utils/date.js';
@@ -64,7 +64,7 @@
 				<ArrowLeft size={16} />
 				Back to Invoices
 			</Button>
-			<div class="bg-border h-6 w-px"></div>
+			<div class="h-6 w-px bg-border"></div>
 			<div class="flex items-center gap-2">
 				<FileText size={20} class="text-primary" />
 				<h1 class="text-2xl font-bold">Create New Invoice</h1>
@@ -75,10 +75,10 @@
 	{#if form?.errors?.form}
 		<Card class="border-destructive/50 bg-destructive/5">
 			<CardContent class="p-4">
-				<div class="text-destructive flex items-center gap-2">
+				<div class="flex items-center gap-2 text-destructive">
 					<div class="font-medium">Error creating invoice</div>
 				</div>
-				<p class="text-destructive/80 mt-1 text-sm">{form.errors.form}</p>
+				<p class="mt-1 text-sm text-destructive/80">{form.errors.form}</p>
 			</CardContent>
 		</Card>
 	{/if}
@@ -100,7 +100,7 @@
 			<Card>
 				<CardHeader>
 					<CardTitle>Invoice Details</CardTitle>
-					<p class="text-muted-foreground text-sm">
+					<p class="text-sm text-muted-foreground">
 						Fill in the information for your new invoice
 					</p>
 				</CardHeader>
@@ -121,7 +121,7 @@
 							required
 						/>
 						{#if form?.errors?.name}
-							<p class="text-destructive text-sm">{form.errors.name}</p>
+							<p class="text-sm text-destructive">{form.errors.name}</p>
 						{/if}
 					</div>
 
@@ -174,7 +174,7 @@
 							disabled={loading}
 						/>
 						{#if form?.errors?.dueDate}
-							<p class="text-destructive text-sm">{form.errors.dueDate}</p>
+							<p class="text-sm text-destructive">{form.errors.dueDate}</p>
 						{/if}
 					</div>
 
@@ -192,7 +192,7 @@
 							disabled={loading}
 						/>
 						<input type="hidden" name="cashierId" value={formCashierId} />
-						<p class="text-muted-foreground text-xs">
+						<p class="text-xs text-muted-foreground">
 							Assign a cashier to handle payments for this invoice
 						</p>
 					</div>
@@ -210,12 +210,12 @@
 				<CardContent class="space-y-4">
 					<div class="space-y-3">
 						<div>
-							<span class="text-muted-foreground text-xs">Name</span>
+							<span class="text-xs text-muted-foreground">Name</span>
 							<p class="font-medium">{formName || 'Untitled Invoice'}</p>
 						</div>
 
 						<div>
-							<span class="text-muted-foreground text-xs">Amount</span>
+							<span class="text-xs text-muted-foreground">Amount</span>
 							<p class="text-lg font-bold">
 								{new Intl.NumberFormat('en-US', {
 									style: 'currency',
@@ -226,7 +226,7 @@
 
 						{#if form?.values?.dueDate}
 							<div>
-								<span class="text-muted-foreground text-xs">Due Date</span>
+								<span class="text-xs text-muted-foreground">Due Date</span>
 								<p>
 									{new Date(form.values.dueDate).toLocaleDateString('en-US', {
 										weekday: 'long',
@@ -240,7 +240,7 @@
 
 						{#if formCashierId}
 							<div>
-								<span class="text-muted-foreground text-xs">Assigned Cashier</span>
+								<span class="text-xs text-muted-foreground">Assigned Cashier</span>
 								<p>{cashiers.find((c) => c.cashierId === formCashierId)?.name}</p>
 							</div>
 						{/if}
@@ -278,7 +278,7 @@
 			<Card>
 				<CardContent class="p-4">
 					<h4 class="mb-2 font-medium">Tips</h4>
-					<ul class="text-muted-foreground space-y-1 text-sm">
+					<ul class="space-y-1 text-sm text-muted-foreground">
 						<li>• Use descriptive names for easy identification</li>
 						<li>• Set due dates to track payment deadlines</li>
 						<li>• Assign cashiers for payment processing</li>

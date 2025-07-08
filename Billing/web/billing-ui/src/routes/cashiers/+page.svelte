@@ -1,9 +1,9 @@
 <script lang="ts">
 	import { goto, invalidate } from '$app/navigation';
 	import { enhance } from '$app/forms';
-	import { Button } from '$lib/components/ui/button';
-	import { Card, CardContent } from '$lib/components/ui/card';
-	import { Input } from '$lib/components/ui/input';
+	import { Button } from '$lib/ui/button';
+	import { Card, CardContent } from '$lib/ui/card';
+	import { Input } from '$lib/ui/input';
 	import {
 		Plus,
 		Search,

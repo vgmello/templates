@@ -1,20 +1,19 @@
-// API clients
-export { cashierApi } from './cashiers.js';
-export { invoiceApi } from './invoices.js';
+// Re-export from feature modules for backward compatibility
+export { cashierApi } from '$lib/cashiers';
+export { invoiceApi } from '$lib/invoices';
 
 // Types
 export type {
 	GetCashiersResult,
-	Cashier,
 	CreateCashierRequest,
 	UpdateCashierRequest,
 	GetCashiersQuery
-} from './cashiers.js';
+} from '$lib/cashiers';
 
 export type {
-	Invoice,
+	Invoice as InvoiceDTO,
 	CreateInvoiceRequest,
 	MarkInvoiceAsPaidRequest,
 	SimulatePaymentRequest,
 	GetInvoicesQuery
-} from './invoices.js';
+} from '$lib/invoices';

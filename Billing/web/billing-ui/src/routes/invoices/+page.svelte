@@ -1,10 +1,10 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import { Button } from '$lib/components/ui/button';
-	import { Card, CardContent } from '$lib/components/ui/card';
-	import { Input } from '$lib/components/ui/input';
-	import { CurrencyDisplay } from '$lib/components/ui/currency-display';
-	import { Select } from '$lib/components/ui/select';
+	import { Button } from '$lib/ui/button';
+	import { Card, CardContent } from '$lib/ui/card';
+	import { Input } from '$lib/ui/input';
+	import { CurrencyDisplay } from '$lib/ui/currency-display';
+	import { Select } from '$lib/ui/select';
 	import {
 		Plus,
 		Search,
@@ -15,8 +15,9 @@
 		AlertCircle,
 		Copy
 	} from '@lucide/svelte';
-	import type { Invoice, InvoiceSummary } from '$lib';
-	import InvoiceStatusBadge from '$lib/components/InvoiceStatusBadge.svelte';
+	import type { InvoiceDTO as Invoice } from '$lib/api';
+	import type { InvoiceSummary } from '$lib/invoices';
+	import { InvoiceStatusBadge } from '$lib/invoices';
 	import { formatDate, isOverdue } from '$lib/utils/date.js';
 
 	type Props = {
@@ -142,7 +143,11 @@
 				<div class="flex items-center justify-between">
 					<div class="space-y-1">
 						<p class="text-sm font-medium text-muted-foreground">Total Amount</p>
-						<CurrencyDisplay amount={computedSummary.totalAmount} currency={computedSummary.currency} size="xl" />
+						<CurrencyDisplay
+							amount={computedSummary.totalAmount}
+							currency={computedSummary.currency}
+							size="xl"
+						/>
 					</div>
 					<div class="rounded-full bg-green-100 p-3">
 						<DollarSign size={20} class="text-green-600" />
@@ -170,7 +175,9 @@
 				<div class="flex items-center justify-between">
 					<div class="space-y-1">
 						<p class="text-sm font-medium text-muted-foreground">Overdue</p>
-						<p class="text-2xl font-bold text-orange-600">{computedSummary.overdueCount}</p>
+						<p class="text-2xl font-bold text-orange-600">
+							{computedSummary.overdueCount}
+						</p>
 					</div>
 					<div class="rounded-full bg-orange-100 p-3">
 						<AlertCircle size={20} class="text-orange-600" />

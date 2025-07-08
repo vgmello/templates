@@ -108,7 +108,8 @@ export class ApiClient {
 					}
 
 					const error = new ApiError(
-						errorData.message || `HTTP ${response.status}: ${response.statusText}`,
+						(errorData as { message?: string }).message ||
+							`HTTP ${response.status}: ${response.statusText}`,
 						response.status,
 						errorData,
 						endpoint
