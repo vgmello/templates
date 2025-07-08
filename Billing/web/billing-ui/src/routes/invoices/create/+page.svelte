@@ -8,6 +8,7 @@
 	import { Select } from '$lib/ui/select';
 	import { ArrowLeft, Save, FileText, DollarSign, Calendar, User } from '@lucide/svelte';
 	import type { GetCashiersResult } from '$lib/cashiers';
+	import { CreateInvoiceForm } from '$lib/invoices';
 	import { formatDateForInput } from '$lib/infrastructure/utils/Date.js';
 	import type { ActionData } from './$types';
 
@@ -22,11 +23,16 @@
 	let { cashiers } = data;
 	let loading = $state(false);
 
-	// Form state variables
-	let formName = $state(form?.values?.name ?? '');
-	let formAmount = $state(form?.values?.amount ?? 0);
-	let formCurrency = $state(form?.values?.currency ?? 'USD');
-	let formCashierId = $state(form?.values?.cashierId ?? '');
+	let formState = $state(new CreateInvoiceForm());
+	
+	// Initialize form with any returned values on error
+	if (form?.values) {
+		formState.name = form.values.name ?? '';
+		formState.amount = form.values.amount?.toString() ?? '';
+		formState.currency = form.values.currency ?? 'USD';
+		formState.cashierId = form.values.cashierId ?? '';
+		formState.dueDate = form.values.dueDate ?? '';
+	}
 
 	// Currency options
 	const currencyOptions = [
@@ -114,7 +120,7 @@
 						<Input
 							id="name"
 							name="name"
-							bind:value={formName}
+							bind:value={formState.name}
 							placeholder="Enter invoice description"
 							class={form?.errors?.name ? 'border-destructive' : ''}
 							disabled={loading}
@@ -134,27 +140,27 @@
 							</label>
 							<CurrencyInput
 								id="amount"
-								bind:value={formAmount}
-								currency={formCurrency || 'USD'}
+								bind:value={formState.amount}
+								currency={formState.currency || 'USD'}
 								placeholder="Enter amount"
 								required
 								error={form?.errors?.amount}
 								disabled={loading}
 							/>
-							<input type="hidden" name="amount" value={formAmount} />
+							<input type="hidden" name="amount" value={formState.amount} />
 						</div>
 
 						<div class="space-y-2">
 							<label for="currency" class="text-sm font-medium">Currency *</label>
 							<Select
 								id="currency"
-								bind:value={formCurrency}
+								bind:value={formState.currency}
 								options={currencyOptions}
 								placeholder="Select currency"
 								error={form?.errors?.currency}
 								disabled={loading}
 							/>
-							<input type="hidden" name="currency" value={formCurrency} />
+							<input type="hidden" name="currency" value={formState.currency} />
 						</div>
 					</div>
 
@@ -168,7 +174,7 @@
 							id="dueDate"
 							name="dueDate"
 							type="date"
-							value={form?.values?.dueDate ?? ''}
+							bind:value={formState.dueDate}
 							min={formatDateForInput()}
 							class={form?.errors?.dueDate ? 'border-destructive' : ''}
 							disabled={loading}
@@ -186,12 +192,12 @@
 						</label>
 						<Select
 							id="cashier"
-							bind:value={formCashierId}
+							bind:value={formState.cashierId}
 							options={cashierOptions}
 							placeholder="Select cashier"
 							disabled={loading}
 						/>
-						<input type="hidden" name="cashierId" value={formCashierId} />
+						<input type="hidden" name="cashierId" value={formState.cashierId} />
 						<p class="text-xs text-muted-foreground">
 							Assign a cashier to handle payments for this invoice
 						</p>
@@ -211,7 +217,7 @@
 					<div class="space-y-3">
 						<div>
 							<span class="text-xs text-muted-foreground">Name</span>
-							<p class="font-medium">{formName || 'Untitled Invoice'}</p>
+							<p class="font-medium">{formState.name || 'Untitled Invoice'}</p>
 						</div>
 
 						<div>
@@ -219,16 +225,16 @@
 							<p class="text-lg font-bold">
 								{new Intl.NumberFormat('en-US', {
 									style: 'currency',
-									currency: formCurrency || 'USD'
-								}).format(formAmount || 0)}
+									currency: formState.currency || 'USD'
+								}).format(parseFloat(formState.amount) || 0)}
 							</p>
 						</div>
 
-						{#if form?.values?.dueDate}
+						{#if formState.dueDate}
 							<div>
 								<span class="text-xs text-muted-foreground">Due Date</span>
 								<p>
-									{new Date(form.values.dueDate).toLocaleDateString('en-US', {
+									{new Date(formState.dueDate).toLocaleDateString('en-US', {
 										weekday: 'long',
 										year: 'numeric',
 										month: 'long',
@@ -238,10 +244,10 @@
 							</div>
 						{/if}
 
-						{#if formCashierId}
+						{#if formState.cashierId}
 							<div>
 								<span class="text-xs text-muted-foreground">Assigned Cashier</span>
-								<p>{cashiers.find((c) => c.cashierId === formCashierId)?.name}</p>
+								<p>{cashiers.find((c) => c.cashierId === formState.cashierId)?.name}</p>
 							</div>
 						{/if}
 					</div>
@@ -251,7 +257,7 @@
 			<!-- Actions -->
 			<Card>
 				<CardContent class="space-y-3 p-4">
-					<Button type="submit" disabled={loading} class="w-full gap-2">
+					<Button type="submit" disabled={loading || !formState.isValid} class="w-full gap-2">
 						{#if loading}
 							<div
 								class="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"

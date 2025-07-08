@@ -1,5 +1,4 @@
 // Invoices feature public API
-export { Invoice, type InvoiceData } from './models/Invoice';
 export {
 	invoiceApi,
 	type GetInvoicesQuery as GetInvoicesQueryParams,
@@ -9,8 +8,8 @@ export {
 	type SimulatePaymentRequest
 } from './InvoiceApi';
 
-// Validation
-export { InvoiceValidator, ValidationError } from './validators/InvoiceValidator';
+// Form State Classes
+export { CreateInvoiceForm } from './forms/CreateInvoiceForm';
 
 // Commands and Queries
 export { CreateInvoiceCommand } from './actions/CreateInvoiceCommand';

@@ -1,5 +1,4 @@
 // Cashiers feature public API
-export { Cashier, type CashierData } from './models/Cashier';
 export {
 	cashierApi,
 	type GetCashiersResult,
@@ -9,8 +8,9 @@ export {
 	type GetCashiersQuery as GetCashiersQueryParams
 } from './CashiersApi';
 
-// Validation
-export { CashierValidator, ValidationError } from './validators/CashierValidator';
+// Form State Classes
+export { CreateCashierForm } from './forms/CreateCashierForm';
+export { UpdateCashierForm } from './forms/UpdateCashierForm';
 
 // Components
 export { default as CashierForm } from './components/CashierForm.svelte';

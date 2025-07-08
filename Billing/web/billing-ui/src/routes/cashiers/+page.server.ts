@@ -2,7 +2,6 @@ import type { PageServerLoad, Actions } from './$types';
 import { error, fail } from '@sveltejs/kit';
 import { GetCashiersQuery } from '$lib/cashiers/actions/GetCashiersQuery';
 import { DeleteCashierCommand } from '$lib/cashiers/actions/DeleteCashierCommand';
-import { Cashier } from '$lib/cashiers/models/Cashier';
 import { ApiError } from '$lib/infrastructure';
 
 export const load: PageServerLoad = async ({ url, depends }) => {
@@ -24,19 +23,7 @@ export const load: PageServerLoad = async ({ url, depends }) => {
 			...(sortDescending !== undefined && { sortDescending })
 		});
 
-		const cashierDTOs = await query.execute();
-
-		// Convert DTOs to domain models for reactive UI
-		const cashiers = cashierDTOs.map(dto => new Cashier({
-			id: dto.cashierId,
-			name: dto.name,
-			email: dto.email,
-			phone: '', // API doesn't currently return phone
-			isActive: true, // API doesn't currently return status
-			supportedCurrencies: ['USD'], // Default for now
-			createdAt: dto.createdDateUtc || new Date().toISOString(),
-			updatedAt: dto.createdDateUtc || new Date().toISOString()
-		}));
+		const cashiers = await query.execute();
 
 		return {
 			cashiers

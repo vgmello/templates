@@ -1,7 +1,5 @@
 import type { PageServerLoad, Actions } from './$types';
 import { error, redirect, fail, isRedirect } from '@sveltejs/kit';
-import { ValidationError } from '$lib/cashiers/validators/CashierValidator';
-import { Cashier } from '$lib/cashiers/models/Cashier';
 import { ApiError } from '$lib/infrastructure';
 import { GetCashierQuery } from '$lib/cashiers/actions/GetCashierQuery';
 import { UpdateCashierCommand } from '$lib/cashiers/actions/UpdateCashierCommand';
@@ -17,19 +15,7 @@ export const load: PageServerLoad = async ({ params }) => {
 
 	try {
 		const query = new GetCashierQuery(id);
-
-		const cashierDTO = await query.execute();
-
-		const cashier = new Cashier({
-			id: cashierDTO.cashierId,
-			name: cashierDTO.name,
-			email: cashierDTO.email,
-			phone: '', // API doesn't currently return phone
-			isActive: true, // API doesn't currently return status
-			supportedCurrencies: ['USD'], // Default for now
-			createdAt: new Date().toISOString(),
-			updatedAt: new Date().toISOString()
-		});
+		const cashier = await query.execute();
 
 		return {
 			cashier
@@ -70,7 +56,6 @@ export const actions: Actions = {
 		const isActive = data.get('isActive') as string;
 
 		try {
-			// For now, just update with name and email until backend supports additional fields
 			const command = new UpdateCashierCommand(id, {
 				name: name || '',
 				email: email || ''
@@ -82,15 +67,6 @@ export const actions: Actions = {
 		} catch (err) {
 			if (isRedirect(err)) {
 				throw err;
-			}
-
-			// Handle validation errors from service
-			if (err instanceof ValidationError) {
-				return fail(400, {
-					success: false,
-					errors: err.errors,
-					values: { name, email }
-				});
 			}
 
 			console.error('Failed to update cashier:', err);
