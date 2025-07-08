@@ -1,14 +1,11 @@
 import type { PageServerLoad, Actions } from './$types';
-import { error, redirect } from '@sveltejs/kit';
-import { serverApiClient, ApiError } from '$lib/infrastructure';
-import { InvoiceService } from '$lib/domain';
-import type { CashierData, InvoiceData } from '$lib/domain';
-
-const invoiceService = new InvoiceService();
+import { error, redirect, fail } from '@sveltejs/kit';
+import { cashierApi, invoiceApi } from '$lib/api';
+import { ApiError } from '$lib/infrastructure';
 
 export const load: PageServerLoad = async () => {
 	try {
-		const cashiers = await serverApiClient.get<CashierData[]>('/cashiers');
+		const cashiers = await cashierApi.getCashiers();
 		
 		return {
 			cashiers
@@ -22,51 +19,68 @@ export const load: PageServerLoad = async () => {
 };
 
 export const actions: Actions = {
-	create: async ({ request }) => {
+	default: async ({ request }) => {
 		const data = await request.formData();
 		
-		const invoiceData = {
-			number: invoiceService.generateInvoiceNumber(),
-			customerName: data.get('customerName') as string,
-			customerEmail: data.get('customerEmail') as string,
-			description: data.get('description') as string,
-			amount: parseInt(data.get('amount') as string),
-			currency: data.get('currency') as string,
-			cashierId: data.get('cashierId') as string || null,
-			issueDate: new Date().toISOString(),
-			dueDate: data.get('dueDate') as string,
-			status: 'draft' as const
-		};
-
-		// Validate using domain service
-		const validationErrors = invoiceService.validateInvoiceData(invoiceData);
-		if (validationErrors.length > 0) {
-			return {
+		const name = data.get('name') as string;
+		const amount = parseFloat(data.get('amount') as string);
+		const currency = data.get('currency') as string;
+		const dueDate = data.get('dueDate') as string;
+		const cashierId = data.get('cashierId') as string;
+		
+		// Server-side validation
+		const errors: Record<string, string> = {};
+		
+		if (!name?.trim()) {
+			errors.name = 'Name is required';
+		}
+		
+		if (!amount || isNaN(amount) || amount <= 0) {
+			errors.amount = 'Amount must be a positive number';
+		}
+		
+		if (!currency) {
+			errors.currency = 'Currency is required';
+		}
+		
+		if (Object.keys(errors).length > 0) {
+			return fail(400, {
 				success: false,
-				errors: validationErrors,
-				data: invoiceData
-			};
+				errors,
+				values: { name, amount, currency, dueDate, cashierId }
+			});
 		}
 
 		try {
-			const createdInvoice = await serverApiClient.post<InvoiceData>('/invoices', invoiceData);
-			throw redirect(303, `/invoices/${createdInvoice.id}`);
-		} catch (err) {
-			console.error('Failed to create invoice:', err);
+			const createdInvoice = await invoiceApi.createInvoice({
+				name: name.trim(),
+				amount,
+				currency,
+				dueDate: dueDate || undefined,
+				cashierId: cashierId || undefined
+			});
 			
-			if (err instanceof ApiError && err.status >= 400 && err.status < 500) {
-				return {
-					success: false,
-					errors: [err.message],
-					data: invoiceData
-				};
+			throw redirect(303, `/invoices/${createdInvoice.invoiceId}`);
+		} catch (err) {
+			if (err instanceof redirect) {
+				throw err;
 			}
 			
-			return {
+			console.error('Failed to create invoice:', err);
+			
+			if (err instanceof ApiError && err.status === 400) {
+				return fail(400, {
+					success: false,
+					errors: { form: err.message },
+					values: { name, amount, currency, dueDate, cashierId }
+				});
+			}
+			
+			return fail(500, {
 				success: false,
-				errors: ['Failed to create invoice. Please try again later.'],
-				data: invoiceData
-			};
+				errors: { form: 'Failed to create invoice. Please try again later.' },
+				values: { name, amount, currency, dueDate, cashierId }
+			});
 		}
 	}
 };

@@ -192,6 +192,3 @@ export class ApiClient {
 
 // Create singleton instances
 export const apiClient = new ApiClient();
-
-// Server-side instance (for +page.server.ts files)
-export const serverApiClient = new ApiClient();

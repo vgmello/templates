@@ -1,4 +1,4 @@
-import { Invoice, type InvoiceData } from '../models/Invoice';
+import type { InvoiceData } from '../models/Invoice';
 import { Money } from '../values/Money';
 import type { Currency } from '../values/Currency';
 

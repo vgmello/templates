@@ -88,7 +88,7 @@ export class Invoice {
 const data = await invoiceBffService.getInvoicesWithSummary();
 
 // After: Direct API calls with domain services
-const invoices = await serverApiClient.get<InvoiceData[]>('/invoices', params);
+const invoices = await invoiceApi.getInvoices(params);
 const summary = invoiceService.calculateSummary(invoices);
 ```
 

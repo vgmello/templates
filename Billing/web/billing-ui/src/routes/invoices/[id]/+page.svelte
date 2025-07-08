@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
+	import { enhance } from '$app/forms';
 	import { Button } from '$lib/components/ui/button';
 	import { Card, CardHeader, CardTitle, CardContent } from '$lib/components/ui/card';
 	import { Input } from '$lib/components/ui/input';
@@ -19,12 +20,7 @@
 		Clock,
 		Copy
 	} from '@lucide/svelte';
-	import {
-		invoiceApi,
-		type Invoice,
-		type MarkInvoiceAsPaidRequest,
-		type SimulatePaymentRequest
-	} from '$lib';
+	import { type Invoice } from '$lib/api';
 	import InvoiceStatusBadge from '$lib/components/InvoiceStatusBadge.svelte';
 	import { CurrencyDisplay } from '$lib/components/ui/currency-display';
 	import { formatCurrency } from '$lib/utils/currency.js';
@@ -34,23 +30,26 @@
 		data: {
 			invoice: Invoice;
 		};
+		form?: {
+			success?: boolean;
+			errorMessage?: string;
+		};
 	};
 	
-	let { data }: Props = $props();
+	let { data, form }: Props = $props();
 	let invoice = $state<Invoice>(data.invoice);
 	let invoiceId = $derived($page.params.id);
-	let error = $state<string | null>(null);
 	let actionLoading = $state<string | null>(null);
 
 	// Form states for actions
 	let markAsPaidForm = $state({
-		amountPaid: 0,
+		amountPaid: invoice.amount,
 		paymentDate: formatDateForInput()
 	});
 
 	let simulatePaymentForm = $state({
-		amount: 0,
-		currency: 'USD',
+		amount: invoice.amount,
+		currency: invoice.currency || 'USD',
 		paymentMethod: 'Credit Card',
 		paymentReference: ''
 	});
@@ -63,65 +62,42 @@
 		{ value: 'Cash', label: 'Cash' }
 	];
 
-
-	async function markAsPaid() {
-		if (!invoice || actionLoading) return;
-
+	// Form enhancement handlers
+	const handleMarkAsPaid = () => {
 		actionLoading = 'mark-paid';
-		try {
-			const request: MarkInvoiceAsPaidRequest = {
-				amountPaid: markAsPaidForm.amountPaid,
-				paymentDate: markAsPaidForm.paymentDate
-			};
-
-			const updatedInvoice = await invoiceApi.markInvoiceAsPaid(invoice.invoiceId, request);
-			invoice = updatedInvoice;
-		} catch (err) {
-			error = err instanceof Error ? err.message : 'Failed to mark invoice as paid';
-		} finally {
+		return async ({ result }) => {
 			actionLoading = null;
-		}
-	}
+			if (result.type === 'success') {
+				// Refresh the page to get updated invoice
+				window.location.reload();
+			}
+		};
+	};
 
-	async function simulatePayment() {
-		if (!invoice || actionLoading) return;
-
+	const handleSimulatePayment = () => {
 		actionLoading = 'simulate-payment';
-		try {
-			const request: SimulatePaymentRequest = {
-				amount: simulatePaymentForm.amount,
-				currency: simulatePaymentForm.currency,
-				paymentMethod: simulatePaymentForm.paymentMethod,
-				paymentReference: simulatePaymentForm.paymentReference || undefined
-			};
-
-			await invoiceApi.simulatePayment(invoice.invoiceId, request);
-			// Refresh the page to get updated invoice status
-			window.location.reload();
-		} catch (err) {
-			error = err instanceof Error ? err.message : 'Failed to simulate payment';
-		} finally {
+		return async ({ result }) => {
 			actionLoading = null;
-		}
-	}
+			if (result.type === 'success') {
+				// Refresh the page to get updated invoice
+				window.location.reload();
+			}
+		};
+	};
 
-	async function cancelInvoice() {
-		if (!invoice || actionLoading) return;
-
+	const handleCancel = () => {
 		if (!confirm(`Are you sure you want to cancel invoice "${invoice.name}"?`)) {
-			return;
+			return false;
 		}
-
 		actionLoading = 'cancel';
-		try {
-			const updatedInvoice = await invoiceApi.cancelInvoice(invoice.invoiceId);
-			invoice = updatedInvoice;
-		} catch (err) {
-			error = err instanceof Error ? err.message : 'Failed to cancel invoice';
-		} finally {
+		return async ({ result }) => {
 			actionLoading = null;
-		}
-	}
+			if (result.type === 'success') {
+				// Refresh the page to get updated invoice
+				window.location.reload();
+			}
+		};
+	};
 
 	function goBack() {
 		goto('/invoices');
@@ -158,11 +134,6 @@
 	let canMarkAsPaid = $derived(invoice?.status === 'Draft' || invoice?.status === 'Pending');
 	let canSimulatePayment = $derived(invoice?.status === 'Draft' || invoice?.status === 'Pending');
 	let canCancel = $derived(invoice?.status === 'Draft' || invoice?.status === 'Pending');
-
-	// Initialize form values with invoice data
-	markAsPaidForm.amountPaid = invoice.amount;
-	simulatePaymentForm.amount = invoice.amount;
-	simulatePaymentForm.currency = invoice.currency || 'USD';
 </script>
 
 <svelte:head>
@@ -183,7 +154,7 @@
 		</Button>
 	</div>
 
-	{#if error}
+	{#if form?.errorMessage}
 		<Card class="border-destructive/50 bg-destructive/5">
 			<CardContent class="flex flex-col items-center justify-center space-y-4 py-12">
 				<div class="bg-destructive/10 rounded-full p-3">
@@ -191,7 +162,7 @@
 				</div>
 				<div class="space-y-2 text-center">
 					<h3 class="text-destructive font-semibold">Error</h3>
-					<p class="text-muted-foreground max-w-md text-sm">{error}</p>
+					<p class="text-muted-foreground max-w-md text-sm">{form.errorMessage}</p>
 				</div>
 			</CardContent>
 		</Card>
@@ -312,7 +283,12 @@
 					<CardContent class="space-y-4">
 						<!-- Mark as Paid -->
 						{#if canMarkAsPaid}
-							<div class="space-y-3">
+							<form
+								method="POST"
+								action="?/markPaid"
+								use:enhance={handleMarkAsPaid}
+								class="space-y-3"
+							>
 								<h4 class="flex items-center gap-2 font-medium">
 									<CheckCircle size={16} class="text-green-600" />
 									Mark as Paid
@@ -320,23 +296,29 @@
 								<div class="space-y-3">
 									<div>
 										<label class="text-sm font-medium">Amount Paid</label>
-										<CurrencyInput
-											bind:value={markAsPaidForm.amountPaid}
-											currency={invoice.currency || 'USD'}
+										<input
+											type="number"
+											name="amountPaid"
+											step="0.01"
+											min="0"
+											value={markAsPaidForm.amountPaid}
+											class="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
 											placeholder="Enter payment amount"
+											required
 										/>
 									</div>
 									<div>
 										<label class="text-sm font-medium">Payment Date</label>
 										<Input
 											type="date"
-											bind:value={markAsPaidForm.paymentDate}
+											name="paymentDate"
+											value={markAsPaidForm.paymentDate}
 										/>
 									</div>
 								</div>
 								<Button
-									onclick={markAsPaid}
-									disabled={!!actionLoading || markAsPaidForm.amountPaid <= 0}
+									type="submit"
+									disabled={!!actionLoading}
 									class="w-full gap-2 bg-green-600 hover:bg-green-700"
 								>
 									{#if actionLoading === 'mark-paid'}
@@ -348,13 +330,18 @@
 									{/if}
 									Mark as Paid
 								</Button>
-							</div>
+							</form>
 							<div class="border-t pt-4"></div>
 						{/if}
 
 						<!-- Simulate Payment -->
 						{#if canSimulatePayment}
-							<div class="space-y-3">
+							<form
+								method="POST"
+								action="?/simulatePayment"
+								use:enhance={handleSimulatePayment}
+								class="space-y-3"
+							>
 								<h4 class="flex items-center gap-2 font-medium">
 									<CreditCard size={16} class="text-blue-600" />
 									Simulate Payment
@@ -362,34 +349,54 @@
 								<div class="space-y-3">
 									<div>
 										<label class="text-sm font-medium">Amount</label>
-										<CurrencyInput
-											bind:value={simulatePaymentForm.amount}
-											currency={invoice.currency || 'USD'}
+										<input
+											type="number"
+											name="amount"
+											step="0.01"
+											min="0"
+											value={simulatePaymentForm.amount}
+											class="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
 											placeholder="Enter simulation amount"
+											required
+										/>
+									</div>
+									<div>
+										<label class="text-sm font-medium">Currency</label>
+										<Input
+											type="text"
+											name="currency"
+											value={simulatePaymentForm.currency}
+											placeholder="Currency"
 										/>
 									</div>
 									<div>
 										<label class="text-sm font-medium">Payment Method</label>
-										<Select
-											bind:value={simulatePaymentForm.paymentMethod}
-											options={paymentMethodOptions}
-											placeholder="Select payment method"
-										/>
+										<select
+											name="paymentMethod"
+											value={simulatePaymentForm.paymentMethod}
+											class="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+										>
+											{#each paymentMethodOptions as option}
+												<option value={option.value}>{option.label}</option>
+											{/each}
+										</select>
 									</div>
 									<div>
 										<label class="text-sm font-medium"
 											>Reference (Optional)</label
 										>
 										<Input
-											bind:value={simulatePaymentForm.paymentReference}
+											type="text"
+											name="paymentReference"
+											value={simulatePaymentForm.paymentReference}
 											placeholder="Payment reference"
 										/>
 									</div>
 								</div>
 								<Button
-									onclick={simulatePayment}
+									type="submit"
 									variant="outline"
-									disabled={!!actionLoading || simulatePaymentForm.amount <= 0}
+									disabled={!!actionLoading}
 									class="w-full gap-2"
 								>
 									{#if actionLoading === 'simulate-payment'}
@@ -401,13 +408,18 @@
 									{/if}
 									Simulate Payment
 								</Button>
-							</div>
+							</form>
 							<div class="border-t pt-4"></div>
 						{/if}
 
 						<!-- Cancel Invoice -->
 						{#if canCancel}
-							<div class="space-y-3">
+							<form
+								method="POST"
+								action="?/cancel"
+								use:enhance={handleCancel}
+								class="space-y-3"
+							>
 								<h4 class="flex items-center gap-2 font-medium">
 									<XCircle size={16} class="text-red-600" />
 									Cancel Invoice
@@ -417,7 +429,7 @@
 									cancelled.
 								</p>
 								<Button
-									onclick={cancelInvoice}
+									type="submit"
 									variant="destructive"
 									disabled={!!actionLoading}
 									class="w-full gap-2"
@@ -431,7 +443,7 @@
 									{/if}
 									Cancel Invoice
 								</Button>
-							</div>
+							</form>
 						{/if}
 
 						<!-- No actions available -->
