@@ -1,5 +1,5 @@
 import type { Actions } from './$types';
-import { redirect, fail } from '@sveltejs/kit';
+import { redirect, fail, error } from '@sveltejs/kit';
 import { cashierApi } from '$lib/api';
 import { ApiError } from '$lib/infrastructure';
 
@@ -41,7 +41,8 @@ export const actions: Actions = {
 
 			throw redirect(303, '/cashiers');
 		} catch (err) {
-			if (err instanceof redirect) {
+			// If it's a redirect, just re-throw it
+			if (err && typeof err === 'object' && 'status' in err && err.status >= 300 && err.status < 400) {
 				throw err;
 			}
 

@@ -40,6 +40,20 @@
 		{ value: 'Cancelled', label: 'Cancelled' }
 	];
 
+	// Computed summary values from currency summaries
+	let computedSummary = $derived({
+		totalAmount: summary.currencySummaries.reduce((total, currSummary) => {
+			return total + (currSummary.amounts.total.cents || 0);
+		}, 0),
+		paidCount: summary.currencySummaries.reduce((total, currSummary) => {
+			return total + currSummary.counts.paid;
+		}, 0),
+		overdueCount: summary.currencySummaries.reduce((total, currSummary) => {
+			return total + currSummary.counts.overdue;
+		}, 0),
+		currency: summary.currencySummaries[0]?.currency || 'USD'
+	});
+
 	// Reactive filtered invoices
 	let filteredInvoices = $derived(
 		invoices.filter((invoice) => {
@@ -96,7 +110,7 @@
 		<div class="space-y-1">
 			<h1 class="text-3xl font-bold tracking-tight text-foreground">Invoices</h1>
 			<p class="text-muted-foreground">
-				Manage and track your invoices. {filteredInvoices.length} total, {summary.paidCount}
+				Manage and track your invoices. {filteredInvoices.length} total, {computedSummary.paidCount}
 				paid.
 			</p>
 		</div>
@@ -128,7 +142,7 @@
 				<div class="flex items-center justify-between">
 					<div class="space-y-1">
 						<p class="text-sm font-medium text-muted-foreground">Total Amount</p>
-						<CurrencyDisplay amount={summary.totalAmount} size="xl" />
+						<CurrencyDisplay amount={computedSummary.totalAmount} currency={computedSummary.currency} size="xl" />
 					</div>
 					<div class="rounded-full bg-green-100 p-3">
 						<DollarSign size={20} class="text-green-600" />
@@ -142,7 +156,7 @@
 				<div class="flex items-center justify-between">
 					<div class="space-y-1">
 						<p class="text-sm font-medium text-muted-foreground">Paid</p>
-						<p class="text-2xl font-bold text-green-600">{summary.paidCount}</p>
+						<p class="text-2xl font-bold text-green-600">{computedSummary.paidCount}</p>
 					</div>
 					<div class="rounded-full bg-green-100 p-3">
 						<CheckCircle size={20} class="text-green-600" />
@@ -156,7 +170,7 @@
 				<div class="flex items-center justify-between">
 					<div class="space-y-1">
 						<p class="text-sm font-medium text-muted-foreground">Overdue</p>
-						<p class="text-2xl font-bold text-orange-600">{summary.overdueCount}</p>
+						<p class="text-2xl font-bold text-orange-600">{computedSummary.overdueCount}</p>
 					</div>
 					<div class="rounded-full bg-orange-100 p-3">
 						<AlertCircle size={20} class="text-orange-600" />
@@ -314,11 +328,11 @@
 			<div class="flex items-center gap-4 text-sm text-muted-foreground">
 				<span class="flex items-center gap-1">
 					<div class="h-2 w-2 rounded-full bg-green-500"></div>
-					{summary.paidCount} paid
+					{computedSummary.paidCount} paid
 				</span>
 				<span class="flex items-center gap-1">
 					<div class="h-2 w-2 rounded-full bg-orange-500"></div>
-					{summary.overdueCount} overdue
+					{computedSummary.overdueCount} overdue
 				</span>
 			</div>
 		</div>

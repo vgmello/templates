@@ -3,7 +3,8 @@ import { error, fail } from '@sveltejs/kit';
 import { cashierApi } from '$lib/api';
 import { ApiError } from '$lib/infrastructure';
 
-export const load: PageServerLoad = async ({ url }) => {
+export const load: PageServerLoad = async ({ url, depends }) => {
+	depends('cashiers:list');
 	try {
 		// Extract query parameters for potential filtering
 		const page = url.searchParams.get('page');

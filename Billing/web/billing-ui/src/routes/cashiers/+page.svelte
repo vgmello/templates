@@ -237,9 +237,14 @@
 									return async ({ result, update }) => {
 										deletingId = null;
 										if (result.type === 'success') {
-											await invalidate('data');
+											// Invalidate the current page's data to force a reload
+											await invalidate('/cashiers');
+											await invalidate('cashiers:list');
+											// Also force update the page
+											await update({ reset: false });
+										} else {
+											await update();
 										}
-										await update();
 									};
 								}}
 							>
