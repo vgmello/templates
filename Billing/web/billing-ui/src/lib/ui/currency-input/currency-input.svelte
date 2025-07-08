@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { cn } from '$lib/infrastructure/utils/utils.js';
-	import { formatCurrency } from '$lib/infrastructure/utils/currency.js';
+	import { cn } from '$lib/infrastructure/utils/Utils.js';
+	import { formatCurrency } from '$lib/infrastructure/utils/Currency.js';
 
 	type Props = {
 		id?: string;

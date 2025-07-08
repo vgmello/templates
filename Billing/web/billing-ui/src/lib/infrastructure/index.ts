@@ -25,6 +25,6 @@ export { default as ErrorBoundary } from './error/ErrorBoundary.svelte';
 export { default as NotificationDisplay } from './error/NotificationDisplay.svelte';
 
 // Utilities
-export { cn } from './utils/utils.js';
-export { formatCurrency } from './utils/currency.js';
-export { formatDate, formatDateForInput, isOverdue } from './utils/date.js';
+export { cn } from './utils/Utils.js';
+export { formatCurrency } from './utils/Currency.js';
+export { formatDate, formatDateForInput, isOverdue } from './utils/Date.js';

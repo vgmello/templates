@@ -1,6 +1,6 @@
 // Invoices feature public API
-export { Invoice, type InvoiceData } from './models/invoice';
-export { InvoiceService, type InvoiceSummary } from './invoice-service';
+export { Invoice, type InvoiceData } from './models/Invoice';
+export { InvoiceService, type InvoiceSummary } from './InvoiceService';
 export {
 	invoiceApi,
 	type GetInvoicesQuery,
@@ -8,5 +8,5 @@ export {
 	type CreateInvoiceRequest,
 	type MarkInvoiceAsPaidRequest,
 	type SimulatePaymentRequest
-} from './invoice-api';
+} from './InvoiceApi';
 export { default as InvoiceStatusBadge } from './components/invoice-status-badge.svelte';

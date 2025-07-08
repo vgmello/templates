@@ -18,7 +18,7 @@
 	import { type InvoiceDTO as Invoice } from '$lib/invoices';
 	import { InvoiceStatusBadge } from '$lib/invoices';
 	import { CurrencyDisplay } from '$lib/ui/currency-display';
-	import { formatDate, formatDateForInput } from '$lib/infrastructure/utils/date.js';
+	import { formatDate, formatDateForInput } from '$lib/infrastructure/utils/Date.js';
 
 	type Props = {
 		data: {

@@ -18,7 +18,7 @@
 	import type { InvoiceDTO as Invoice } from '$lib/invoices';
 	import type { InvoiceSummary } from '$lib/invoices';
 	import { InvoiceStatusBadge } from '$lib/invoices';
-	import { formatDate, isOverdue } from '$lib/infrastructure/utils/date.js';
+	import { formatDate, isOverdue } from '$lib/infrastructure/utils/Date.js';
 
 	type Props = {
 		data: {

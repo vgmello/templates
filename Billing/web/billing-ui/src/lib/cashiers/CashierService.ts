@@ -1,4 +1,4 @@
-import type { CashierData } from './models/cashier';
+import type { CashierData } from './models/Cashier';
 import type { Currency } from '$lib/core/values/Currency';
 
 export class CashierService {

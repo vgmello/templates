@@ -1,5 +1,5 @@
-import type { InvoiceData } from './models/invoice';
-import type { Invoice } from './invoice-api';
+import type { InvoiceData } from './models/Invoice';
+import type { Invoice } from './InvoiceApi';
 import { Money } from '$lib/core/values/Money';
 import type { Currency } from '$lib/core/values/Currency';
 

@@ -1,6 +1,6 @@
 // Cashiers feature public API
-export { Cashier, type CashierData } from './models/cashier';
-export { CashierService } from './cashier-service';
+export { Cashier, type CashierData } from './models/Cashier';
+export { CashierService } from './CashierService';
 export {
 	cashierApi,
 	type GetCashiersResult,
@@ -8,4 +8,4 @@ export {
 	type CreateCashierRequest,
 	type UpdateCashierRequest,
 	type GetCashiersQuery
-} from './cashier-api';
+} from './CashierApi';

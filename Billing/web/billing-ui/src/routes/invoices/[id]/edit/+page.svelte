@@ -9,7 +9,7 @@
 	import { ArrowLeft, Save, FileText, DollarSign, Calendar, User } from '@lucide/svelte';
 	import { invoiceApi, type Invoice, type CreateInvoiceRequest } from '$lib/invoices';
 	import { cashierApi, type GetCashiersResult } from '$lib/cashiers';
-	import { formatDateForInput } from '$lib/infrastructure/utils/date.js';
+	import { formatDateForInput } from '$lib/infrastructure/utils/Date.js';
 
 	let invoiceId = $derived($page.params.id);
 	let invoice = $state<Invoice | null>(null);
