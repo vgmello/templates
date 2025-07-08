@@ -23,6 +23,7 @@
 	let loading = $state(false);
 
 	// Form state variables
+	let formName = $state(form?.values?.name ?? '');
 	let formAmount = $state(form?.values?.amount ?? 0);
 	let formCurrency = $state(form?.values?.currency ?? 'USD');
 	let formCashierId = $state(form?.values?.cashierId ?? '');
@@ -63,7 +64,7 @@
 				<ArrowLeft size={16} />
 				Back to Invoices
 			</Button>
-			<div class="h-6 w-px bg-border"></div>
+			<div class="bg-border h-6 w-px"></div>
 			<div class="flex items-center gap-2">
 				<FileText size={20} class="text-primary" />
 				<h1 class="text-2xl font-bold">Create New Invoice</h1>
@@ -74,10 +75,10 @@
 	{#if form?.errors?.form}
 		<Card class="border-destructive/50 bg-destructive/5">
 			<CardContent class="p-4">
-				<div class="flex items-center gap-2 text-destructive">
+				<div class="text-destructive flex items-center gap-2">
 					<div class="font-medium">Error creating invoice</div>
 				</div>
-				<p class="mt-1 text-sm text-destructive/80">{form.errors.form}</p>
+				<p class="text-destructive/80 mt-1 text-sm">{form.errors.form}</p>
 			</CardContent>
 		</Card>
 	{/if}
@@ -99,7 +100,7 @@
 			<Card>
 				<CardHeader>
 					<CardTitle>Invoice Details</CardTitle>
-					<p class="text-sm text-muted-foreground">
+					<p class="text-muted-foreground text-sm">
 						Fill in the information for your new invoice
 					</p>
 				</CardHeader>
@@ -113,14 +114,14 @@
 						<Input
 							id="name"
 							name="name"
-							value={form?.values?.name ?? ''}
+							bind:value={formName}
 							placeholder="Enter invoice description"
 							class={form?.errors?.name ? 'border-destructive' : ''}
 							disabled={loading}
 							required
 						/>
 						{#if form?.errors?.name}
-							<p class="text-sm text-destructive">{form.errors.name}</p>
+							<p class="text-destructive text-sm">{form.errors.name}</p>
 						{/if}
 					</div>
 
@@ -173,7 +174,7 @@
 							disabled={loading}
 						/>
 						{#if form?.errors?.dueDate}
-							<p class="text-sm text-destructive">{form.errors.dueDate}</p>
+							<p class="text-destructive text-sm">{form.errors.dueDate}</p>
 						{/if}
 					</div>
 
@@ -191,7 +192,7 @@
 							disabled={loading}
 						/>
 						<input type="hidden" name="cashierId" value={formCashierId} />
-						<p class="text-xs text-muted-foreground">
+						<p class="text-muted-foreground text-xs">
 							Assign a cashier to handle payments for this invoice
 						</p>
 					</div>
@@ -209,12 +210,12 @@
 				<CardContent class="space-y-4">
 					<div class="space-y-3">
 						<div>
-							<label class="text-xs text-muted-foreground">Name</label>
-							<p class="font-medium">{form?.values?.name || 'Untitled Invoice'}</p>
+							<span class="text-muted-foreground text-xs">Name</span>
+							<p class="font-medium">{formName || 'Untitled Invoice'}</p>
 						</div>
 
 						<div>
-							<label class="text-xs text-muted-foreground">Amount</label>
+							<span class="text-muted-foreground text-xs">Amount</span>
 							<p class="text-lg font-bold">
 								{new Intl.NumberFormat('en-US', {
 									style: 'currency',
@@ -225,7 +226,7 @@
 
 						{#if form?.values?.dueDate}
 							<div>
-								<label class="text-xs text-muted-foreground">Due Date</label>
+								<span class="text-muted-foreground text-xs">Due Date</span>
 								<p>
 									{new Date(form.values.dueDate).toLocaleDateString('en-US', {
 										weekday: 'long',
@@ -239,8 +240,7 @@
 
 						{#if formCashierId}
 							<div>
-								<label class="text-xs text-muted-foreground">Assigned Cashier</label
-								>
+								<span class="text-muted-foreground text-xs">Assigned Cashier</span>
 								<p>{cashiers.find((c) => c.cashierId === formCashierId)?.name}</p>
 							</div>
 						{/if}
@@ -278,7 +278,7 @@
 			<Card>
 				<CardContent class="p-4">
 					<h4 class="mb-2 font-medium">Tips</h4>
-					<ul class="space-y-1 text-sm text-muted-foreground">
+					<ul class="text-muted-foreground space-y-1 text-sm">
 						<li>• Use descriptive names for easy identification</li>
 						<li>• Set due dates to track payment deadlines</li>
 						<li>• Assign cashiers for payment processing</li>

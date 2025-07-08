@@ -42,7 +42,13 @@ export const actions: Actions = {
 			throw redirect(303, '/cashiers');
 		} catch (err) {
 			// If it's a redirect, just re-throw it
-			if (err && typeof err === 'object' && 'status' in err && err.status >= 300 && err.status < 400) {
+			if (
+				err &&
+				typeof err === 'object' &&
+				'status' in err &&
+				err.status >= 300 &&
+				err.status < 400
+			) {
 				throw err;
 			}
 

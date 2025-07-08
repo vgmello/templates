@@ -59,7 +59,7 @@ export class InvoiceService {
 			const effectiveStatus = isOverdue ? 'overdue' : invoice.status;
 
 			counts[effectiveStatus]++;
-			amounts[effectiveStatus] = amounts[effectiveStatus].add(amount);
+			amounts[effectiveStatus] = amounts[effectiveStatus]?.add(amount);
 			amounts.total = amounts.total.add(amount);
 		}
 
