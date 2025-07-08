@@ -1,23 +1,27 @@
 # Billing UI
 
-Modern SvelteKit web application for the Billing service, providing a responsive interface for managing cashiers and invoices.
+Modern SvelteKit web application for the Billing service, providing a responsive interface for managing cashiers and invoices with domain-driven design principles.
 
 ## Overview
 
-The Billing UI is a full-stack SvelteKit application that provides:
+The Billing UI is a full-stack SvelteKit application that implements:
 
-- Server-side rendering with client-side hydration
-- Type-safe API integration with the Billing backend
-- Responsive design using Tailwind CSS and shadcn-svelte components
-- Form handling with progressive enhancement
-- Real-time validation and error handling
+- **Domain-Driven Architecture**: Feature-based organization with command/query patterns
+- **Server-side rendering** with client-side hydration using SvelteKit
+- **Type-safe API integration** with comprehensive error handling
+- **Reactive domain models** using Svelte 5's `$state` and `$derived`
+- **Responsive design** using Tailwind CSS and shadcn-svelte components
+- **Progressive enhancement** with form actions and real-time validation
+- **OpenTelemetry integration** for comprehensive observability
 
 ## Tech Stack
 
 - **Framework**: SvelteKit with Svelte 5
-- **Language**: TypeScript
+- **Language**: TypeScript with strict typing
+- **Architecture**: Domain-driven design with CQRS patterns
 - **Styling**: Tailwind CSS + shadcn-svelte components
 - **Icons**: Lucide Svelte
+- **Observability**: OpenTelemetry with tracing
 - **Testing**: Vitest (unit) + Playwright (E2E)
 
 ## Getting Started
@@ -71,34 +75,38 @@ pnpm db:studio    # Open Drizzle Studio
 
 ## Project Structure
 
+The application follows a domain-driven design with feature-based organization:
+
 ```
-billing-ui/
-├── src/
-│   ├── routes/               # SvelteKit routes (pages)
-│   │   ├── +layout.svelte   # Root layout
-│   │   ├── +page.svelte     # Home/dashboard
-│   │   ├── cashiers/        # Cashier management
-│   │   │   ├── +page.svelte # List view
-│   │   │   ├── create/      # Create form
-│   │   │   └── [id]/        # Detail/edit views
-│   │   └── invoices/        # Invoice management
-│   │       ├── +page.svelte # List view
-│   │       ├── create/      # Create form
-│   │       └── [id]/        # Detail view
-│   ├── lib/
-│   │   ├── api/             # API client layer
-│   │   │   ├── client.ts    # Base HTTP client
-│   │   │   ├── cashiers.ts  # Cashier endpoints
-│   │   │   └── invoices.ts  # Invoice endpoints
-│   │   ├── components/      # Reusable components
-│   │   │   ├── ui/          # shadcn-svelte components
-│   │   │   └── *.svelte     # Custom components
-│   │   ├── server/          # Server-side utilities
-│   │   │   ├── auth.ts      # Authentication
-│   │   │   └── db/          # Database schema
-│   │   ├── types/           # TypeScript types
-│   │   └── utils/           # Utility functions
-│   └── app.html             # HTML template
+billing-ui/src/
+├── routes/                    # SvelteKit routes (pages)
+│   ├── +layout.svelte        # Root layout with navigation
+│   ├── +page.svelte          # Dashboard home
+│   ├── cashiers/             # Cashier feature routes
+│   └── invoices/             # Invoice feature routes
+├── lib/
+│   ├── cashiers/             # Cashier domain feature
+│   │   ├── actions/          # Commands (CreateCashierCommand)
+│   │   ├── components/       # Domain-specific components
+│   │   ├── models/           # Domain models (Cashier.ts)
+│   │   ├── queries/          # Queries (GetCashiersQuery)
+│   │   ├── validators/       # Business validation
+│   │   └── CashiersApi.ts    # API integration
+│   ├── invoices/             # Invoice domain feature
+│   │   ├── actions/          # Commands (CreateInvoiceCommand)
+│   │   ├── components/       # Domain-specific components
+│   │   ├── models/           # Domain models (Invoice.ts)
+│   │   ├── queries/          # Queries (GetInvoicesQuery)
+│   │   └── InvoiceApi.ts     # API integration
+│   ├── core/                 # Shared domain values
+│   │   ├── values/           # Value objects (Money, Currency)
+│   │   └── enums/            # Domain enumerations
+│   ├── infrastructure/       # Cross-cutting concerns
+│   │   ├── api/              # HTTP client with telemetry
+│   │   ├── error/            # Error handling & notifications
+│   │   └── telemetry/        # OpenTelemetry setup
+│   ├── server/               # Server-side utilities
+│   └── ui/                   # shadcn-svelte components
 ├── tests/                    # Test files
 ├── static/                   # Static assets
 └── *.config.js              # Configuration files
@@ -138,27 +146,43 @@ The application uses shadcn-svelte components for consistent design:
 
 ### API Integration
 
-The UI integrates with the Billing API through a type-safe client:
+The UI uses a command/query pattern with domain-specific APIs:
 
 ```typescript
-// Example: Fetching cashiers
-import { getCashiers } from '$lib/api/cashiers';
+// Example: Query pattern
+import { GetCashiersQuery } from '$lib/cashiers/queries/GetCashiersQuery';
 
-const cashiers = await getCashiers({
-	limit: 10,
-	offset: 0
-});
+const query = new GetCashiersQuery({ limit: 10, offset: 0 });
+const cashiers = await query.execute();
 
-// Example: Creating an invoice
-import { createInvoice } from '$lib/api/invoices';
+// Example: Command pattern
+import { CreateInvoiceCommand } from '$lib/invoices/actions/CreateInvoiceCommand';
 
-const invoice = await createInvoice({
+const command = new CreateInvoiceCommand({
 	name: 'Invoice #123',
 	amount: 100.5,
 	currency: 'USD',
 	dueDate: new Date(),
 	cashierId: '...'
 });
+const invoice = await command.execute();
+```
+
+### Domain Models
+
+Reactive domain models using Svelte 5's runes:
+
+```typescript
+// Reactive domain model
+export class Cashier {
+	id = $state<string>('');
+	name = $state<string>('');
+	email = $state<string>('');
+	
+	// Derived computed properties
+	displayName = $derived(this.name || this.email || 'Unknown Cashier');
+	isValid = $derived(this.name.length > 0 && this.email.length > 0);
+}
 ```
 
 ### Form Handling
@@ -255,37 +279,111 @@ EXPOSE 3000
 CMD ["node", "build"]
 ```
 
-## OTEL
+## Architecture Review & Improvement Opportunities
 
-### Core Packages
+### Current Strengths
 
-@opentelemetry/api
-@opentelemetry/api-logs
-@opentelemetry/exporter-trace-otlp-http
-@opentelemetry/resources
-@opentelemetry/instrumentation
-@opentelemetry/semantic-conventions
+1. **Domain Organization**: Well-structured feature-based organization
+2. **Type Safety**: Comprehensive TypeScript usage with domain models
+3. **Reactive State**: Effective use of Svelte 5's `$state` and `$derived`
+4. **Error Handling**: Sophisticated error handling with notifications
+5. **Telemetry**: OpenTelemetry integration for observability
 
-### Web SDK
+### Areas for Improvement
 
-@opentelemetry/sdk-trace-web
-@opentelemetry/instrumentation-fetch
-@opentelemetry/instrumentation-document-load
+#### 1. Domain Layer Separation
+**Issue**: Domain models contain UI reactivity concerns
+```typescript
+// Current: Domain model with UI state
+export class Cashier {
+  id = $state<string>('');  // UI concern in domain
+  displayName = $derived(this.name || this.email);
+}
 
-### Node SDK
+// Recommended: Separate domain and view models
+export interface CashierDomain {
+  id: string;
+  name: string;
+  email: string;
+}
 
-@opentelemetry/sdk-node
-@opentelemetry/sdk-logs
-@opentelemetry/sdk-trace-node
-@opentelemetry/instrumentation-http
+export class CashierViewModel {
+  private domain = $state<CashierDomain>();
+  displayName = $derived(this.domain?.name || this.domain?.email);
+}
+```
+
+#### 2. Type Safety Between Layers
+**Issue**: DTOs and domain models are conflated
+- API interfaces don't match domain models consistently
+- Missing proper type converters between layers
+- No runtime type validation
+
+#### 3. State Management
+**Current**: Basic SvelteKit load functions
+**Opportunities**: 
+- Client-side caching with TTL
+- Optimistic updates for better UX
+- Centralized state stores for complex interactions
+
+#### 4. Error Handling Enhancement
+**Gaps**:
+- Generic errors don't convey domain context
+- No domain-specific error boundaries
+- Missing retry mechanisms with exponential backoff
+
+#### 5. Caching Strategy
+**Missing**:
+- HTTP caching headers
+- Client-side cache invalidation
+- Background refresh for stale data
+
+### Recommended Improvements
+
+1. **Implement Clean Architecture**
+   - Separate domain, application, and infrastructure layers
+   - Remove UI concerns from domain models
+   - Add domain services for business logic
+
+2. **Enhance Error Handling**
+   - Create domain-specific error types
+   - Implement error boundaries per feature
+   - Add proper error recovery flows
+
+3. **Add Caching Layer**
+   - Implement client-side caching with SvelteKit stores
+   - Add HTTP caching headers
+   - Implement cache invalidation strategies
+
+4. **Improve Type Safety**
+   - Separate DTOs from domain models
+   - Add runtime type validation
+   - Create proper type converters
+
+## OpenTelemetry Integration
+
+### Packages Used
+
+**Core**: `@opentelemetry/api`, `@opentelemetry/resources`, `@opentelemetry/semantic-conventions`
+**Web**: `@opentelemetry/sdk-trace-web`, `@opentelemetry/instrumentation-fetch`
+**Node**: `@opentelemetry/sdk-node`, `@opentelemetry/instrumentation-http`
+**Export**: `@opentelemetry/exporter-trace-otlp-http`
+
+### Implementation
+- Automatic HTTP request tracing
+- Custom spans for domain operations
+- Server-side and client-side instrumentation
+- Currently using mock mode due to build complexity
 
 ## Development Tips
 
-1. **Type Safety**: Leverage TypeScript for API integration
-2. **Component Reuse**: Use shadcn-svelte components consistently
-3. **Progressive Enhancement**: Ensure forms work without JavaScript
-4. **Accessibility**: Test with keyboard navigation and screen readers
-5. **Performance**: Use SvelteKit's preloading and code splitting
+1. **Domain Modeling**: Keep domain logic separate from UI concerns
+2. **Type Safety**: Use strict TypeScript with proper layer separation
+3. **Component Architecture**: Leverage shadcn-svelte for consistency
+4. **Progressive Enhancement**: Ensure core functionality works without JS
+5. **Error Boundaries**: Implement feature-specific error handling
+6. **Performance**: Use SvelteKit's preloading and code splitting
+7. **Testing**: Test domain logic separately from UI components
 
 ### Backend execution
 
