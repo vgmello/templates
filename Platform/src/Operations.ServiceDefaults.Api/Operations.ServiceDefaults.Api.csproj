@@ -29,4 +29,8 @@
         <PackageReference Include="Scalar.AspNetCore"/>
     </ItemGroup>
 
+    <ItemGroup>
+      <ProjectReference Include="..\Operations.Extensions.Abstractions\Operations.Extensions.Abstractions.csproj" />
+    </ItemGroup>
+
 </Project>

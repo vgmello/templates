@@ -1,5 +1,8 @@
+// Copyright (c) ABCDEG. All rights reserved.
+
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Jobs;
+using Operations.Extensions.Abstractions.Extensions;
 
 namespace Operations.Extensions.Benchmarks;
 
@@ -13,8 +16,8 @@ public class StringExtensionsBenchmark
     [GlobalSetup]
     public void Setup()
     {
-        _testInputs = new[]
-        {
+        _testInputs =
+        [
             "",
             "already_snake_case",
             "PascalCaseString",
@@ -40,17 +43,19 @@ public class StringExtensionsBenchmark
             "12121_12121",
             "12121_A12121",
             "_"
-        };
+        ];
     }
 
     [Benchmark(Baseline = true)]
     public string[] CurrentImplementation()
     {
         var results = new string[_testInputs.Length];
-        for (int i = 0; i < _testInputs.Length; i++)
+
+        for (var i = 0; i < _testInputs.Length; i++)
         {
             results[i] = ToLowerCaseWithSeparator_Current(_testInputs[i], '_');
         }
+
         return results;
     }
 
@@ -58,10 +63,12 @@ public class StringExtensionsBenchmark
     public string[] OptimizedImplementation()
     {
         var results = new string[_testInputs.Length];
-        for (int i = 0; i < _testInputs.Length; i++)
+
+        for (var i = 0; i < _testInputs.Length; i++)
         {
             results[i] = ToLowerCaseWithSeparator_Optimized(_testInputs[i], '_');
         }
+
         return results;
     }
 
@@ -163,78 +170,11 @@ public class StringExtensionsBenchmark
     }
 
     /// <summary>
-    /// Converts a string to lowercase with a separator, with a zero-allocation fast path
-    /// for strings that don't need changes.
+    ///     Converts a string to lowercase with a separator, with a zero-allocation fast path
+    ///     for strings that don't need changes.
     /// </summary>
     private static string ToLowerCaseWithSeparator_Optimized(string input, char separator)
     {
-        if (string.IsNullOrEmpty(input))
-        {
-            return input;
-        }
-
-        // --- First Pass: Check for changes and calculate final length ---
-        int separatorCount = 0;
-        bool needsChange = false;
-
-        for (int i = 0; i < input.Length; i++)
-        {
-            char currentChar = input[i];
-            if (char.IsUpper(currentChar))
-            {
-                // Found an uppercase character, so a change is definitely needed.
-                needsChange = true;
-                
-                // Check if a separator must be prepended (logic from previous version)
-                if (i > 0)
-                {
-                    var prevChar = input[i - 1];
-                    // Need to check that previous character is not already a separator
-                    if (prevChar != separator && 
-                        (char.IsLower(prevChar) || char.IsDigit(prevChar) ||
-                        (char.IsUpper(prevChar) && i + 1 < input.Length && char.IsLower(input[i + 1]))))
-                    {
-                        separatorCount++;
-                    }
-                }
-            }
-        }
-
-        // --- FAST PATH ---
-        // If no uppercase letters were found, the string is already compliant.
-        // Return the original string instance to avoid any allocation.
-        if (!needsChange)
-        {
-            return input;
-        }
-
-        // --- Second Pass: Build the new string only if necessary ---
-        return string.Create(input.Length + separatorCount, (input, separator), (span, state) =>
-        {
-            int writeIndex = 0;
-            for (int readIndex = 0; readIndex < state.input.Length; readIndex++)
-            {
-                char currentChar = state.input[readIndex];
-                if (char.IsUpper(currentChar))
-                {
-                    if (readIndex > 0) // Changed from writeIndex > 0 to match original logic
-                    {
-                        var prevChar = state.input[readIndex - 1];
-                        // Need to check that previous character is not already a separator
-                        if (prevChar != state.separator &&
-                            (char.IsLower(prevChar) || char.IsDigit(prevChar) ||
-                            (char.IsUpper(prevChar) && readIndex + 1 < state.input.Length && char.IsLower(state.input[readIndex + 1]))))
-                        {
-                            span[writeIndex++] = state.separator;
-                        }
-                    }
-                    span[writeIndex++] = char.ToLowerInvariant(currentChar);
-                }
-                else
-                {
-                    span[writeIndex++] = currentChar;
-                }
-            }
-        });
+        return input.ToLowerCaseWithSeparator(separator);
     }
 }

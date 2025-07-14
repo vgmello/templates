@@ -10,4 +10,8 @@
     <PackageReference Include="BenchmarkDotNet" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Operations.Extensions.Abstractions\Operations.Extensions.Abstractions.csproj" />
+  </ItemGroup>
+
 </Project>

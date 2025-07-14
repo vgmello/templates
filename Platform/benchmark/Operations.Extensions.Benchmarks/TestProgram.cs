@@ -1,3 +1,5 @@
+// Copyright (c) ABCDEG. All rights reserved.
+
 using System;
 
 namespace Operations.Extensions.Benchmarks;
@@ -39,7 +41,8 @@ public class TestProgram
         Console.WriteLine("Input\t\tCurrent\t\tOptimized\t\tMatch");
         Console.WriteLine("------------------------------------------------------------");
 
-        bool allMatch = true;
+        var allMatch = true;
+
         foreach (var input in testInputs)
         {
             var current = ToLowerCaseWithSeparator_Current(input, '_');
@@ -134,25 +137,27 @@ public class TestProgram
         }
 
         // --- First Pass: Check for changes and calculate final length ---
-        int separatorCount = 0;
-        bool needsChange = false;
+        var separatorCount = 0;
+        var needsChange = false;
 
-        for (int i = 0; i < input.Length; i++)
+        for (var i = 0; i < input.Length; i++)
         {
-            char currentChar = input[i];
+            var currentChar = input[i];
+
             if (char.IsUpper(currentChar))
             {
                 // Found an uppercase character, so a change is definitely needed.
                 needsChange = true;
-                
+
                 // Check if a separator must be prepended (logic from previous version)
                 if (i > 0)
                 {
                     var prevChar = input[i - 1];
+
                     // Need to check that previous character is not already a separator
-                    if (prevChar != separator && 
+                    if (prevChar != separator &&
                         (char.IsLower(prevChar) || char.IsDigit(prevChar) ||
-                        (char.IsUpper(prevChar) && i + 1 < input.Length && char.IsLower(input[i + 1]))))
+                         (char.IsUpper(prevChar) && i + 1 < input.Length && char.IsLower(input[i + 1]))))
                     {
                         separatorCount++;
                     }
@@ -171,23 +176,27 @@ public class TestProgram
         // --- Second Pass: Build the new string only if necessary ---
         return string.Create(input.Length + separatorCount, (input, separator), (span, state) =>
         {
-            int writeIndex = 0;
-            for (int readIndex = 0; readIndex < state.input.Length; readIndex++)
+            var writeIndex = 0;
+
+            for (var readIndex = 0; readIndex < state.input.Length; readIndex++)
             {
-                char currentChar = state.input[readIndex];
+                var currentChar = state.input[readIndex];
+
                 if (char.IsUpper(currentChar))
                 {
                     if (readIndex > 0) // Changed from writeIndex > 0 to match original logic
                     {
                         var prevChar = state.input[readIndex - 1];
+
                         // Need to check that previous character is not already a separator
                         if (prevChar != state.separator &&
                             (char.IsLower(prevChar) || char.IsDigit(prevChar) ||
-                            (char.IsUpper(prevChar) && readIndex + 1 < state.input.Length && char.IsLower(state.input[readIndex + 1]))))
+                             (char.IsUpper(prevChar) && readIndex + 1 < state.input.Length && char.IsLower(state.input[readIndex + 1]))))
                         {
                             span[writeIndex++] = state.separator;
                         }
                     }
+
                     span[writeIndex++] = char.ToLowerInvariant(currentChar);
                 }
                 else

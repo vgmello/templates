@@ -32,90 +32,87 @@ public static class StringExtensions
     public static string ToKebabCase(this string input) => ToLowerCaseWithSeparator(input, '-');
 
     /// <summary>
-    ///     Converts a string to lowercase with a specified separator between words.
+    ///     Converts a camelCase/PascalCase string to a lowercase with a specified separator between words.
     /// </summary>
-    /// <param name="input">The string to convert.</param>
+    /// <param name="input">The string.</param>
     /// <param name="separator">The character to use as a separator between words.</param>
     /// <returns>The string converted to lowercase with separators.</returns>
-    /// <remarks>
-    ///     This method uses stack allocation for performance and correctly handles:
-    ///     <list type="bullet">
-    ///         <item>PascalCase and camelCase conversions</item>
-    ///         <item>Acronyms (e.g., "APIName" becomes "api_name")</item>
-    ///         <item>Numbers (e.g., "Method1Name" becomes "method1_name")</item>
-    ///         <item>Existing separators are preserved</item>
-    ///     </list>
-    /// </remarks>
     public static string ToLowerCaseWithSeparator(this string input, char separator)
     {
         if (string.IsNullOrEmpty(input))
-            return input;
-
-        // Allocate enough space for the worst case (every char becomes an underscore + lower char)
-        Span<char> result = stackalloc char[input.Length * 2];
-
-        var sourceSpan = input.AsSpan();
-        var resultIndex = 0;
-
-        for (var i = 0; i < sourceSpan.Length; i++)
         {
-            var currentChar = sourceSpan[i];
+            return input;
+        }
 
-            // Handle digits and underscores directly
-            if (!char.IsUpper(currentChar))
+        var inputSpan = input.AsSpan();
+        var needsChange = false;
+        var separatorCount = 0;
+
+        // First Pass: Check for changes and calculate the total length
+        for (var i = 0; i < inputSpan.Length; i++)
+        {
+            if (char.IsUpper(inputSpan[i]))
             {
-                result[resultIndex++] = currentChar;
+                needsChange = true;
 
-                continue;
-            }
-
-            // If it's the first character, convert it to lowercase directly
-            if (i == 0)
-            {
-                result[resultIndex++] = char.ToLowerInvariant(currentChar);
-
-                continue;
-            }
-
-            var prependUnderscore = false;
-
-            // Ensure the last char added to result was not already an underscore
-            if (result[resultIndex - 1] != separator)
-            {
-                var prevChar = sourceSpan[i - 1];
-
-                if (char.IsLower(prevChar) || char.IsDigit(prevChar))
+                if (i > 0 && IsWordBoundary(inputSpan, i))
                 {
-                    // Current char: 'C' => "wordCap" -> "word_Cap" or "digit1Cap" -> "digit1_Cap"
-                    prependUnderscore = true;
+                    separatorCount++;
                 }
-                // Current char: 'W' in "ACRONYMWord" -> "ACRONYM_Word"
-                // If it's part of an acronym followed (i+1) by a lowercase letter, an underscore is needed.
-                else if (char.IsUpper(prevChar) && i + 1 < sourceSpan.Length)
-                {
-                    var nextChar = sourceSpan[i + 1];
-
-                    // If current char is 'N' in "APIName", prevIn is 'I', nextIn is 'a'.
-                    // This means 'N' starts a new word segment.
-                    if (char.IsLower(nextChar) && nextChar != separator)
-                    {
-                        prependUnderscore = true;
-                    }
-                }
-            }
-
-            if (prependUnderscore && resultIndex < result.Length)
-            {
-                result[resultIndex++] = separator;
-            }
-
-            // Add the lowercase version of the current uppercase character
-            if (resultIndex < result.Length)
-            {
-                result[resultIndex++] = char.ToLowerInvariant(currentChar);
             }
         }
 
-        return new string(result[..resultIndex]);
+        if (!needsChange)
+        {
+            return input;
+        }
+
+        var state = (Source: input, Separator: separator);
+
+        // Second Pass: Build the new string using a static lambda to prevent allocations.
+        return string.Create(inputSpan.Length + separatorCount, state, static (destinationSpan, state) =>
+        {
+            var sourceSpan = state.Source.AsSpan();
+            var separatorChar = state.Separator;
+            var writeIndex = 0;
+
+            for (var readIndex = 0; readIndex < sourceSpan.Length; readIndex++)
+            {
+                var currentChar = sourceSpan[readIndex];
+
+                if (char.IsUpper(currentChar))
+                {
+                    if (readIndex > 0 && IsWordBoundary(sourceSpan, readIndex))
+                    {
+                        destinationSpan[writeIndex++] = separatorChar;
+                    }
+
+                    destinationSpan[writeIndex++] = char.ToLowerInvariant(currentChar);
+                }
+                else
+                {
+                    destinationSpan[writeIndex++] = currentChar;
+                }
+            }
+        });
+    }
+
+    private static bool IsWordBoundary(ReadOnlySpan<char> source, int currentIndex)
+    {
+        var prevChar = source[currentIndex - 1];
+
+        // Boundary 1 & 2: Lowercase or digit followed by uppercase.
+        if (char.IsLower(prevChar) || char.IsDigit(prevChar))
+        {
+            return true;
+        }
+
+        // Boundary 3: An acronym followed by a regular word (e.g., "APIName").
+        if (char.IsUpper(prevChar) && currentIndex + 1 < source.Length && char.IsLower(source[currentIndex + 1]))
+        {
+            return true;
+        }
+
+        return false;
     }
 }

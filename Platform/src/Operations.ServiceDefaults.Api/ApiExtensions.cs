@@ -2,6 +2,7 @@
 
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Mvc.ApplicationModels;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Operations.ServiceDefaults.Api.OpenApi;
@@ -34,7 +35,11 @@ public static class ApiExtensions
     /// </remarks>
     public static IHostApplicationBuilder AddApiServiceDefaults(this WebApplicationBuilder builder)
     {
-        builder.Services.AddControllers();
+        builder.Services.AddControllers(opt =>
+        {
+            opt.Conventions.Add(new RouteTokenTransformerConvention(new KebabCaseRoutesTransformer()));
+        });
+
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddProblemDetails();
         builder.Services.AddOpenApiWithXmlDocSupport();
