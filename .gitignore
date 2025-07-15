@@ -429,3 +429,6 @@ output-*/*
 **_temp/
 
 CLAUDE.local.md
+
+# Local NuGet feed for development
+.local/nuget

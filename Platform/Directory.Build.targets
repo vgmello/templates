@@ -1,0 +1,28 @@
+<Project>
+    <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.targets', '$(MSBuildThisFileDirectory)../'))"
+            Condition="'' != $([MSBuild]::GetPathOfFileAbove('Directory.Build.targets', '$(MSBuildThisFileDirectory)../'))"/>
+
+    <PropertyGroup Condition="'$(IsTestProject)' != 'true'">
+        <IsPackable>True</IsPackable>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    </PropertyGroup>
+
+    <PropertyGroup Condition=" '$(IsPackable)' == 'true' and '$(Configuration)' == 'DebugPkg' ">
+        <Version>1.0.0</Version>
+        <VersionSuffix>$([System.DateTime]::UtcNow.ToString("yyyyMMdd-HHmmss"))</VersionSuffix>
+        <PackageVersion>$(Version)-$(VersionSuffix)</PackageVersion>
+    </PropertyGroup>
+
+    <Target Name="CleanOldPackages" AfterTargets="Build" Condition=" '$(IsPackable)' == 'true' and '$(Configuration)' == 'DebugPkg' ">
+        <ItemGroup>
+            <OldPackagesToDelete Include="$(MSBuildProjectDirectory)/$(PackageOutputPath)*.nupkg"/>
+        </ItemGroup>
+        <Message Text="Cleaning up nupkg files from $(MSBuildProjectDirectory)/$(PackageOutputPath)" Importance="high"/>
+        <Delete Files="@(OldPackagesToDelete)"/>
+    </Target>
+
+    <Target Name="PushToLocalFeed" AfterTargets="Pack" Condition=" '$(IsPackable)' == 'true' and '$(Configuration)' == 'DebugPkg' ">
+        <MakeDir Directories="$(MSBuildThisFileDirectory)../.local/nuget"/>
+        <Exec Command="dotnet nuget push &quot;$(PackageOutputPath)$(PackageId).$(PackageVersion).nupkg&quot; --source &quot;$(MSBuildThisFileDirectory)../.local/nuget&quot; --skip-duplicate"/>
+    </Target>
+</Project>

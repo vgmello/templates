@@ -4,18 +4,6 @@
         <IsAspireSharedProject>true</IsAspireSharedProject>
     </PropertyGroup>
 
-    <PropertyGroup>
-        <PackageId>$(AssemblyName)</PackageId>
-        <PackageVersion>$(Version)</PackageVersion>
-        <PackageTags>defaults;defaults-api</PackageTags>
-        <IncludeSource>true</IncludeSource>
-        <Authors>ABCDEG</Authors>
-        <Company>ABCDEG</Company>
-        <Copyright>Copyright (c) ABCDEG. All rights reserved.</Copyright>
-        <RepositoryUrl>https://github.com/ABCDEG/templates</RepositoryUrl>
-        <RepositoryType>git</RepositoryType>
-    </PropertyGroup>
-
     <ItemGroup>
         <FrameworkReference Include="Microsoft.AspNetCore.App"/>
     </ItemGroup>

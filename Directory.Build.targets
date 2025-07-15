@@ -25,6 +25,11 @@
         <Using Include="Shouldly"/>
     </ItemGroup>
 
+    <PropertyGroup Condition="'$(Configuration)' == 'DebugPkg' ">
+        <DebugType>full</DebugType>
+        <Optimize>no</Optimize>
+    </PropertyGroup>
+
     <!-- The following lines are a hack to support the .props while those projects are not NuGet packages -->
 
     <!-- Import settings for Operations.Extensions.SourceGenerators, applying to non-Platform projects -->
@@ -39,5 +44,5 @@
 
     <Import Project="Platform/src/Operations.Extensions/Operations.Extensions.props"
             Condition="!$(MSBuildProjectName.StartsWith('Operations')) and '$(_HasOperationsExtensionsRef)' == 'True'"/>
-
+    
 </Project>

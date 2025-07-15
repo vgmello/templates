@@ -4,18 +4,6 @@
         <IsAspireSharedProject>true</IsAspireSharedProject>
     </PropertyGroup>
 
-    <PropertyGroup>
-        <PackageId>$(AssemblyName)</PackageId>
-        <PackageVersion>$(Version)</PackageVersion>
-        <PackageTags>defaults</PackageTags>
-        <IncludeSource>true</IncludeSource>
-        <Authors>ABCDEG</Authors>
-        <Company>ABCDEG</Company>
-        <Copyright>Copyright (c) ABCDEG. All rights reserved.</Copyright>
-        <RepositoryUrl>https://github.com/ABCDEG/templates</RepositoryUrl>
-        <RepositoryType>git</RepositoryType>
-    </PropertyGroup>
-
     <ItemGroup>
         <None Include="Operations.ServiceDefaults.props" Pack="true" PackagePath="build/"/>
     </ItemGroup>
@@ -30,10 +18,10 @@
     -->
 
     <ItemGroup>
-        <PackageReference Include="Aspire.Confluent.Kafka" />
+        <PackageReference Include="Aspire.Confluent.Kafka"/>
         <PackageReference Include="Aspire.Npgsql"/>
-        <PackageReference Include="CloudNative.CloudEvents.Kafka" />
-        <PackageReference Include="CloudNative.CloudEvents.SystemTextJson" />
+        <PackageReference Include="CloudNative.CloudEvents.Kafka"/>
+        <PackageReference Include="CloudNative.CloudEvents.SystemTextJson"/>
         <PackageReference Include="FluentValidation.DependencyInjectionExtensions"/>
         <PackageReference Include="Microsoft.Extensions.Http.Resilience"/>
         <PackageReference Include="Microsoft.Extensions.ServiceDiscovery"/>

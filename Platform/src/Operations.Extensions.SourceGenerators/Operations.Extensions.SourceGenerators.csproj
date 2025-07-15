@@ -11,18 +11,6 @@
         <NoWarn>$(NoWarn);RS1041;RS2007;RS1036</NoWarn>
     </PropertyGroup>
 
-    <PropertyGroup>
-        <PackageId>$(AssemblyName)</PackageId>
-        <PackageVersion>$(Version)</PackageVersion>
-        <PackageTags>extensions</PackageTags>
-        <IncludeSource>true</IncludeSource>
-        <Authors>ABCDEG</Authors>
-        <Company>ABCDEG</Company>
-        <Copyright>Copyright (c) ABCDEG. All rights reserved.</Copyright>
-        <RepositoryUrl>https://github.com/ABCDEG/templates</RepositoryUrl>
-        <RepositoryType>git</RepositoryType>
-    </PropertyGroup>
-
     <ItemGroup>
         <PackageReference Include="Microsoft.CodeAnalysis.CSharp" PrivateAssets="all"/>
         <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" PrivateAssets="all"/>
