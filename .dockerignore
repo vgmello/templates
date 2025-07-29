@@ -1,4 +1,4 @@
-﻿**/.dockerignore
+**/.dockerignore
 **/.env
 **/.git
 **/.gitignore
@@ -23,3 +23,6 @@
 **/values.dev.yaml
 LICENSE
 README.md
+
+**/docs/.vitepress/cache
+

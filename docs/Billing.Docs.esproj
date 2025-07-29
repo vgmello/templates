@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.VisualStudio.JavaScript.SDK/1.0.3444706">
+
+    <PropertyGroup>
+        <TargetFramework>net9.0</TargetFramework>
+        <ExcludeRestorePackageImports>true</ExcludeRestorePackageImports>
+        <ShouldRunNpmInstall/>
+        <StartupCommand>pnpm install &amp;&amp; pnpm run dev</StartupCommand>
+    </PropertyGroup>
+
+</Project>

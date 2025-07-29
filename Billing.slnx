@@ -1,0 +1,44 @@
+<Solution>
+  <Configurations>
+    <BuildType Name="Debug" />
+    <BuildType Name="Release" />
+  </Configurations>
+  <Folder Name="/Infra/">
+    <Project Path="infra\Billing.Database\Billing.Database.csproj" />
+  </Folder>
+  <Folder Name="/Libs/">
+    <Project Path="libs\Operations\src\Operations.Extensions.Abstractions\Operations.Extensions.Abstractions.csproj" Type="Classic C#" />
+    <Project Path="libs\Operations\src\Operations.Extensions.EventMarkdownGenerator\Operations.Extensions.EventMarkdownGenerator.csproj" Type="Classic C#" />
+    <Project Path="libs\Operations\src\Operations.Extensions.SourceGenerators\Operations.Extensions.SourceGenerators.csproj" Type="Classic C#" />
+    <Project Path="libs\Operations\src\Operations.Extensions.XmlDocs\Operations.Extensions.XmlDocs.csproj" Type="Classic C#" />
+    <Project Path="libs\Operations\src\Operations.Extensions\Operations.Extensions.csproj" Type="Classic C#" />
+    <Project Path="libs\Operations\src\Operations.ServiceDefaults.Api\Operations.ServiceDefaults.Api.csproj" Type="Classic C#" />
+    <Project Path="libs\Operations\src\Operations.ServiceDefaults\Operations.ServiceDefaults.csproj" Type="Classic C#" />
+    <Project Path="libs\Operations\tests\Operations.Extensions.EventMarkdownGenerator.Tests\Operations.Extensions.EventMarkdownGenerator.Tests.csproj" Type="Classic C#" />
+  </Folder>
+  <Folder Name="/Libs/Solution Items/">
+    <File Path="libs\Operations\src\Directory.Build.props" />
+    <File Path="libs\Operations\src\Directory.Build.targets" />
+  </Folder>
+  <Folder Name="/Solution Items/">
+    <Project Path="docs\Billing.Docs.esproj" />
+    <File Path=".dockerignore" />
+    <File Path=".editorconfig" />
+    <File Path=".gitignore" />
+    <File Path="ABCDEG.ruleset" />
+    <File Path="Billing.slnx.DotSettings" />
+    <File Path="Directory.Build.props" />
+    <File Path="Directory.Packages.props" />
+    <File Path="README.md" />
+    <File Path="compose.yml" />
+  </Folder>
+  <Folder Name="/Tests/">
+    <Project Path="tests\Billing.Tests\Billing.Tests.csproj" Type="Classic C#" />
+  </Folder>
+  <Project Path="src\Billing.Api\Billing.Api.csproj" Type="Classic C#" />
+  <Project Path="src\Billing.AppHost\Billing.AppHost.csproj" Type="Classic C#" />
+  <Project Path="src\Billing.BackOffice.Orleans\Billing.BackOffice.Orleans.csproj" Type="Classic C#" />
+  <Project Path="src\Billing.BackOffice\Billing.BackOffice.csproj" Type="Classic C#" />
+  <Project Path="src\Billing.Contracts\Billing.Contracts.csproj" Type="Classic C#" />
+  <Project Path="src\Billing\Billing.csproj" Type="Classic C#" />
+</Solution>

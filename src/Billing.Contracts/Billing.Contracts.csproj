@@ -1,0 +1,39 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <IsPackable>True</IsPackable>
+        <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+        <VersionSuffix Condition="'$(Configuration)' == 'Debug'">pre</VersionSuffix>
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    </PropertyGroup>
+
+    <PropertyGroup>
+        <PackageTags>billing.contracts</PackageTags>
+        <IncludeSource>true</IncludeSource>
+        <Authors>ABCDEG</Authors>
+        <Company>ABCDEG</Company>
+        <Copyright>Copyright (c) ABCDEG. All rights reserved.</Copyright>
+        <RepositoryUrl>https://github.com/ABCDEG/templates</RepositoryUrl>
+        <RepositoryType>git</RepositoryType>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <AssemblyAttribute Include="Operations.Extensions.Abstractions.Messaging.DefaultDomainAttribute">
+            <Domain>Billing</Domain>
+        </AssemblyAttribute>
+    </ItemGroup>
+
+    <ItemGroup>
+        <Compile Include="..\Billing\**\Contracts\IntegrationEvents\*.cs" Link="%(RecursiveDir)%(Filename)%(Extension)"/>
+        <Compile Include="..\Billing\**\Contracts\Models\*.cs" Link="%(RecursiveDir)%(Filename)%(Extension)"/>
+        <Content Include="..\Billing.Api\**\Protos\**\*.proto" Link="%(RecursiveDir)%(Filename)%(Extension)" Pack="true">
+            <PackagePath>Protos</PackagePath>
+        </Content>
+        <Content Include="Billing.Contracts.props" Pack="true" PackagePath="build/"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\..\libs\Operations\src\Operations.Extensions.Abstractions\Operations.Extensions.Abstractions.csproj"/>
+    </ItemGroup>
+
+</Project>

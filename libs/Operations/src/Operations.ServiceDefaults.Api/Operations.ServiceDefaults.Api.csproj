@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <IsAspireSharedProject>true</IsAspireSharedProject>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <FrameworkReference Include="Microsoft.AspNetCore.App"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Grpc.AspNetCore"/>
+        <PackageReference Include="Grpc.AspNetCore.Server.Reflection"/>
+        <PackageReference Include="Grpc.AspNetCore.Web"/>
+        <PackageReference Include="Microsoft.AspNetCore.OpenApi"/>
+        <PackageReference Include="OpenTelemetry.Extensions.Hosting" />
+        <PackageReference Include="Scalar.AspNetCore"/>
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\Operations.Extensions.Abstractions\Operations.Extensions.Abstractions.csproj" />
+      <ProjectReference Include="..\Operations.Extensions.XmlDocs\Operations.Extensions.XmlDocs.csproj" />
+    </ItemGroup>
+
+</Project>

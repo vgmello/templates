@@ -1,0 +1,22 @@
+{
+  "$schema": "https://raw.githubusercontent.com/dotnet/docfx/main/schemas/docfx.schema.json",
+  "metadata": [
+    {
+      "src": [
+        {
+          "src": "../src",
+          "files": [
+            "Billing/bin/Debug/**/Billing.dll",
+            "Billing.Api/bin/Debug/**/Billing.Api.dll",
+            "Billing.BackOffice/bin/Debug/**/Billing.BackOffice.dll",
+            "Billing.BackOffice.Orleans/bin/Debug/**/Billing.BackOffice.Orleans.dll"
+          ]
+        }
+      ],
+      "output": "reference/",
+      "outputFormat": "markdown",
+      "namespaceLayout": "nested",
+      "categoryLayout": "nested"
+    }
+  ]
+}

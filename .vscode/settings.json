@@ -1,0 +1,4 @@
+{
+  "dotnet.defaultSolution": "Billing.slnx",
+  "dotnet.automaticallyCreateSolutionInWorkspace": false
+}
