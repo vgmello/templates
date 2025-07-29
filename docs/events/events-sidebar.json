@@ -79,15 +79,29 @@
     "link": null,
     "items": [
       {
-        "text": "Cashier",
-        "link": "/schemas/Billing.Cashiers.Contracts.Models.Cashier",
-        "items": [],
+        "text": "Cashiers",
+        "link": null,
+        "items": [
+          {
+            "text": "Cashier",
+            "link": "/schemas/Billing.Cashiers.Contracts.Models.Cashier",
+            "items": [],
+            "collapsed": false
+          }
+        ],
         "collapsed": false
       },
       {
-        "text": "Invoice",
-        "link": "/schemas/Billing.Invoices.Contracts.Models.Invoice",
-        "items": [],
+        "text": "Invoices",
+        "link": null,
+        "items": [
+          {
+            "text": "Invoice",
+            "link": "/schemas/Billing.Invoices.Contracts.Models.Invoice",
+            "items": [],
+            "collapsed": false
+          }
+        ],
         "collapsed": false
       }
     ],

@@ -9,7 +9,7 @@ editLink: false
 - **Entity:** ``
 - **Type:** Integration Event
 - **Topic:** `{env}.billing.external.payments.v1`
-- **Estimated Payload Size:** 56 bytes ⚠️ *Contains dynamic properties*
+- **Estimated Payload Size:** 68 bytes
 - **Partition Keys**: TenantId
 ## Description
 
@@ -22,17 +22,18 @@ No documentation available
 | TenantId| `Guid` | ✓| 16 bytes | No description available (partition key) |
 | InvoiceId| `Guid` | ✓| 16 bytes | No description available |
 | Amount| `decimal` | ✓| 16 bytes | No description available |
-| Currency| `string` | ✓| 0 bytes (Dynamic size - no MaxLength constraint) | No description available |
-| PaymentMethod| `string` | ✓| 0 bytes (Dynamic size - no MaxLength constraint) | No description available |
-| PaymentReference| `string` | ✓| 0 bytes (Dynamic size - no MaxLength constraint) | No description available |
+| Currency| `string` | ✓| 4 bytes | No description available |
+| PaymentMethod| `string` | ✓| 4 bytes | No description available |
+| PaymentReference| `string` | ✓| 4 bytes | No description available |
 | ReceivedDate| `DateTime` | ✓| 8 bytes | No description available |
+
 
 ### Partition Keys
 
 This event uses a partition key for message routing:
-- `TenantId` - Primary partition key based on tenant
+- `TenantId` - No description available
 ## Technical Details
 
-- **Full Type:** [Billing.Invoices.Contracts.IntegrationEvents.PaymentReceived](https://[github.url.from.config.com]/Billing/Invoices/Contracts/IntegrationEvents/PaymentReceived.cs)
+- **Full Type:** [Billing.Invoices.Contracts.IntegrationEvents.PaymentReceived](https://github.com/vgmello/templates/blob/main/src/Billing/Invoices/Contracts/IntegrationEvents/PaymentReceived.cs)
 - **Namespace:** `Billing.Invoices.Contracts.IntegrationEvents`
 - **Topic Attribute:** `[EventTopic]`

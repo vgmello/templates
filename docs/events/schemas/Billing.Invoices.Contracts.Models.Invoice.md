@@ -20,10 +20,10 @@ Represents a invoice entity.
 | Status| `string` | ✓| Gets or sets the status. |
 | Amount| `decimal` | ✓| Gets or sets the amount. |
 | Currency| `string` | | Gets or sets the currency. |
-| DueDate| `Nullable<DateTime>` | | Gets or sets the duedate. |
-| CashierId| `Nullable<Guid>` | | Gets or sets the cashierid. |
-| AmountPaid| `Nullable<decimal>` | | Gets or sets the amountpaid. |
-| PaymentDate| `Nullable<DateTime>` | | Gets or sets the paymentdate. |
+| DueDate| `DateTime?` | | Gets or sets the duedate. |
+| CashierId| `Guid?` | | Gets or sets the cashierid. |
+| AmountPaid| `decimal?` | | Gets or sets the amountpaid. |
+| PaymentDate| `DateTime?` | | Gets or sets the paymentdate. |
 | CreatedDateUtc| `DateTime` | ✓| Gets or sets the createddateutc. |
 | UpdatedDateUtc| `DateTime` | ✓| Gets or sets the updateddateutc. |
 | Version| `int` | ✓| Gets or sets the version. |

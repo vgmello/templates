@@ -18,9 +18,14 @@ Represents a cashier entity.
 | CashierId| `Guid` | ✓| Gets or sets the cashierid. |
 | Name| `string` | ✓| Gets or sets the name. |
 | Email| `string` | ✓| Gets or sets the email. |
-| CashierPayments| `List<CashierPayment>` | ✓| Gets or sets the cashierpayments. |
+| [CashierPayments](/events/schemas/Billing.Cashiers.Contracts.Models.CashierPayment.md)| `List<CashierPayment>` | ✓| Gets or sets the cashierpayments. |
 | Version| `int` | ✓| Gets or sets the version. |
 
 
 <!-- #endregion schema -->
+
+### Reference Schemas
+
+#### CashierPayment
+<!--@include: @/events/schemas/Billing.Cashiers.Contracts.Models.CashierPayment.md#schema-->
 

@@ -9,7 +9,7 @@ editLink: false
 - **Entity:** `invoice`
 - **Type:** Integration Event
 - **Topic:** `{env}.billing.external.invoices.v1`
-- **Estimated Payload Size:** 64 bytes ⚠️ *Contains dynamic properties*
+- **Estimated Payload Size:** 68 bytes
 - **Partition Keys**: TenantId
 ## Description
 
@@ -22,15 +22,16 @@ No documentation available
 | TenantId| `Guid` | ✓| 16 bytes | No description available (partition key) |
 | InvoiceId| `Guid` | ✓| 16 bytes | No description available |
 | CustomerId| `Guid` | ✓| 16 bytes | No description available |
-| PublicInvoiceNumber| `string` | ✓| 0 bytes (Dynamic size - no MaxLength constraint) | No description available |
+| PublicInvoiceNumber| `string` | ✓| 4 bytes | No description available |
 | FinalTotalAmount| `decimal` | ✓| 16 bytes | No description available |
+
 
 ### Partition Keys
 
 This event uses a partition key for message routing:
-- `TenantId` - Primary partition key based on tenant
+- `TenantId` - No description available
 ## Technical Details
 
-- **Full Type:** [Billing.Invoices.Contracts.IntegrationEvents.InvoiceFinalized](https://[github.url.from.config.com]/Billing/Invoices/Contracts/IntegrationEvents/InvoiceFinalized.cs)
+- **Full Type:** [Billing.Invoices.Contracts.IntegrationEvents.InvoiceFinalized](https://github.com/vgmello/templates/blob/main/src/Billing/Invoices/Contracts/IntegrationEvents/InvoiceFinalized.cs)
 - **Namespace:** `Billing.Invoices.Contracts.IntegrationEvents`
 - **Topic Attribute:** `[EventTopic]`

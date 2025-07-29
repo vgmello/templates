@@ -14,15 +14,15 @@ editLink: false
 ## Description
 
 Published when an invoice is generated in the system.
-            
-            This event is triggered during the invoice creation process
-            and contains the essential invoice information needed for
-            downstream processing.
-            
-            Key details:
-            - Contains tenant isolation data
-            - Includes invoice identification
-            - Provides total amount for processing
+
+This event is triggered during the invoice creation process
+and contains the essential invoice information needed for
+downstream processing.
+
+Key details:
+- Contains tenant isolation data
+- Includes invoice identification
+- Provides total amount for processing
 
 ## Event Payload
 
@@ -32,12 +32,13 @@ Published when an invoice is generated in the system.
 | InvoiceId| `Guid` | ✓| 16 bytes | No description available |
 | InvoiceAmount| `decimal` | ✓| 16 bytes | No description available |
 
+
 ### Partition Keys
 
 This event uses a partition key for message routing:
-- `TenantId` - Primary partition key based on tenant
+- `TenantId` - No description available
 ## Technical Details
 
-- **Full Type:** [Billing.Invoices.Contracts.DomainEvents.InvoiceGenerated](https://[github.url.from.config.com]/Billing/Invoices/Contracts/DomainEvents/InvoiceGenerated.cs)
+- **Full Type:** [Billing.Invoices.Contracts.DomainEvents.InvoiceGenerated](https://github.com/vgmello/templates/blob/main/src/Billing/Invoices/Contracts/DomainEvents/InvoiceGenerated.cs)
 - **Namespace:** `Billing.Invoices.Contracts.DomainEvents`
 - **Topic Attribute:** `[EventTopic]`

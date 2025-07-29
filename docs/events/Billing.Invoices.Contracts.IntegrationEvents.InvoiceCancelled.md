@@ -22,12 +22,13 @@ No documentation available
 | TenantId| `Guid` | ✓| 16 bytes | No description available (partition key) |
 | InvoiceId| `Guid` | ✓| 16 bytes | No description available |
 
+
 ### Partition Keys
 
 This event uses a partition key for message routing:
-- `TenantId` - Primary partition key based on tenant
+- `TenantId` - No description available
 ## Technical Details
 
-- **Full Type:** [Billing.Invoices.Contracts.IntegrationEvents.InvoiceCancelled](https://[github.url.from.config.com]/Billing/Invoices/Contracts/IntegrationEvents/InvoiceCancelled.cs)
+- **Full Type:** [Billing.Invoices.Contracts.IntegrationEvents.InvoiceCancelled](https://github.com/vgmello/templates/blob/main/src/Billing/Invoices/Contracts/IntegrationEvents/InvoiceCancelled.cs)
 - **Namespace:** `Billing.Invoices.Contracts.IntegrationEvents`
 - **Topic Attribute:** `[EventTopic]`
