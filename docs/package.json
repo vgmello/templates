@@ -4,7 +4,7 @@
   "description": "",
   "type": "module",
   "scripts": {
-    "dev": "pnpm install && pnpm docs:events && pnpm docs:dotnet && pnpm adr:logs && pnpm docs:dev",
+    "dev": "pnpm install --force && pnpm docs:events && pnpm docs:dotnet && pnpm adr:logs && pnpm docs:dev",
     "docs:dev": "vitepress dev",
     "docs:build": "pnpm run generate:adr-table && pnpm run check:docfx && vitepress build",
     "docs:preview": "vitepress preview",

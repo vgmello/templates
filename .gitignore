@@ -438,3 +438,4 @@ requirements/
 
 _temp
 .pnpm-store/
+docs/obj**

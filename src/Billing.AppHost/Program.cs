@@ -77,7 +77,7 @@ builder
 
 builder
     .AddContainer("billing-docs", "billing-docfx")
-    .WithDockerfile("../../docs", "../../")
+    .WithDockerfile("../../", "docs/Dockerfile")
     .WithBindMount("../../", "/app")
     .WithVolume("/app/docs/node_modules")
     .WithHttpEndpoint(port: 8119, targetPort: 5173, name: "http")
